@@ -57,8 +57,9 @@ Some functional fun:
     i=8
     i=16
 
-You can find full exemples in the sources:
-  * [Application](http://github.com)
+You can find full exemples in the source:
+
+  * [Application](https://github.com/aloiscochard/sdi/blob/master/src/test/scala/sdi/examples/1_Application.scala)
 
 ## Download
 
