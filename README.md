@@ -59,7 +59,8 @@ Some functional fun:
 
 You can find full examples in the source:
 
-  * [Application](https://github.com/aloiscochard/sdi/blob/master/src/test/scala/sdi/examples/1_Application.scala)
+  * [Module](https://github.com/aloiscochard/sdi/blob/master/src/test/scala/sdi/examples/1_Module.scala)
+  * [Application](https://github.com/aloiscochard/sdi/blob/master/src/test/scala/sdi/examples/2_Application.scala)
 
 ## Download
 
