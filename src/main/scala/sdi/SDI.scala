@@ -8,6 +8,6 @@ package sdi
 
 object SDI extends context.Context with context.Configurable
 
-abstract class Context extends context.Context with context.Childifiable with context.Configurable {
+trait Context extends context.Context with context.Childifiable with context.Configurable {
   override protected def default = () => sdi.injector.Injector(bindings, () => SDI.injector)
 }
