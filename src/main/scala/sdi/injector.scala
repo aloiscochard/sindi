@@ -1,6 +1,7 @@
 package sdi.injector
 
 import scala.collection.immutable.Map
+import org.scalastuff.scalabeans.Preamble._
 
 object Injector {
   def apply(bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef]): Injector =
@@ -10,14 +11,14 @@ object Injector {
 }
 
 trait Injector {
-  final def inject[T : Manifest]: T = injectAs[T](None)
-  def injectAs[T : Manifest](qualifier: AnyRef): T
+  final def inject[T <: AnyRef : Manifest]: T = injectAs[T](None)
+  def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T
 }
 
 trait Bindable extends Injector {
   val bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef]
 
-  def injectAs[T : Manifest](qualifier: AnyRef) : T = {
+  def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
     val source = manifest[T].erasure
     bindings.get(qualifier -> source) match {
       case Some(provider) => provider.asInstanceOf[() => T]()
@@ -26,10 +27,22 @@ trait Bindable extends Injector {
   }
 }
 
+trait Annotable extends Injector {
+
+  override abstract def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
+    val o = super.injectAs[T](qualifier)
+    for (property <- descriptorOf[T].properties) {
+      println(property)
+    }
+    o
+  }
+    
+}
+
 trait Childable extends Injector {
   val parent: () => Injector
 
-  override abstract def injectAs[T : Manifest](qualifier: AnyRef): T = {
+  override abstract def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = {
     try {
       parent().injectAs[T](qualifier)
     } catch {
@@ -40,7 +53,7 @@ trait Childable extends Injector {
 
 private class DefaultInjector(
     override val bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef])
-  extends Injector with Bindable
+  extends Injector with Bindable with Annotable
 
 private class ChildedInjector(
     override val bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef],

@@ -21,6 +21,7 @@ object Application extends App with sdi.Context {
       case Mode.Advanced => {
         bind[UserRepository] to new AdvancedUserRepository scope singleton
       }
+      case _ => 
     }
   }
 

@@ -6,8 +6,11 @@ package sdi
 // TODO [aloiscochard] Add assertion and error message
 // TODO [aloiscochard] Add assertion check on context.bindings when locked
 
+class inject extends StaticAnnotation
+
 object SDI extends context.Context with context.Configurable
 
 trait Context extends context.Context with context.Childifiable with context.Configurable {
   override protected def default = () => sdi.injector.Injector(bindings, () => SDI.injector)
 }
+

@@ -11,7 +11,7 @@ trait Context extends Injector {
   var factory : (() => Injector) => Injector = (d: () => Injector) => d() 
 
   protected def default : () => Injector = () => Injector(bindings)
-  override def injectAs[T : Manifest](qualifier: AnyRef): T =  injector.injectAs[T](qualifier)
+  override def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T =  injector.injectAs[T](qualifier)
 }
 
 trait Childifiable extends Context {
