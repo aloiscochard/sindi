@@ -1,5 +1,4 @@
-package sdi.exemples.introduction
-
+package sdi.examples.introduction
 
 object Introduction {
   import sdi.SDI._
@@ -19,7 +18,6 @@ object Introduction {
         println(inject[UID])
       }
   }
-  
 
   object Functional extends sdi.Context {
     define {
