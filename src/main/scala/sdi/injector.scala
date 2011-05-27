@@ -3,6 +3,8 @@ package sdi.injector
 import scala.collection.immutable.Map
 import org.scalastuff.scalabeans.Preamble._
 
+class inject(val qualifier: AnyRef = None) extends StaticAnnotation 
+
 object Injector {
   def apply(bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef]): Injector =
     new DefaultInjector(bindings)
@@ -32,8 +34,12 @@ trait Annotable extends Injector {
   override abstract def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
     val o = super.injectAs[T](qualifier)
     /*
-    for (property <- descriptorOf(scalaTypeOf[o]).properties) {
-      // inject annotated field
+    for (property <- descriptorOf(scalaTypeOf(o.getClass)).properties) {
+      val a = property.findAnnotation[inject]
+      if (a) {
+        val value = injectAs(Manifest)(a.qualifier)
+        property = value
+      }
       println(property)
     }
     */

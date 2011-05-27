@@ -6,7 +6,7 @@ package sdi
 // TODO [aloiscochard] Add assertion and error message
 // TODO [aloiscochard] Add assertion check on context.bindings when locked
 
-class inject extends StaticAnnotation
+class inject extends injector.inject
 
 object SDI extends context.Context with context.Configurable
 
