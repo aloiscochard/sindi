@@ -31,9 +31,12 @@ trait Annotable extends Injector {
 
   override abstract def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
     val o = super.injectAs[T](qualifier)
-    for (property <- descriptorOf[T].properties) {
+    /*
+    for (property <- descriptorOf(scalaTypeOf[o]).properties) {
+      // inject annotated field
       println(property)
     }
+    */
     o
   }
     
