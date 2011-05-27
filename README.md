@@ -1,5 +1,4 @@
 # Sindi
-An IoC Container For Scala
 [http://aloiscochard.github.com/sindi](http://aloiscochard.github.com/sindi)
 
 Sindi is an IoC ([Inversion of Control](http://martinfowler.com/articles/injection.html)) container for the [Scala](http://www.scala-lang.org) programming language.
