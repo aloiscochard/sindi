@@ -13,7 +13,7 @@ object UserService extends Context {
 
 import UserService.inject
 
-class DefaultUserService(repository : UserRepository = inject[UserRepository]) extends UserService {
+class DefaultUserService(repository: UserRepository = inject[UserRepository]) extends UserService {
   println("DefaultUserService.constructor")
 
   def start() = {
