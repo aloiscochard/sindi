@@ -2,8 +2,7 @@ package sdi.injector
 
 import scala.collection.immutable.Map
 import org.scalastuff.scalabeans.Preamble._
-
-class inject(val qualifier: AnyRef = None) extends StaticAnnotation 
+import org.scalastuff.scalabeans.MutablePropertyDescriptor
 
 object Injector {
   def apply(bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef]): Injector =
@@ -30,19 +29,24 @@ trait Bindable extends Injector {
 }
 
 trait Annotable extends Injector {
+  class VirtualManifest(override val erasure: java.lang.Class[_]) extends Manifest[AnyRef]
 
   override abstract def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
     val o = super.injectAs[T](qualifier)
-    /*
-    for (property <- descriptorOf(scalaTypeOf(o.getClass)).properties) {
-      val a = property.findAnnotation[inject]
-      if (a) {
-        val value = injectAs(Manifest)(a.qualifier)
-        property = value
+    for (p <- descriptorOf(scalaTypeOf(o.getClass)).properties) {
+      p match {
+        case property: MutablePropertyDescriptor => {
+          property.findAnnotation[sdi.inject] match {
+            case Some(annotation) => {
+              val qualifier: AnyRef = if (annotation.qualifier.isEmpty) None else annotation.qualifier
+              property.set(o, injectAs(qualifier)(new VirtualManifest(property.scalaType.erasure)))
+            }
+            case _ =>
+          }
+        }
+        case _ =>
       }
-      println(property)
     }
-    */
     o
   }
     
