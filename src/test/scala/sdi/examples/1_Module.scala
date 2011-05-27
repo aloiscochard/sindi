@@ -6,18 +6,14 @@ trait UserService { def start() }
 
 object UserService extends Context {
   define {
-    bind[UserService] to new DefaultUserService scope singleton
-    bind[UserRepository] to new DefaultUserRepository scope singleton
+      bind[UserService] to new DefaultUserService scope singleton
+      bind[UserRepository] to new DefaultUserRepository scope singleton
   }
-
-  def start() = { inject[UserService].start() }
 }
 
 import UserService.inject
 
-class DefaultUserService extends UserService {
-  lazy val repository = inject[UserRepository]
-
+class DefaultUserService(repository : UserRepository = inject[UserRepository]) extends UserService {
   println("DefaultUserService.constructor")
 
   def start() = {

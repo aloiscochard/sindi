@@ -26,6 +26,6 @@ object Application extends App with sdi.Context {
   }
 
   UserService.childify(this)
-  UserService.start()
+  inject[UserService].start()
 }
 
