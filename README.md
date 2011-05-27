@@ -1,12 +1,9 @@
 # Sindi
 
+# An IoC Container For Scala
+[http://aloiscochard.github.com/sindi](http://aloiscochard.github.com/sindi)
+
 Sindi is an IoC ([Inversion of Control](http://martinfowler.com/articles/injection.html)) container for the [Scala](http://www.scala-lang.org) programming language.
-
-*WARNING ALPHA VERSION*
-
-## Why IoC ?
-
-TBD
 
 ## Examples
 
@@ -15,8 +12,6 @@ TBD
   * [Annotation](http://github.com/aloiscochard/sindi/blob/master/src/test/scala/sindi/examples/2_Annotation.scala) (Dependency Injection Pattern)
 
 ## Download
-
-(will hopefully move to scala-tools.org repository)
 
 # SBT
 
