@@ -1,10 +1,10 @@
-package sdi.examples.annotation
+package sindi.examples.annotation
 
 import org.specs2.mutable._
 
-import sdi.Context
-import sdi.inject
-import sdi.examples.annotation.user._
+import sindi.Context
+import sindi.inject
+import sindi.examples.annotation.user._
 
 /////////////////
 // Application //

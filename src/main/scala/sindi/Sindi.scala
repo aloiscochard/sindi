@@ -1,4 +1,4 @@
-package sdi
+package sindi
 
 // TODO [aloiscochard] qualifier fallback: test use of ||
 // TODO [aloiscochard] @default annotation for defImpl or other strategy ?
@@ -6,9 +6,8 @@ package sdi
 // TODO [aloiscochard] Add assertion and error message
 // TODO [aloiscochard] Add assertion check on context.bindings when locked
 
-object SDI extends context.Context with context.Configurable
+object Sindi extends context.Context with context.Configurable
 
 trait Context extends context.Context with context.Childifiable with context.Configurable {
-  override protected def default = () => sdi.injector.Injector(bindings, () => SDI.injector)
+  override protected def default = () => sindi.injector.Injector(bindings, () => Sindi.injector)
 }
-

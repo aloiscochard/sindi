@@ -1,6 +1,6 @@
 import sbt._
 
-class SDIProject(info: ProjectInfo) extends DefaultProject(info) {
+class SindiProject(info: ProjectInfo) extends DefaultProject(info) {
   val scalabeans     = "org.scalastuff" % "scalabeans" % "0.1"
   val specs2         = "org.specs2" %% "specs2" % "1.3" % "test"
 

@@ -1,9 +1,9 @@
-package sdi.examples.basic
+package sindi.examples.basic
 
 import org.specs2.mutable._
 
-import sdi.Context
-import sdi.examples.basic.user._
+import sindi.Context
+import sindi.examples.basic.user._
 
 /////////////////
 // Application //

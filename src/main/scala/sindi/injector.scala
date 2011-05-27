@@ -1,4 +1,4 @@
-package sdi.injector
+package sindi.injector
 
 import scala.collection.immutable.Map
 import org.scalastuff.scalabeans.Preamble._
@@ -36,7 +36,7 @@ trait Annotable extends Injector {
     for (p <- descriptorOf(scalaTypeOf(o.getClass)).properties) {
       p match {
         case property: MutablePropertyDescriptor => {
-          property.findAnnotation[sdi.inject] match {
+          property.findAnnotation[sindi.inject] match {
             case Some(annotation) => {
               val qualifier: AnyRef = if (annotation.qualifier.isEmpty) None else annotation.qualifier
               property.set(o, injectAs(qualifier)(new VirtualManifest(property.scalaType.erasure)))

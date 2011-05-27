@@ -1,7 +1,7 @@
-package sdi.examples.introduction
+package sindi.examples.introduction
 
 object Introduction {
-  import sdi.SDI._
+  import sindi.Sindi._
 
   class Component
   class UID
@@ -19,7 +19,7 @@ object Introduction {
       }
   }
 
-  object Functional extends sdi.Context {
+  object Functional extends sindi.Context {
     define {
       var i = 1
       bind[String] to { i = i + i; "i=" + i }

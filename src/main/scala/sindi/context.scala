@@ -1,9 +1,9 @@
-package sdi.context
+package sindi.context
 
 import scala.collection.immutable.{HashMap, List, Map}
 
-import sdi.injector.Injector
-import sdi.binder.Binder
+import sindi.injector.Injector
+import sindi.binder.Binder
 
 trait Context extends Injector {
   lazy val injector = factory(default)

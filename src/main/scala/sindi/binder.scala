@@ -1,6 +1,6 @@
-package sdi.binder
+package sindi.binder
 
-import sdi.binder.binding._
+import sindi.binder.binding._
 
 object Binder extends Binder
 

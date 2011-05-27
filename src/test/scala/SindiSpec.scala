@@ -1,10 +1,10 @@
-package sdi
+package sindi
 
 import org.specs2.mutable._
 
 class Foo
 
-class SDISpec extends Specification {
+class SindiSpec extends Specification {
 
   /*
   "Injector Companion" should {

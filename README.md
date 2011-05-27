@@ -1,66 +1,18 @@
 # Sindi
 
+Sindi is an IoC ([Inversion of Control](http://martinfowler.com/articles/injection.html)) container for the [Scala](http://www.scala-lang.org) programming language.
+
 *WARNING ALPHA VERSION*
 
-## Getting Started
+## Why IoC ?
 
-Using the Sindi root context directly:
+TBD
 
-    import sdi.SDI._
+## Examples
 
-    class Component
-    class UID
-
-    define {
-      val c = new Component
-      bind[Component] to c
-      bind[UID] to new UID
-    }
-
-    def intro() {
-        for (x <- 1 to 4) {
-          println(inject[Component])
-          println(inject[UID])
-        }
-    }
-
-    // REPL
-    scala> sdi.exemples.introduction.Introduction.intro
-    sdi.exemples.introduction.Introduction$Component@7646dfb1
-    sdi.exemples.introduction.Introduction$UID@27081a21
-    sdi.exemples.introduction.Introduction$Component@7646dfb1
-    sdi.exemples.introduction.Introduction$UID@4eb808c
-    sdi.exemples.introduction.Introduction$Component@7646dfb1
-    sdi.exemples.introduction.Introduction$UID@14469da
-    sdi.exemples.introduction.Introduction$Component@7646dfb1
-    sdi.exemples.introduction.Introduction$UID@328167dc
-
-Some functional fun:
-
-    object Functional extends sdi.Context {
-      define {
-        var i = 1
-        bind[String] to { i = i + i; "i=" + i }
-      }
-
-      def haveFun = {
-        for (x <- 1 to 4) {
-          println(inject[String])
-        }
-      }
-    }
-
-    // REPL
-    scala> sdi.exemples.introduction.Introduction.Functional.haveFun
-    i=2
-    i=4
-    i=8
-    i=16
-
-You can find full examples in the source:
-
-  * [Basic](http://github.com/aloiscochard/sindi/blob/master/src/test/scala/sdi/examples/1_Basic.scala)
-  * [Annotation](http://github.com/aloiscochard/sindi/blob/master/src/test/scala/sdi/examples/2_Annotation.scala)
+  * [Introduction](http://github.com/aloiscochard/sindi/blob/master/src/test/scala/sindi/examples/0_Introduction.scala)
+  * [Idiomatic](http://github.com/aloiscochard/sindi/blob/master/src/test/scala/sindi/examples/1_Basic.scala) (Service Locator Pattern)
+  * [Annotation](http://github.com/aloiscochard/sindi/blob/master/src/test/scala/sindi/examples/2_Annotation.scala) (Dependency Injection Pattern)
 
 ## Download
 
@@ -68,7 +20,7 @@ You can find full examples in the source:
 
 # SBT
 
-      val sdi = "org.scala-tools.sindi" %% "sindi" % "0.1-SNAPSHOT"
+      val sindi = "org.scala-tools.sindi" %% "sindi" % "0.1-SNAPSHOT"
 
       val aloiscochardSnapshots = "aloiscochard snapshots" at "http://orexio.org/~alois/repositories/snapshots" 
 
