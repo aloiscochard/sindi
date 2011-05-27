@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset={{ __encoding__ }}" />
+    <title>Sindi - {{ page["title"] }}</title>
+    <meta name="description" content="{{ page.get("description", "a poole site") }}" />
+    <meta name="keywords" content="{{ page.get("keywords", "poole") }}" />
+    <link rel="stylesheet" type="text/css" href="sindi.css" />
+</head>
+<body>
+    <div id="box">
+    <div id="title">
+      <h1><img src="logo.png"/>Sindi => { An IoC Container for Scala }</h1>
+    </div>
+    <div id="menu">
+    <!--%
+        mpages = [p for p in pages if "menu-position" in p]
+        mpages.sort(key=lambda p: int(p["menu-position"]))
+        entry = '<span class="%s"><a href="%s">%s</a></span>'
+        for p in mpages:
+            style = p["title"] == page["title"] and "current" or ""
+            print(entry % (style, p["url"], p["title"]))
+    %-->
+    </div>
+    <div id="header">
+      <h2>{{ page["title"] }}</h2>
+    </div>
+    <div id="content">{{ __content__ }}</div>
+    </div>
+    <div id="footer">
+        Source Code at <a href="http://github.com/aloiscochard/sindi">GitHub.com</a>
+        &middot;
+        Licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License: Version 2.0</a>
+    </div>
+</body>
+</html>
