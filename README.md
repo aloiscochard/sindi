@@ -1,10 +1,10 @@
-# Scala Dependency Injector
+# Sindi
 
 *WARNING ALPHA VERSION*
 
 ## Getting Started
 
-Using the SDI root context directly:
+Using the Sindi root context directly:
 
     import sdi.SDI._
 
@@ -59,14 +59,16 @@ Some functional fun:
 
 You can find full examples in the source:
 
-  * [Basic](http://github.com/aloiscochard/sdi/blob/master/src/test/scala/sdi/examples/1_Basic.scala)
-  * [Annotation](http://github.com/aloiscochard/sdi/blob/master/src/test/scala/sdi/examples/2_Annotation.scala)
+  * [Basic](http://github.com/aloiscochard/sindi/blob/master/src/test/scala/sdi/examples/1_Basic.scala)
+  * [Annotation](http://github.com/aloiscochard/sindi/blob/master/src/test/scala/sdi/examples/2_Annotation.scala)
 
 ## Download
 
+(will hopefully move to scala-tools.org repository)
+
 # SBT
 
-      val sdi = "com.github.aloiscochard.sdi" %% "sdi" % "0.1-SNAPSHOT"
+      val sdi = "org.scala-tools.sindi" %% "sindi" % "0.1-SNAPSHOT"
 
       val aloiscochardSnapshots = "aloiscochard snapshots" at "http://orexio.org/~alois/repositories/snapshots" 
 
@@ -75,8 +77,8 @@ You can find full examples in the source:
     <dependencies>
       ...
       <dependency>
-        <groupId>com.github.aloiscochard.sdi</groupId>
-        <artifactId>sdi_2.9.0</artifactId>
+        <groupId>org.scala-tools.sindi</groupId>
+        <artifactId>sindi_2.9.0</artifactId>
         <version>0.1-SNAPSHOT</version>
       </dependency>
       ...
