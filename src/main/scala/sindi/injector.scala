@@ -1,4 +1,5 @@
-package sindi.injector
+package sindi
+package injector
 
 import scala.collection.immutable.Map
 import org.scalastuff.scalabeans.Preamble._

@@ -8,6 +8,12 @@ package sindi
 
 object Sindi extends context.Context with context.Configurable
 
+class Component[S <: AnyRef : Manifest] extends Context {
+  def this(context: Context) = { this(); childify(context) }
+  def apply(): S = inject[S]
+}
+
 trait Context extends context.Context with context.Childifiable with context.Configurable {
   override protected def default = () => sindi.injector.Injector(bindings, () => Sindi.injector)
 }
+

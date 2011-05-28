@@ -1,6 +1,7 @@
-package sindi.binder
+package sindi
+package binder
 
-import sindi.binder.binding._
+import binder.binding._
 
 object Binder extends Binder
 

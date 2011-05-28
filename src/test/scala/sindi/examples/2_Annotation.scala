@@ -2,8 +2,8 @@ package sindi.examples.annotation
 
 import org.specs2.mutable._
 
-import sindi.Context
-import sindi.inject
+import sindi._
+import sindi._
 import sindi.examples.annotation.user._
 
 /////////////////

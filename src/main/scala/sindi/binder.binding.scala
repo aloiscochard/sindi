@@ -1,4 +1,5 @@
-package sindi.binder.binding
+package sindi.binder
+package binding
 
 import scala.collection.mutable.{HashMap => MHashMap}
 

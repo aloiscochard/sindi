@@ -1,9 +1,10 @@
-package sindi.context
+package sindi
+package context
 
 import scala.collection.immutable.{HashMap, List, Map}
 
-import sindi.injector.Injector
-import sindi.binder.Binder
+import injector.Injector
+import binder.Binder
 
 trait Context extends Injector {
   lazy val injector = factory(default)
