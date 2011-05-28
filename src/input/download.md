@@ -3,6 +3,9 @@ title: Download
 menu-position: 3
 ---
 
+Coming soon
+
+<!--
 # SBT
 
       val sindi = "org.scala-tools.sindi" %% "sindi" % "0.1-SNAPSHOT"
@@ -29,3 +32,4 @@ menu-position: 3
       </repository>
       ...
     </repositories>
+-->

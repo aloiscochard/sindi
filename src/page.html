@@ -10,7 +10,26 @@
 <body>
     <div id="box">
     <div id="title">
-      <h1><img src="./logo.png"/>Sindi => { An IoC Container for Scala }</h1>
+
+      <table border="0">
+        <tr>
+          <td>
+            <div id="logo">
+              <img src="./logo.png"/>
+            </div>
+          </td>
+          <td>
+            <div id="name">
+              Sindi
+            </div>
+            <div id="description">
+               => { An IoC Container for Scala } 
+            </div>
+          </td>
+        </tr>
+      </table>
+
+
     </div>
     <div id="menu">
     <!--%
@@ -22,15 +41,17 @@
             print(entry % (style, p["url"], p["title"]))
     %-->
     </div>
+    <!--
     <div id="header">
       <h2>{{ page["title"] }}</h2>
     </div>
+    -->
     <div id="content">{{ __content__ }}</div>
     </div>
     <div id="footer">
         Source Code at <a href="http://github.com/aloiscochard/sindi">GitHub.com</a>
         &middot;
-        Licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License: Version 2.0</a>
+        Licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a>
     </div>
 </body>
 </html>
