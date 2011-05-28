@@ -2,7 +2,7 @@ package sindi.examples.basic
 
 import org.specs2.mutable._
 
-import sindi.Context
+import sindi._
 import sindi.examples.basic.user._
 
 /////////////////
@@ -23,16 +23,16 @@ object Application extends App with Context {
     case _ => Default
   }
 
-  define {
-    bind[UserService] to new DefaultUserService(this) scope singleton
-    bind[UserRepository] to { Application.mode match {
-      case Mode.Advanced => new AdvancedUserRepository
-      case _ => new DefaultUserRepository
-    } } scope singleton
+  lazy val userService = new UserServiceComponent(this)
 
+  define {
+    Application.mode match {
+      case Mode.Advanced => bind[UserRepository] to new AdvancedUserRepository scope singleton
+      case _ => 
+    }
   }
 
-  inject[UserService].start()
+  userService().start()
 }
 
 //////////////////
@@ -40,13 +40,16 @@ object Application extends App with Context {
 //////////////////
 
 package user {
+  class UserServiceComponent(context: Context) extends Component[UserService](context: Context) {
+    define {
+      bind[UserService] to new DefaultUserService(inject[UserRepository]) scope singleton
+      bind[UserRepository] to new DefaultUserRepository scope singleton
+    }
+  }
+
   trait UserService { def start() }
 
-  class DefaultUserService(val repository: UserRepository) extends UserService with Context {
-    def this(context: Context) = {
-      this(context.inject[UserRepository])
-      childify(context)
-    }
+  class DefaultUserService(val repository: UserRepository) extends UserService {
     println("DefaultUserService.constructor")
     def start() = {
       println("DefaultUserService.start")
