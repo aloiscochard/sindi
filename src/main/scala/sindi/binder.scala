@@ -6,8 +6,8 @@ import binder.binding._
 object Binder extends Binder
 
 trait Scoper {
-  def singleton: () => Any = () => 0
-  def thread: () => Any = () => java.lang.Thread.currentThread // TODO WARNING: Java only
+  def singleton: () => AnyRef = () => None // TODO Move singleton concept to DSL, to avoide mutable state of scopable.
+  def thread: () => AnyRef = () => java.lang.Thread.currentThread
 }
 
 trait Binder extends Scoper {
