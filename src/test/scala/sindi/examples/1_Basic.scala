@@ -10,7 +10,6 @@ import sindi.examples.basic.user._
 /////////////////
 
 object Application extends App with Context {
-
   object Mode extends Enumeration {
     type Mode = Value;
     val Advanced, Default = Value
@@ -23,11 +22,11 @@ object Application extends App with Context {
     case _ => Default
   }
 
-  lazy val userService = new UserServiceComponent(this)
+  val userService = new UserServiceComponent(this)
 
   define {
     Application.mode match {
-      case Mode.Advanced => bind[UserRepository] to new AdvancedUserRepository scope singleton
+      case Mode.Advanced => bind[UserRepository] to new UserRepository with Advanced scope singleton
       case _ => 
     }
   }
@@ -40,10 +39,11 @@ object Application extends App with Context {
 //////////////////
 
 package user {
+
   class UserServiceComponent(context: Context) extends Component[UserService](context: Context) {
     define {
       bind[UserService] to new DefaultUserService(inject[UserRepository]) scope singleton
-      bind[UserRepository] to new DefaultUserRepository scope singleton
+      bind[UserRepository] to new UserRepository with Default scope singleton
     }
   }
 
@@ -57,14 +57,14 @@ package user {
     }
   }
 
-  trait UserRepository { def start() }
+  abstract class UserRepository { def start() }
 
-  class DefaultUserRepository extends UserRepository{
+  trait Default extends UserRepository{
     println("DefaultUserRepository.constructor")
     def start() = println("DefaultUserRepository.start")
   }
 
-  class AdvancedUserRepository extends UserRepository{
+  trait Advanced extends UserRepository{
     println("AdvancedUserRepository.constructor")
     def start() = println("AdvancedUserRepository.start")
   }
