@@ -15,5 +15,5 @@ trait Context extends context.Context with context.Childifiable with context.Con
 abstract class Component[S <: AnyRef : Manifest] extends Context {
   def this(context: Context) = { this(); childify(context) }
   def apply(): S = inject[S]
-  def inject: S = inject[S]
+  def apply(qualifier: AnyRef): S = injectAs[S](qualifier)
 }
