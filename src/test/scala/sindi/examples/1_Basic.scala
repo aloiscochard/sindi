@@ -22,7 +22,7 @@ object Application extends App with Context {
     case _ => Default
   }
 
-  val userServiceComponent = UserService(this)
+  val user = UserModule(this)
 
   define {
     Application.mode match {
@@ -31,7 +31,7 @@ object Application extends App with Context {
     }
   }
 
-  userServiceComponent[UserService]().start()
+  user[UserService].start()
 }
 
 //////////////////
@@ -40,15 +40,12 @@ object Application extends App with Context {
 
 package user {
 
-  object UserService {
-    def apply(repository: UserRepository) = new DefaultUserService(repository)
-    def apply(context: Context) = new UserServiceComponent()(context)
-  }
-
-  class UserServiceComponent(implicit context: Context) extends Component {
-    define {
-      bind[UserService] to new DefaultUserService(inject[UserRepository]) scope singleton
-      bind[UserRepository] to new UserRepository with Default scope singleton
+  object UserModule {
+    def apply(implicit context: Context) = new Module {
+      define {
+        bind[UserService] to new DefaultUserService(inject[UserRepository]) scope singleton
+        bind[UserRepository] to new UserRepository with Default scope singleton
+      }
     }
   }
 

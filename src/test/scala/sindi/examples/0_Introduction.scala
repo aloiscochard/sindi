@@ -7,8 +7,7 @@ object Introduction {
   class UID
 
   define {
-    val c = new Component
-    bind[Component] to c
+    bind[Component] to new Component scope singleton
     bind[UID] to new UID
   }
 
