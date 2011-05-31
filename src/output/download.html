@@ -58,7 +58,10 @@
     -->
     <div id="content"><p><em>This framework is actually in early stage and only available as snapshot</em></p>
 <h2>SBT</h2>
-<pre><code>  val sindi = "org.scala-tools.sindi" %% "sindi" % "0.1-SNAPSHOT"
+<pre><code>  val sindi = "org.scala-tools.sinap" %% "sinap-core" % "0.1-SNAPSHOT"
+  val sindi = "org.scala-tools.sinap" %% "sinap-mapper" % "0.1-SNAPSHOT"
+
+  ...
 
   val aloiscochardSnapshots = "aloiscochard snapshots" at "http://orexio.org/~alois/repositories/snapshots"
 </code></pre>
@@ -66,8 +69,8 @@
 <pre><code>&lt;dependencies&gt;
   ...
   &lt;dependency&gt;
-    &lt;groupId&gt;org.scala-tools.sindi&lt;/groupId&gt;
-    &lt;artifactId&gt;sindi_2.9.0&lt;/artifactId&gt;
+    &lt;groupId&gt;org.scala-tools.sinap&lt;/groupId&gt;
+    &lt;artifactId&gt;sinap-core_2.9.0&lt;/artifactId&gt;
     &lt;version&gt;0.1-SNAPSHOT&lt;/version&gt;
   &lt;/dependency&gt;
   ...
