@@ -6,6 +6,19 @@
     <meta name="description" content="a poole site" />
     <meta name="keywords" content="poole" />
     <link rel="stylesheet" type="text/css" href="http://aloiscochard.github.com/sindi/sindi.css" />
+
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-348171-11']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
 </head>
 <body>
     <div id="box">
@@ -43,35 +56,32 @@
       <h2>Download</h2>
     </div>
     -->
-    <div id="content"><p>Coming soon</p>
-<!--
-# SBT
+    <div id="content"><p><em>This framework is actually in early stage and only available as snapshot</em></p>
+<h2>SBT</h2>
+<pre><code>  val sindi = "org.scala-tools.sindi" %% "sindi" % "0.1-SNAPSHOT"
 
-val sindi = "org.scala-tools.sindi" %% "sindi" % "0.1-SNAPSHOT"
+  val aloiscochardSnapshots = "aloiscochard snapshots" at "http://orexio.org/~alois/repositories/snapshots"
+</code></pre>
+<h2>Maven</h2>
+<pre><code>&lt;dependencies&gt;
+  ...
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.scala-tools.sindi&lt;/groupId&gt;
+    &lt;artifactId&gt;sindi_2.9.0&lt;/artifactId&gt;
+    &lt;version&gt;0.1-SNAPSHOT&lt;/version&gt;
+  &lt;/dependency&gt;
+  ...
+&lt;/dependencies&gt;
 
-val aloiscochardSnapshots = "aloiscochard snapshots" at "http://orexio.org/~alois/repositories/snapshots"
-
-# Maven
-
-<dependencies>
-      ...
-      <dependency>
-        <groupId>org.scala-tools.sindi</groupId>
-        <artifactId>sindi_2.9.0</artifactId>
-        <version>0.1-SNAPSHOT</version>
-      </dependency>
-      ...
-    </dependencies>
-
-<repositories>
-      ...
-      <repository>
-        <id>aloiscochard snapshots</id>
-        <url>http://orexio.org/~alois/repositories/snapshots</url>
-      </repository>
-      ...
-    </repositories>
---></div>
+&lt;repositories&gt;
+  ...
+  &lt;repository&gt;
+    &lt;id&gt;aloiscochard snapshots&lt;/id&gt;
+    &lt;url&gt;http://orexio.org/~alois/repositories/snapshots&lt;/url&gt;
+  &lt;/repository&gt;
+  ...
+&lt;/repositories&gt;
+</code></pre></div>
     </div>
     <div id="footer">
         Source Code at <a href="http://github.com/aloiscochard/sindi">GitHub.com</a>

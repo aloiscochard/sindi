@@ -3,16 +3,15 @@ title: Download
 menu-position: 3
 ---
 
-Coming soon
+_This framework is actually in early stage and only available as snapshot_
 
-<!--
-# SBT
+## SBT
 
       val sindi = "org.scala-tools.sindi" %% "sindi" % "0.1-SNAPSHOT"
 
       val aloiscochardSnapshots = "aloiscochard snapshots" at "http://orexio.org/~alois/repositories/snapshots" 
 
-# Maven
+## Maven
 
     <dependencies>
       ...
@@ -32,4 +31,3 @@ Coming soon
       </repository>
       ...
     </repositories>
--->
