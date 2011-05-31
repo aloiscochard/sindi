@@ -12,8 +12,8 @@ trait Context extends context.Context with context.Childifiable with context.Con
   override protected def default = () => sindi.injector.Injector(bindings, () => Sindi.injector)
 }
 
-abstract class Component[S <: AnyRef : Manifest] extends Context {
-  def this(context: Context) = { this(); childify(context) }
-  def apply(): S = inject[S]
-  def apply(qualifier: AnyRef): S = injectAs[S](qualifier)
+abstract class Component(implicit context: Context) extends Context {
+  childify(context)
+  def apply[S <: AnyRef : Manifest](): S = inject[S]
+  def apply[S <: AnyRef : Manifest](qualifier: AnyRef): S = injectAs[S](qualifier)
 }

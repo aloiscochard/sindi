@@ -7,42 +7,44 @@ import sindi._
 /////////////////
 
 object Application extends App with Context {
-  val o = consumer.Consumer(this)
-  val s = service.Service(this)
+  import consumer._
+  import service._
+  val consumerComponent = Consumer(this)
+  val serviceComponent = Service(this)
   define {
-    bind[service.Service] to s() as "consumer"
+    bind[Service] to new AdvancedService as "consumer"
   }
-  o().consume()
+  consumerComponent[Consumer]().consume()
 }
 
 package consumer {
   import sindi.examples.qualifier.service._
 
   object Consumer {
-    def apply(context: Context) = new ConsumerComponent(context)
+    def apply(context: Context) = new ConsumerComponent()(context)
   }
 
-  class ConsumerComponent(context: Context) extends Component[Consumer](context: Context) {
-    val service = Service(this)
+  class ConsumerComponent(implicit context: Context) extends Component {
+    val serviceComponent = Service(this)
     define {
-      bind[Consumer] to new Consumer(service("consumer"))
+      bind[Consumer] to new Consumer(serviceComponent[Service]("consumer"))
       //bind[Service] to service() as "consumer"
     }
   }
   
 
   class Consumer(service: Service) {
-    def consume() = println(service.name)
+    def consume() = println(service)
   }
 }
 
 package service {
 
   object Service {
-    def apply(context: Context) = new ServiceComponent(context)
+    def apply(context: Context) = new ServiceComponent()(context)
   }
 
-  class ServiceComponent(context: Context) extends Component[Service](context: Context) {
+  class ServiceComponent(implicit context: Context) extends Component {
     define {
       bind[Service] to new DefaultService scope singleton
     }
