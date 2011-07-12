@@ -7,6 +7,7 @@ import injector.Injector
 
 trait Context extends Injector {
   lazy val injector = factory(default)
+
   var bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef] = new HashMap
   var factory : (() => Injector) => Injector = (d: () => Injector) => d() 
 

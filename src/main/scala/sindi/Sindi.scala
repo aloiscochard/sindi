@@ -30,7 +30,7 @@ abstract class Module(implicit context: Context) extends Context {
   def apply[S <: AnyRef : Manifest](qualifier: AnyRef): S = injectAs[S](qualifier)
 }
 
-abstract class ModuleFactory extends binder.Configurable {
+trait ModuleFactory extends binder.Configurable {
   def apply(implicit context: Context) = create(context) 
 
   def define(configure: => Unit) = { configure }
@@ -41,7 +41,7 @@ abstract class ModuleFactory extends binder.Configurable {
 trait Environment extends ModuleFactory { 
   lazy val injector = context.injector
 
-  def childify(context: Context) = context.childify(context)
+  def childify(_context: Context) = context.childify(_context)
 
   private lazy val context = {
     val _elements = elements
