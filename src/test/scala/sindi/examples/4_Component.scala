@@ -6,40 +6,61 @@ import sindi._
 // Application //
 /////////////////
 
-object Application extends App with Context {
-  import store._
-  StoreModule.childify(this)
+object Application extends App with Context with consumer.ConsumerComponent {
+  include(sindi.examples.component.consumer.ConsumerModule(this))
+
   define {
-    bind[User] to new User with RemoteStore scope singleton
+    bind[store.User] to new store.User with store.RemoteStore scope singleton
   }
-  new Consumer().start()
+
+  consumer.start
 }
 
-class Consumer extends store.UserStore with store.UserPreferenceStore {
-  def start() = {
-    print("users: ")
-    this.users.store()
-    println("")
+/////////////////////
+// Consumer Module //
+/////////////////////
 
-    print("userPreferences: ")
-    this.userPreferences.store()
-    println("")
+package consumer {
+  import sindi.examples.component.store._
+
+  object ConsumerModule extends ModuleFactory[ConsumerModule]
+
+  class ConsumerModule(implicit val context: Context) extends Module { 
+      include(StoreModule(this))
+      define { bind[Consumer] to new ComponentContext(this) with Consumer }
+  }
+  
+  trait ConsumerComponent extends Component { lazy val consumer = from[ConsumerModule].inject[Consumer] }
+
+  trait Consumer extends UserStore with UserPreferenceStore {
+    def start() = {
+      print("users: ")
+      users.store()
+      println("")
+
+      print("userPreferences: ")
+      userPreferences.store()
+      println("")
+    }
   }
 }
+
+//////////////////
+// Store Module //
+//////////////////
 
 package store {
+  object StoreModule extends ModuleFactory[StoreModule]
 
-  object StoreModule extends ModuleFactory with Environment {
+  class StoreModule(implicit context: Context) extends Module {
     define {
       bind[User] to new User with MemoryStore scope singleton
       bind[UserPreference] to new UserPreference with MemoryStore scope singleton
     }
   }
 
-  trait StoreComponent extends Component { override protected lazy val injector = StoreModule.injector }
-
-  trait UserStore extends StoreComponent { lazy val users = inject[User] }
-  trait UserPreferenceStore extends StoreComponent { lazy val userPreferences = inject[UserPreference] }
+  trait UserStore extends Component { lazy val users = from[StoreModule].inject[User] }
+  trait UserPreferenceStore extends Component { lazy val userPreferences = from[StoreModule].inject[UserPreference] }
 
   trait Store { def store() }
 
@@ -48,5 +69,4 @@ package store {
 
   trait User extends Store
   trait UserPreference extends Store
-
 }

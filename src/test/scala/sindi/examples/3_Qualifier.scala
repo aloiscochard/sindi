@@ -19,11 +19,9 @@ object Application extends App with Context {
 package consumer {
   import sindi.examples.qualifier.service._
 
-  object ConsumerModule extends ModuleFactory {
-    override protected def create(implicit context: Context) = new ConsumerModule()
-  }
+  object ConsumerModule extends ModuleFactory[ConsumerModule]
 
-  class ConsumerModule(implicit val context: Context)  extends Module { 
+  class ConsumerModule(implicit val context: Context) extends Module { 
       private val serviceModule = ServiceModule(this)
 
       define {
@@ -39,9 +37,13 @@ package consumer {
 
 package service {
 
-  object ServiceModule extends ModuleFactory { define {
-    bind[Service] to new DefaultService scope singleton
-  } }
+  object ServiceModule extends ModuleFactory[ServiceModule] 
+
+  class ServiceModule(implicit val context: Context) extends Module {
+    define {
+      bind[Service] to new DefaultService scope singleton
+    } 
+  }
 
   trait Service 
   class DefaultService extends Service

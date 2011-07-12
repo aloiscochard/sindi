@@ -21,7 +21,6 @@ trait Childifiable extends Context {
 }
 
 trait Configurable extends Context with binder.Configurable {
-
   def define(configure: => Unit) = {
     elements = Nil
     configure
