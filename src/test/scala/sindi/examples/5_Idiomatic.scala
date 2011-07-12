@@ -1,4 +1,4 @@
-package sindi.examples.component
+package sindi.examples.idiomatic
 
 import sindi._
 
@@ -7,15 +7,21 @@ import sindi._
 /////////////////
 
 object Application extends App with Context {
+  trait AppComponent extends Component { override protected lazy val injector = Application.injector }
+
   import store._
-  StoreModule.childify(this)
+
+  include(StoreModule(this))
+
   define {
     bind[User] to new User with RemoteStore scope singleton
   }
-  new Consumer().start()
+
+  (new Consumer with AppComponent).start
 }
 
-class Consumer extends store.UserStore with store.UserPreferenceStore {
+
+trait Consumer extends store.UserStore with store.UserPreferenceStore {
   def start() = {
     print("users: ")
     this.users.store()
@@ -29,17 +35,15 @@ class Consumer extends store.UserStore with store.UserPreferenceStore {
 
 package store {
 
-  object StoreModule extends ModuleFactory with StaticContext {
+  object StoreModule extends ModuleFactory {
     define {
       bind[User] to new User with MemoryStore scope singleton
       bind[UserPreference] to new UserPreference with MemoryStore scope singleton
     }
   }
 
-  trait StoreComponent extends Component { override protected lazy val injector = StoreModule.injector }
-
-  trait UserStore extends StoreComponent { lazy val users = inject[User] }
-  trait UserPreferenceStore extends StoreComponent { lazy val userPreferences = inject[UserPreference] }
+  trait UserStore extends Component { lazy val users = inject[User] }
+  trait UserPreferenceStore extends Component { lazy val userPreferences = inject[UserPreference] }
 
   trait Store { def store() }
 

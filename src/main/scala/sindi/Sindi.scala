@@ -38,7 +38,7 @@ trait ModuleFactory extends binder.Configurable {
   protected def create(implicit context: Context) = new Module { bindings = bindings ++ elements.map(e => e.build) }
 }
 
-trait Environment extends ModuleFactory { 
+trait StaticContext extends binder.Configurable { 
   lazy val injector = context.injector
 
   def childify(_context: Context) = context.childify(_context)
