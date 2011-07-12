@@ -48,3 +48,9 @@ trait Binder extends Scoper {
   }
 
 }
+
+trait Configurable extends Binder {
+  protected var elements: List[VirtualBinding[_]] = Nil
+
+  override def bind[T : Manifest] = { val e = super.bind[T]; elements = e :: elements; e }
+}

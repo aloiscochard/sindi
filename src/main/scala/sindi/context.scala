@@ -4,7 +4,6 @@ package context
 import scala.collection.immutable.{HashMap, List, Map}
 
 import injector.Injector
-import binder.Binder
 
 trait Context extends Injector {
   lazy val injector = factory(default)
@@ -20,14 +19,12 @@ trait Childifiable extends Context {
   def childify(context: Context) = factory = (d) => Injector(bindings, () => context.injector)
 }
 
-trait Configurable extends Context with Binder {
-  var elements: List[VirtualBinding[_]] = Nil
+trait Configurable extends Context with binder.Configurable {
 
   def define(configure: => Unit) = {
     elements = Nil
     configure
     bindings = bindings ++ elements.map(e => e.build)
   }
-
-  override def bind[T : Manifest] = { val e = super.bind[T]; elements = e :: elements; e }
 }
+

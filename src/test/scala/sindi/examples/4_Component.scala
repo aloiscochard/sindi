@@ -7,36 +7,46 @@ import sindi._
 /////////////////
 
 object Application extends App with Context {
-  import service._
-  ServiceModule.childify(this)
+  import store._
+  StoreModule.childify(this)
   define {
-    bind[Service] to new AdvancedService
+    bind[User] to new User with RemoteStore scope singleton
   }
-  new Consumer
+  new Consumer().start()
 }
 
-class Consumer extends service.ServiceComponent {
-  println(this.service)
+class Consumer extends store.UserStore with store.UserPreferenceStore {
+  def start() = {
+    print("users: ")
+    this.users.store()
+    println("")
+
+    print("userPreferences: ")
+    this.userPreferences.store()
+    println("")
+  }
 }
 
-package service {
+package store {
 
-  object ServiceModule extends Environment {
-    def configure = () => {
-      bind[Service] to new DefaultService scope singleton
+  object StoreModule extends ModuleFactory with Environment {
+    define {
+      bind[User] to new User with MemoryStore scope singleton
+      bind[UserPreference] to new UserPreference with MemoryStore scope singleton
     }
   }
 
-  trait ServiceComponent extends Component {
-    override protected lazy val injector = ServiceModule.injector
-    lazy val service = injector.inject[Service]
-  }
+  trait StoreComponent extends Component { override protected lazy val injector = StoreModule.injector }
 
-  trait Service {
-    def name
-  }
+  trait UserStore extends StoreComponent { lazy val users = inject[User] }
+  trait UserPreferenceStore extends StoreComponent { lazy val userPreferences = inject[UserPreference] }
 
-  class DefaultService extends Service { def name = "default" }
-  class AdvancedService extends Service { def name = "advanced" }
+  trait Store { def store() }
+
+  trait MemoryStore extends Store { def store() = print("memory") }
+  trait RemoteStore extends Store { def store() = print("remote") }
+
+  trait User extends Store
+  trait UserPreference extends Store
 
 }

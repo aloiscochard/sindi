@@ -54,7 +54,7 @@ trait Annotable extends Injector {
 }
 
 trait Childable extends Injector {
-  val parent: () => Injector
+  val parent: () => Injector // TODO: private
 
   override abstract def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = {
     try {
@@ -63,6 +63,12 @@ trait Childable extends Injector {
       case e: Exception => super.injectAs[T](qualifier)
     }
   }
+}
+
+trait Delegatable extends Injector {
+  protected val injector: Injector
+
+  override def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = injector.injectAs[T](qualifier)
 }
 
 private class DefaultInjector(
