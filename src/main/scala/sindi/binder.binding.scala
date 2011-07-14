@@ -6,31 +6,34 @@ import scala.collection.mutable.{HashMap => MHashMap}
 import scala.ref.WeakReference
 
 object Binding {
-  def apply(source: Class[_], provider: () => AnyRef): Binding = new DefaultBinding(source, provider)
-  def apply(binding: Binding, scoper: () => Any): Binding = new ScopedBinding(binding, scoper)
-  def apply(binding: Binding, qualifier: AnyRef): Binding = new QualifiedBinding(binding, qualifier)
+  def apply[T <: AnyRef : Manifest](provider: () => T): Binding[T] =
+    new DefaultBinding[T](manifest[T].erasure.asInstanceOf[Class[T]], provider)
+  def apply[T <: AnyRef](binding: Binding[T], scoper: () => Any): Binding[T] =
+    new ScopedBinding[T](binding, scoper)
+  def apply[T <: AnyRef](binding: Binding[T], qualifier: AnyRef): Binding[T] =
+    new QualifiedBinding[T](binding, qualifier)
 }
 
-trait Binding {
-  val source: Class[_]
-  val provider: () => AnyRef
+trait Binding[T <: AnyRef] {
+  val source: Class[T]
+  val provider: () => T
 
-  def build: Tuple2[Tuple2[AnyRef,Class[_]], () => AnyRef] = (None, source) -> provider
+  def build: Tuple2[Tuple2[AnyRef,Class[T]], () => T] = (None, source) -> provider
 }
 
-trait Scopable extends Binding {
+trait Scopable[T <: AnyRef] extends Binding[T] {
   // TODO [aloiscochard] Check if object are GCed correctly using WeakReference
-  protected val registry = new MHashMap[Int, WeakReference[AnyRef]]
+  protected val registry = new MHashMap[Int, WeakReference[T]]
 
   val scoper: () => Any
 
   override def build = {
     val e = super.build
-    e._1 -> (() => { registry.getOrElseUpdate(scoper().hashCode, new WeakReference(e._2())).apply })
+    e._1 -> (() => { registry.getOrElseUpdate(scoper().hashCode, new WeakReference[T](e._2())).apply })
   }
 }
 
-trait Qualifiable extends Binding {
+trait Qualifiable[T <: AnyRef] extends Binding[T] {
   val qualifier: AnyRef
 
   override def build = {
@@ -39,11 +42,11 @@ trait Qualifiable extends Binding {
   }
 }
 
-private class DefaultBinding(val source: Class[_], val provider: () => AnyRef)
-  extends Binding
+private class DefaultBinding[T <: AnyRef](val source: Class[T], val provider: () => T)
+  extends Binding[T]
 
-private class ScopedBinding(binding: Binding, val scoper: () => Any)
-  extends DefaultBinding(binding.source, binding.build._2) with Scopable 
+private class ScopedBinding[T <: AnyRef](binding: Binding[T], val scoper: () => Any)
+  extends DefaultBinding[T](binding.source, binding.build._2) with Scopable[T] 
 
-private class QualifiedBinding(binding: Binding, val qualifier: AnyRef)
-  extends DefaultBinding(binding.source, binding.build._2) with Qualifiable
+private class QualifiedBinding[T <: AnyRef](binding: Binding[T], val qualifier: AnyRef)
+  extends DefaultBinding[T](binding.source, binding.build._2) with Qualifiable[T]
