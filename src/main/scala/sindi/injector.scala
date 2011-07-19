@@ -2,8 +2,9 @@ package sindi
 package injector
 
 import scala.collection.immutable.Map
-import org.scalastuff.scalabeans.Preamble._
-import org.scalastuff.scalabeans.MutablePropertyDescriptor
+import org.scalastuff.scalabeans
+import scalabeans.Preamble._
+import scalabeans.MutablePropertyDescriptor
 
 object Injector {
   def apply(bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef]): Injector =
