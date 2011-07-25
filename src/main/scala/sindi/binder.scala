@@ -9,8 +9,6 @@ trait Scoper {
 }
 
 trait Binder extends Scoper {
-  //type B[T] = Tuple2[Tuple2[AnyRef, Class[T]], () => T]
-
   def bind[T <: AnyRef : Manifest](provider: => T): Binding[T] = Binding[T](() => provider)
   def scopify[T <: AnyRef](binding: Binding[T])(scoper: () => Any): Binding[T] = Binding[T](binding, scoper)
   def qualify[T <: AnyRef](binding: Binding[T], qualifier: AnyRef): Binding[T] = Binding[T](binding, qualifier)
@@ -20,11 +18,6 @@ trait Binder extends Scoper {
   /////////
 
   def bind[T <: AnyRef : Manifest] = new VirtualBinding[T]
-
-  //implicit def binding2tuple[T <: AnyRef](b: Binding[T]): Tuple2[Tuple2[AnyRef, Class[T]], () => T] = { b.build }
-  implicit def binding2tuple(b: Binding[_]): Tuple2[Tuple2[AnyRef, Class[_]], () => AnyRef] = { 
-    b.build.asInstanceOf[Tuple2[Tuple2[AnyRef, Class[_]], () => AnyRef]]
-  }
 
   protected class VirtualBinding[T <: AnyRef : Manifest] (
       var _provider: () => T = null,

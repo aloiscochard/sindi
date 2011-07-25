@@ -24,7 +24,7 @@ package sindi
 
 //object Sindi extends context.Context with context.Configurable
 
-trait Context extends context.Context with context.Childifiable with binder.Binder {
+trait Context extends context.Context with binder.Binder {
   protected val modules: List[Module] = Nil
 
   def from[M <: Module : Manifest]: sindi.injector.Injector = {
@@ -37,8 +37,8 @@ trait Context extends context.Context with context.Childifiable with binder.Bind
   }
 }
 
-abstract class Module(implicit context: Context) extends Context {
-  childify(context)
+abstract class Module(implicit context: Context) extends Context with context.Childified {
+  override protected val parent = context
   def apply[S <: AnyRef : Manifest](): S = inject[S]
   def apply[S <: AnyRef : Manifest](qualifier: AnyRef): S = injectAs[S](qualifier)
 }

@@ -6,18 +6,15 @@ import scala.collection.immutable.{HashMap, List, Map}
 import injector.Injector
 
 trait Context extends Injector {
-  lazy val injector = factory(default)
-
-  protected val bindings: List[Tuple2[Tuple2[AnyRef, Class[_]], () => AnyRef]] = Nil
-
-  protected var factory: (() => Injector) => Injector = (d: () => Injector) => d() 
-
-  protected def default: () => Injector = () => Injector(bindings.toMap)
-
-  override def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T =  injector.injectAs[T](qualifier)
+  lazy val injector = Injector(build)
+  protected val bindings: List[sindi.binder.binding.Binding[_]] = Nil
+  override def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = injector.injectAs[T](qualifier)
+  // Move to binder/bindings ?
+  protected def build = bindings.map(_.build.asInstanceOf[Tuple2[Tuple2[AnyRef, Class[_]], () => AnyRef]]).toMap
 }
 
-trait Childifiable extends Context {
-  def childify(context: Context) = factory = (d) => Injector(bindings.toMap, () => context.injector)
+trait Childified extends Context {
+  override lazy val injector = Injector(build, () => parent.injector)
+  protected val parent: Context
 }
 
