@@ -7,7 +7,9 @@ import sindi._
 /////////////////
 
 object Application extends App with Context with consumer.ConsumerComponent {
-  include(sindi.examples.component.consumer.ConsumerModule(this))
+  import sindi.examples.component.consumer.ConsumerModule
+
+  override val modules = sindi.examples.component.consumer.ConsumerModule(this) :: Nil
 
   define {
     bind[store.User] to new store.User with store.RemoteStore scope singleton
@@ -26,7 +28,8 @@ package consumer {
   object ConsumerModule extends ModuleFactory[ConsumerModule]
 
   class ConsumerModule(implicit val context: Context) extends Module { 
-      include(StoreModule(this))
+      override val modules = StoreModule(this) :: Nil
+
       define { bind[Consumer] to new ComponentContext(this) with Consumer }
   }
   

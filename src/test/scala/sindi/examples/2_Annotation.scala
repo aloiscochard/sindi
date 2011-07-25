@@ -10,6 +10,7 @@ import sindi.examples.annotation.user._
 // Application //
 /////////////////
 
+/*
 object Application extends App with Context {
 
   object Mode extends Enumeration {
@@ -84,3 +85,4 @@ package user {
     }
   }
 }
+*/

@@ -9,6 +9,7 @@ import sindi.examples.basic.user._
 // Application //
 /////////////////
 
+/*
 object Application extends App with Context {
   object Mode extends Enumeration {
     type Mode = Value;
@@ -87,3 +88,4 @@ package user {
     }
   }
 }
+*/

@@ -22,18 +22,21 @@ package sindi
 // TODO [aloiscochard] map to config[file]
 // TODO [aloiscochard] Implement Event/Lifecycle system
 
-object Sindi extends context.Context with context.Configurable
+//object Sindi extends context.Context with context.Configurable
 
 trait Context extends context.Context with context.Childifiable with context.Configurable {
-  private var modules = Map[Class[_ <: Module], sindi.injector.Injector]()
+  protected val modules: List[Module] = Nil
 
-  def from[M <: Module : Manifest] = modules(manifest[M].erasure.asInstanceOf[Class[M]])
-
-  override protected def default = () => sindi.injector.Injector(bindings, () => Sindi.injector)
-
-  protected def include(_modules: Module*) = {
-    for (module <- _modules) { modules += module.getClass.asInstanceOf[Class[_ <: Module]] -> module.injector }
+  def from[M <: Module : Manifest]: sindi.injector.Injector = {
+    modules.foreach((m: Module) => {
+      if (m.getClass == manifest[M].erasure.asInstanceOf[Class[M]]) return m.asInstanceOf[M].injector
+    })
+    // TODO [aloiscochard] Remove this ugly hack and put a monad instead
+    new RuntimeException("Unable to inject from module %s: module is not found".format(manifest[M].erasure))
+    "".asInstanceOf[M].injector
   }
+
+  override protected def default = () => sindi.injector.Injector(bindings)
 }
 
 abstract class Module(implicit context: Context) extends Context {

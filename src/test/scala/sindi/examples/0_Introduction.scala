@@ -1,5 +1,6 @@
 package sindi.examples.introduction
 
+/*
 object Introduction {
   import sindi.Sindi._
 
@@ -31,3 +32,4 @@ object Introduction {
     }
   }
 }
+*/

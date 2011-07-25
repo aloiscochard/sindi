@@ -6,6 +6,7 @@ import sindi._
 // Application //
 /////////////////
 
+/*
 object Application extends App with Context {
   import consumer._
   import service._
@@ -49,3 +50,4 @@ package service {
   class DefaultService extends Service
   class AdvancedService extends Service
 }
+*/
