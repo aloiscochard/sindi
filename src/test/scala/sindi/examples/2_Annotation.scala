@@ -1,5 +1,6 @@
 package sindi.examples.annotation
 
+/*
 import org.specs2.mutable._
 
 import sindi._
@@ -10,7 +11,6 @@ import sindi.examples.annotation.user._
 // Application //
 /////////////////
 
-/*
 object Application extends App with Context {
 
   object Mode extends Enumeration {

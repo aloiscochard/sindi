@@ -1,12 +1,12 @@
 package sindi.examples.qualifier
 
+/*
 import sindi._
 
 /////////////////
 // Application //
 /////////////////
 
-/*
 object Application extends App with Context {
   import consumer._
   import service._

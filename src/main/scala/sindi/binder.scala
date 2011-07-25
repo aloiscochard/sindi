@@ -21,7 +21,10 @@ trait Binder extends Scoper {
 
   def bind[T <: AnyRef : Manifest] = new VirtualBinding[T]
 
-  implicit def binding2tuple[T <: AnyRef](b: Binding[T]): Tuple2[Tuple2[AnyRef, Class[T]], () => T] = { b.build }
+  //implicit def binding2tuple[T <: AnyRef](b: Binding[T]): Tuple2[Tuple2[AnyRef, Class[T]], () => T] = { b.build }
+  implicit def binding2tuple(b: Binding[_]): Tuple2[Tuple2[AnyRef, Class[_]], () => AnyRef] = { 
+    b.build.asInstanceOf[Tuple2[Tuple2[AnyRef, Class[_]], () => AnyRef]]
+  }
 
   protected class VirtualBinding[T <: AnyRef : Manifest] (
       var _provider: () => T = null,
@@ -46,10 +49,4 @@ trait Binder extends Scoper {
     }
   }
 
-}
-
-trait Configurable extends Binder {
-  protected var elements: List[VirtualBinding[_ <: AnyRef]] = Nil
-
-  override def bind[T <: AnyRef : Manifest] = { val e = super.bind[T]; elements = e :: elements; e }
 }

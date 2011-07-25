@@ -1,5 +1,6 @@
 package sindi.examples.basic
 
+/*
 import org.specs2.mutable._
 
 import sindi._
@@ -9,7 +10,6 @@ import sindi.examples.basic.user._
 // Application //
 /////////////////
 
-/*
 object Application extends App with Context {
   object Mode extends Enumeration {
     type Mode = Value;

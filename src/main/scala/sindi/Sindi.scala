@@ -24,7 +24,7 @@ package sindi
 
 //object Sindi extends context.Context with context.Configurable
 
-trait Context extends context.Context with context.Childifiable with context.Configurable {
+trait Context extends context.Context with context.Childifiable with binder.Binder {
   protected val modules: List[Module] = Nil
 
   def from[M <: Module : Manifest]: sindi.injector.Injector = {
@@ -35,8 +35,6 @@ trait Context extends context.Context with context.Childifiable with context.Con
     new RuntimeException("Unable to inject from module %s: module is not found".format(manifest[M].erasure))
     "".asInstanceOf[M].injector
   }
-
-  override protected def default = () => sindi.injector.Injector(bindings)
 }
 
 abstract class Module(implicit context: Context) extends Context {
