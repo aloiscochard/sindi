@@ -31,9 +31,7 @@ trait Context extends context.Context with binder.Binder {
     modules.foreach((m: Module) => {
       if (m.getClass == manifest[M].erasure.asInstanceOf[Class[M]]) return m.asInstanceOf[M].injector
     })
-    // TODO [aloiscochard] Remove this ugly hack and put a monad instead
-    new RuntimeException("Unable to inject from module %s: module is not found".format(manifest[M].erasure))
-    "".asInstanceOf[M].injector
+    throw new RuntimeException("Unable to inject from module %s: module not found".format(manifest[M].erasure))
   }
 }
 
