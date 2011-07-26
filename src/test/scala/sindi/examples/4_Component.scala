@@ -11,7 +11,9 @@ object Application extends App with Context with consumer.ConsumerComponent {
 
   override val modules = sindi.examples.component.consumer.ConsumerModule(this) :: Nil
 
-  override val bindings = (bind[store.User] to new store.User with store.RemoteStore scope singleton) :: Nil
+  override val bindings = bind[store.User].to(user) :: Nil
+
+  private lazy val user = new store.User with store.RemoteStore
 
   consumer.start
 }
@@ -28,8 +30,9 @@ package consumer {
   class ConsumerModule(implicit val context: Context) extends Module { 
     override val modules = StoreModule(this) :: Nil
 
-    override val bindings = (bind[Consumer] to { new ComponentContext(this) with Consumer }) :: Nil
+    override val bindings = bind[Consumer].to(consumer) :: Nil
 
+    private lazy val consumer = new ComponentContext(this) with Consumer
   }
   
   trait ConsumerComponent extends Component { lazy val consumer = from[ConsumerModule].inject[Consumer] }
@@ -55,10 +58,12 @@ package store {
   object StoreModule extends ModuleFactory[StoreModule]
 
   class StoreModule(implicit context: Context) extends Module {
-    override val bindings = 
-      (bind[User] to new User with MemoryStore scope singleton) ::
-      (bind[UserPreference] to new UserPreference with MemoryStore scope singleton) ::
-      Nil
+    override val bindings = bind[User].to(user) ::
+                            bind[UserPreference].to(userPreferences) ::
+                            Nil
+
+    private lazy val user = new User with MemoryStore
+    private lazy val userPreferences = new UserPreference with MemoryStore
   }
 
   trait UserStore extends Component { lazy val users = from[StoreModule].inject[User] }

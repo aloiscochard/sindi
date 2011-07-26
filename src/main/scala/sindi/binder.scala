@@ -4,7 +4,6 @@ package binder
 import binder.binding._
 
 trait Scoper {
-  def singleton: () => AnyRef = () => None // TODO Move singleton concept to DSL, to avoide mutable state of scopable.
   def thread: () => AnyRef = () => java.lang.Thread.currentThread
 }
 
