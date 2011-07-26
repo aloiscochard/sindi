@@ -16,28 +16,32 @@ trait Binder extends Scoper {
   // DSL //
   /////////
 
-  def bind[T <: AnyRef : Manifest] = new VirtualBinding[T]
+  def bind[T <: AnyRef : Manifest] = VirtualBinding[T]()
 
-  protected class VirtualBinding[T <: AnyRef : Manifest] (
-      var _provider: () => T = null,
-      var _qualifier: AnyRef = None,
-      var _scoper: () => Any = null) extends Binding[T] {
+  protected case class VirtualBinding[T <: AnyRef : Manifest] (
+      val _provider: Option[() => T] = None,
+      val _qualifier: Option[AnyRef] = None,
+      val _scoper: Option[() => Any] = None) extends Binding[T] {
 
-    override val source = null
     override val provider = null
 
-    val _source : Class[T] = manifest[T].erasure.asInstanceOf[Class[T]]
+    val source: Class[T] = manifest[T].erasure.asInstanceOf[Class[T]]
 
-    def to(provider: => T) = { _provider = () => provider; this }
-    def scope(scoper: () => Any) = { _scoper = scoper; this }
-    def as(qualifier: AnyRef) = { _qualifier = qualifier; this }
+    def to(provider: => T) = { VirtualBinding[T](Some(() => provider), _qualifier, _scoper) }
+    def as(qualifier: AnyRef) = { VirtualBinding[T](_provider, Some(qualifier), _scoper) }
+    def scope(scoper: () => Any) = { VirtualBinding[T](_provider, _qualifier, Some(scoper)) }
 
     override def build = {
-      assert(_source != null); assert(_provider != null)
-      var binding = Binding(_provider.asInstanceOf[() => T])
-      if (_qualifier != null) binding = qualify(binding, _qualifier)
-      if (_scoper != null) binding = scopify(binding)(_scoper)
-      binding.build
+      assert(source != null); assert(_provider != null)
+      if (_qualifier.isEmpty && _scoper.isEmpty) {
+        Binding(_provider.get).build
+      } else if (!_qualifier.isEmpty && _scoper.isEmpty) {
+        qualify(Binding(_provider.get), _qualifier.get).build
+      } else if (_qualifier.isEmpty && !_scoper.isEmpty) {
+        scopify(Binding(_provider.get))(_scoper.get).build
+      } else {
+        scopify(qualify(Binding(_provider.get), _qualifier.get))(_scoper.get).build
+      }
     }
   }
 
