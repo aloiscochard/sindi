@@ -11,16 +11,12 @@
 package sindi
                     
 // TODO [aloiscochard] Add pre/post processor
-// TODO [aloiscochard] Add qualifier in type not bound exception
 // TODO [aloiscochard] Add provided binding to handle mapper binding automatically thru available class
-
 // TODO [aloiscochard] Add assertion and error message
 
 // SINAP
 // TODO [aloiscochard] map to config[file]
 // TODO [aloiscochard] Implement Event/Lifecycle system
-
-//object Sindi extends context.Context with context.Configurable
 
 trait Context extends context.Context with binder.Binder {
   protected val modules: List[Module] = Nil
@@ -29,7 +25,7 @@ trait Context extends context.Context with binder.Binder {
     modules.foreach((m: Module) => {
       if (m.getClass == manifest[M].erasure.asInstanceOf[Class[M]]) return m.asInstanceOf[M].injector
     })
-    throw new RuntimeException("Unable to inject from module %s: module not found".format(manifest[M].erasure))
+    throw new RuntimeException("Unable to inject from module %s: module not found.".format(manifest[M].erasure.getName))
   }
 }
 

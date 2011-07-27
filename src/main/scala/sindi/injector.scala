@@ -22,7 +22,10 @@ trait Bindable extends Injector {
     val source = manifest[T].erasure
     bindings.get(qualifier -> source) match {
       case Some(provider) => provider.asInstanceOf[() => T]()
-      case None => throw new RuntimeException("Unable to inject %s: type is not bound".format(source))
+      case None => {
+        val q = if (qualifier == None) { "" } else { " with qualifier %s".format(qualifier) }
+        throw new RuntimeException(("Unable to inject %s" + q + ": type is not bound.").format(source))
+      }
     }
   }
 }
