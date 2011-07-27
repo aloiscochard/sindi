@@ -13,10 +13,8 @@ package sindi
 // TODO [aloiscochard] Add pre/post processor
 // TODO [aloiscochard] Add qualifier in type not bound exception
 // TODO [aloiscochard] Add provided binding to handle mapper binding automatically thru available class
-// TODO [aloiscochard] Cache childable context using actor (try to use actor for shared state everywhere)
 
 // TODO [aloiscochard] Add assertion and error message
-// TODO [aloiscochard] Add assertion check on context.bindings when locked
 
 // SINAP
 // TODO [aloiscochard] map to config[file]
