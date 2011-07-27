@@ -41,7 +41,7 @@ trait Childable extends Injector {
 
 private class DefaultInjector(
     override val bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef])
-  extends Injector with Bindable with Annotable
+  extends Injector with Bindable
 
 private class ChildedInjector(
     override val bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef],
