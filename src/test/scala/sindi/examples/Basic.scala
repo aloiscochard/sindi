@@ -1,4 +1,4 @@
-package sindi.examples.component
+package sindi.examples.basic
 
 import sindi._
 
@@ -7,9 +7,9 @@ import sindi._
 /////////////////
 
 object Application extends App with Context with consumer.ConsumerComponent {
-  import sindi.examples.component.consumer.ConsumerModule
+  import sindi.examples.basic.consumer.ConsumerModule
 
-  override val modules = sindi.examples.component.consumer.ConsumerModule(this) :: Nil
+  override val modules = ConsumerModule(this) :: Nil
 
   override val bindings = bind[store.User].to(user) :: Nil
 
@@ -23,7 +23,7 @@ object Application extends App with Context with consumer.ConsumerComponent {
 /////////////////////
 
 package consumer {
-  import sindi.examples.component.store._
+  import sindi.examples.basic.store._
 
   object ConsumerModule extends ModuleFactory[ConsumerModule]
 
