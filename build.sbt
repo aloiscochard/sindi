@@ -6,7 +6,7 @@ organization := "org.scala-tools.sindi"
 
 scalaVersion := "2.9.0-1"
 
-crossScalaVersions := Seq("2.8.1", "2.9.0", "2.9.0-1")
+crossScalaVersions := Seq("2.8.1", "2.9.0-1")
 
 
 libraryDependencies ++= Seq(
