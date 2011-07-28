@@ -1,4 +1,3 @@
-target/
-project/boot/
-project/plugins/project/
-lib_managed/
+target
+boot
+lib_managed
