@@ -6,7 +6,9 @@ import sindi._
 // Application //
 /////////////////
 
-object Application extends App with Context with consumer.ConsumerComponent {
+// [TODO] Replace scala.Application with scala.App when 2.8 support is dropped
+//object Application extends App with Context with consumer.ConsumerComponent {
+object Application extends scala.Application with Context with consumer.ConsumerComponent {
   import sindi.examples.basic.consumer.ConsumerModule
 
   override val modules = ConsumerModule(this) :: Nil
