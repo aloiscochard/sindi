@@ -18,7 +18,7 @@ package sindi
 // TODO [aloiscochard] map to config[file]
 // TODO [aloiscochard] Implement Event/Lifecycle system
 
-trait Context extends context.Context with binder.Binder {
+trait Context extends context.Context with binder.DSL {
   protected val modules: List[Module] = Nil
 
   def from[M <: Module : Manifest]: sindi.injector.Injector = {
