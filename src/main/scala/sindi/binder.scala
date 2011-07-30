@@ -24,6 +24,9 @@ trait Binder extends Scoper {
 }
 
 trait DSL {
+  type Bindings = List[binding.Binding[_]]
+  object Bindings { def apply(bindings: binding.Binding[_]*): List[binding.Binding[_]] = bindings.toList }
+
   def bind[T <: AnyRef : Manifest] = new BindSource[T]
 
   class BindSource[T <: AnyRef : Manifest] extends Binder {
@@ -52,4 +55,5 @@ trait DSL {
   }
 
   implicit def bind2binding[T <: AnyRef : Manifest](bind: Bind[T]): Binding[T] = bind.build
+  implicit def bind2bindings[T <: AnyRef : Manifest](bind: Bind[T]): List[Binding[_]] = List(bind.build)
 }

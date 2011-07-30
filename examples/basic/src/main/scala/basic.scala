@@ -6,14 +6,12 @@ import sindi._
 // Application //
 /////////////////
 
-// [TODO] Replace scala.Application with scala.App when 2.8 support is dropped
-//object Application extends App with Context with consumer.ConsumerComponent {
-object Application extends scala.Application with Context with consumer.ConsumerComponent {
+object Application extends App with Context with consumer.ConsumerComponent {
   import sindi.examples.basic.consumer.ConsumerModule
 
   override val modules = ConsumerModule(this) :: Nil
 
-  override val bindings = bind[store.User].to(user) :: Nil
+  override val bindings: Bindings = bind[store.User] to user
 
   private lazy val user = new store.User with store.RemoteStore
 
@@ -32,7 +30,7 @@ package consumer {
   class ConsumerModule(implicit val context: Context) extends Module { 
     override val modules = StoreModule(this) :: Nil
 
-    override val bindings = bind[Consumer].to(consumer) :: Nil
+    override val bindings: Bindings = bind[Consumer] to consumer
 
     private lazy val consumer = new ComponentContext(this) with Consumer
   }
@@ -60,9 +58,8 @@ package store {
   object StoreModule extends ModuleFactory[StoreModule]
 
   class StoreModule(implicit context: Context) extends Module {
-    override val bindings = bind[User].to(user) ::
-                            bind[UserPreference].to(userPreferences) ::
-                            Nil
+    override val bindings = Bindings(bind[User] to user,
+                                    bind[UserPreference] to userPreferences)
 
     private lazy val user = new User with MemoryStore
     private lazy val userPreferences = new UserPreference with MemoryStore
