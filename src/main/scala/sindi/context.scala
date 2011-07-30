@@ -27,4 +27,3 @@ trait Childified extends Context {
   override lazy val injector = Injector(build, () => parent.injector)
   protected val parent: Context
 }
-

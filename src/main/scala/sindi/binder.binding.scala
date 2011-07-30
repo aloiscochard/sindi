@@ -32,7 +32,7 @@ trait Binding[T <: AnyRef] {
   def build: Tuple2[Tuple2[AnyRef,Class[T]], () => T] = (None, source) -> provider
 }
 
-trait Scopable[T <: AnyRef] extends Binding[T] {
+private trait Scopable[T <: AnyRef] extends Binding[T] {
   // TODO [aloiscochard] Check if object are GCed correctly using WeakReference
   protected val registry = new MHashMap[Int, WeakReference[T]] // WARNING: mutable datastructure
   protected val scoper: () => Any
@@ -43,7 +43,7 @@ trait Scopable[T <: AnyRef] extends Binding[T] {
   }
 }
 
-trait Qualifiable[T <: AnyRef] extends Binding[T] {
+private trait Qualifiable[T <: AnyRef] extends Binding[T] {
   protected val qualifier: AnyRef
 
   override def build = {

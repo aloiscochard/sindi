@@ -25,7 +25,7 @@ trait Injector {
   def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T
 }
 
-trait Bindable extends Injector {
+private trait Bindable extends Injector {
   val bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef]
 
   def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
@@ -40,7 +40,7 @@ trait Bindable extends Injector {
   }
 }
 
-trait Childable extends Injector {
+private trait Childable extends Injector {
   val parent: () => Injector // TODO: private
 
   override abstract def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = {
