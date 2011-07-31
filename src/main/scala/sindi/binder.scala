@@ -24,7 +24,6 @@ trait Binder extends Scoper {
 }
 
 trait DSL {
-  protected type Bindings = List[binding.Binding[_]]
   protected object Bindings { def apply(bindings: binding.Binding[_]*): List[binding.Binding[_]] = bindings.toList }
 
   def bind[T <: AnyRef : Manifest] = new BindSource[T]

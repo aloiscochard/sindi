@@ -18,6 +18,8 @@ package sindi
 // TODO [aloiscochard] map to config[file]
 // TODO [aloiscochard] Implement Event/Lifecycle system
 
+object `package` { type Bindings = List[binder.binding.Binding[_]] }
+
 trait Context extends context.Context with binder.DSL {
   protected val modules: List[Module] = Nil
 
