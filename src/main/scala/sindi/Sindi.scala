@@ -24,10 +24,11 @@ trait Context extends context.Context with binder.DSL {
   protected val modules: List[Module] = Nil
 
   def from[M <: Module : Manifest]: sindi.injector.Injector = {
-    modules.foreach((m: Module) => {
-      if (m.getClass == manifest[M].erasure.asInstanceOf[Class[M]]) return m.asInstanceOf[M].injector
+    modules.foreach((m) => {
+        if (m.getClass == manifest[M].erasure) return m.asInstanceOf[M].injector
     })
-    throw new RuntimeException("Unable to inject from module %s: module not found.".format(manifest[M].erasure.getName))
+    throw new RuntimeException("Unable to inject from module %s: module not found.".
+                                format(manifest[M].erasure.getName))
   }
 }
 
@@ -38,9 +39,7 @@ abstract class Module(implicit context: Context) extends Context with context.Ch
 }
 
 abstract class ModuleFactory[M <: Module : Manifest] {
-  def apply(implicit context: Context): M = {
-    (manifest[M].erasure.getConstructor(classOf[Context]).newInstance(context)).asInstanceOf[M]
-  }
+  def apply(implicit context: Context): M
 }
 
 trait Component { 
