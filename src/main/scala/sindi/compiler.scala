@@ -77,7 +77,7 @@ class DependencyChecker(val global: Global) extends Plugin {
 
             for (tree @ DefDef(_, _, _, _, _, _) <- tree.impl.body) {
               println(tree.rhs)
-              DependencyChecker.this.global.treeBrowsers.create().browse(tree) 
+              //DependencyChecker.this.global.treeBrowsers.create().browse(tree) 
             }
           }
         }
