@@ -39,7 +39,9 @@ abstract class Module(implicit context: Context) extends Context with context.Ch
 }
 
 abstract class ModuleFactory[M <: Module : Manifest] {
-  def apply(implicit context: Context): M
+  def apply(implicit context: Context): M = {
+    (manifest[M].erasure.getConstructor(classOf[Context]).newInstance(context)).asInstanceOf[M]
+  }
 }
 
 trait Component { 

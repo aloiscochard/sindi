@@ -25,9 +25,7 @@ object Application extends App with Context with consumer.ConsumerComponent {
 package consumer {
   import sindi.examples.basic.store._
 
-  object ConsumerModule extends ModuleFactory[ConsumerModule] {
-     def apply(implicit context: Context) = new ConsumerModule
-  }
+  object ConsumerModule extends ModuleFactory[ConsumerModule]
 
   class ConsumerModule(implicit val context: Context) extends Module { 
     override val modules = StoreModule(this) :: Nil
@@ -57,9 +55,7 @@ package consumer {
 //////////////////
 
 package store {
-  object StoreModule extends ModuleFactory[StoreModule] {
-     def apply(implicit context: Context) = new StoreModule
-  }
+  object StoreModule extends ModuleFactory[StoreModule]
 
   class StoreModule(implicit context: Context) extends Module {
     override val bindings = Bindings(bind[User] to user,
