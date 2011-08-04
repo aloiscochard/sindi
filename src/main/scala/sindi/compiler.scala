@@ -53,6 +53,44 @@ class DependencyChecker(val global: Global) extends Plugin {
           }
         }
 
+        @tailrec def test(a: Int): Int = {
+          if (a == 1) return 0
+          return test(a + 1)
+        }
+
+        @tailrec def lookup(matcher: (Tree) => Boolean, trees: Tree*): Option[Tree] = {
+          var children = List[Tree]()
+          trees.flatMap((tree: Tree) => {
+            if (matcher(tree)) {
+              Some(tree)
+            } else {
+              children = children ++ tree.children
+              None
+            }
+          }).headOption match {
+            case Some(tree) => return Some(tree)
+            case _ =>
+          }
+          if (children.isEmpty) return None
+          return lookup(matcher, children:_*)
+        }
+
+        /*
+        def lookup(tree: Tree, matcher: (Tree) => Boolean): Option[Tree] = {
+          if (matcher(tree)) {
+            return Some(tree)
+          } else {
+            tree.children.foreach((tree: Tree) =>
+              lookup(tree, matcher) match {
+                case Some(tree) => return Some(tree)
+                case _ =>
+              }
+            )
+            return None
+          }
+        }
+        */
+
         def isComponent(tree: Tree) = implement[sindi.Component](tree)
         def isModule(tree: Tree) = implement[sindi.Module](tree)
 
@@ -71,9 +109,6 @@ class DependencyChecker(val global: Global) extends Plugin {
           if (isComponent(tree)) {
             println("[component]" + tree.name)
 
-            def lookup(tree: Tree) {
-
-            }
 
             for (tree @ DefDef(_, _, _, _, _, _) <- tree.impl.body) {
               println(tree.rhs)
