@@ -15,21 +15,21 @@ import scala.collection.mutable.{HashMap => MHashMap}
 
 import scala.ref.WeakReference
 
-object Binding {
-  def apply[T <: AnyRef : Manifest](provider: () => T): Binding[T] =
-    new DefaultBinding[T](manifest[T].erasure.asInstanceOf[Class[T]], provider)
-  def apply[T <: AnyRef](binding: Binding[T], scoper: () => Any): Binding[T] =
-    new ScopedBinding[T](binding, scoper)
-  def apply[T <: AnyRef](binding: Binding[T], qualifier: AnyRef): Binding[T] =
-    new QualifiedBinding[T](binding, qualifier)
-}
-
 trait Binding[T <: AnyRef] {
   protected[binding] val source: Class[T]
 
   protected val provider: () => T
 
   def build: Tuple2[Tuple2[AnyRef,Class[T]], () => T] = (None, source) -> provider
+}
+
+protected[binder] object  Binding {
+  def apply[T <: AnyRef : Manifest](provider: () => T): Binding[T] =
+    new DefaultBinding[T](manifest[T].erasure.asInstanceOf[Class[T]], provider)
+  def apply[T <: AnyRef](binding: Binding[T], scoper: () => Any): Binding[T] =
+    new ScopedBinding[T](binding, scoper)
+  def apply[T <: AnyRef](binding: Binding[T], qualifier: AnyRef): Binding[T] =
+    new QualifiedBinding[T](binding, qualifier)
 }
 
 private trait Scopable[T <: AnyRef] extends Binding[T] {
