@@ -4,7 +4,7 @@ menu-position: 0
 ---
 Sindi is an IoC ([Inversion of Control](http://martinfowler.com/articles/injection.html)) container for the [Scala](http://www.scala-lang.org) programming language.
 
-By providing a global configuration system thru a dependency graph,  
+By providing a common configuration system thru a dependency graph,  
 Sindi give you the possibility to design a complex layered system by integrating loosely-coupled components **in a consistent style**.
 
 This is of great help when designing application that target multiple platforms/environments by easing the configuration of the differents abstraction layers.
