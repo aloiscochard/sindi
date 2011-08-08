@@ -24,6 +24,10 @@
     <div id="box">
     <div id="title">
 
+      <div class="ribbon">
+        <a href="http://github.com/aloiscochard/sindi">Fork me on GitHub</a>
+      </div>
+
       <table border="0">
         <tr>
           <td>
@@ -41,8 +45,6 @@
           </td>
         </tr>
       </table>
-
-
     </div>
     <div id="menu">
     <!--%
@@ -54,17 +56,22 @@
             print(entry % (style, p["url"], p["title"]))
     %-->
     </div>
+
     <!--
     <div id="header">
       <h2>{{ page["title"] }}</h2>
     </div>
     -->
-    <div id="content">{{ __content__ }}</div>
+    <div id="content">
+      {{ __content__ }}
+    </div>
     </div>
     <div id="footer">
         Source Code at <a href="http://github.com/aloiscochard/sindi">GitHub.com</a>
         &middot;
         Licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a>
     </div>
+    <a href="http://twitter.com/SindiContainer" class="twitter-follow-button" data-show-count="false">Follow @SindiContainer</a>
+    <script src="http://platform.twitter.com/widgets.js" type="text/javascript"></script>
 </body>
 </html>

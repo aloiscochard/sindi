@@ -5,7 +5,7 @@
     <title>Sindi - Download</title>
     <meta name="description" content="a poole site" />
     <meta name="keywords" content="poole" />
-    <link rel="stylesheet" type="text/css" href="http://aloiscochard.github.com/sindi/sindi.css" />
+    <link rel="stylesheet" type="text/css" href="file:///home/alois.cochard/oss/sindi/src/output/sindi.css" />
 
     <script type="text/javascript">
       var _gaq = _gaq || [];
@@ -24,11 +24,15 @@
     <div id="box">
     <div id="title">
 
+      <div class="ribbon">
+        <a href="http://github.com/aloiscochard/sindi">Fork me on GitHub</a>
+      </div>
+
       <table border="0">
         <tr>
           <td>
             <div id="logo">
-              <img src="http://aloiscochard.github.com/sindi/sindi_128.png"/>
+              <img src="file:///home/alois.cochard/oss/sindi/src/output/sindi_128.png"/>
             </div>
           </td>
           <td>
@@ -41,54 +45,31 @@
           </td>
         </tr>
       </table>
-
-
     </div>
     <div id="menu">
-    <span class=""><a href="http://aloiscochard.github.com/sindi/index.html">Home</a></span>
-<span class=""><a href="http://aloiscochard.github.com/sindi/guide.html">Guide</a></span>
-<span class="current"><a href="http://aloiscochard.github.com/sindi/download.html">Download</a></span>
-<span class=""><a href="http://aloiscochard.github.com/sindi/about.html">About</a></span>
+    <span class=""><a href="file:///home/alois.cochard/oss/sindi/src/output/index.html">Home</a></span>
+<span class=""><a href="file:///home/alois.cochard/oss/sindi/src/output/guide.html">Guide</a></span>
+<span class="current"><a href="file:///home/alois.cochard/oss/sindi/src/output/download.html">Download</a></span>
+<span class=""><a href="file:///home/alois.cochard/oss/sindi/src/output/about.html">About</a></span>
     </div>
+
     <!--
     <div id="header">
       <h2>Download</h2>
     </div>
     -->
-    <div id="content"><p><em>This framework is actually in early stage and only available as snapshot</em></p>
-<h2>SBT</h2>
-<pre><code>  val sindi = "org.scala-tools.sinap" %% "sinap-core" % "0.1-SNAPSHOT"
-  val sindi = "org.scala-tools.sinap" %% "sinap-mapper" % "0.1-SNAPSHOT"
-
-  ...
-
-  val aloiscochardSnapshots = "aloiscochard snapshots" at "http://orexio.org/~alois/repositories/snapshots"
-</code></pre>
-<h2>Maven</h2>
-<pre><code>&lt;dependencies&gt;
-  ...
-  &lt;dependency&gt;
-    &lt;groupId&gt;org.scala-tools.sinap&lt;/groupId&gt;
-    &lt;artifactId&gt;sinap-core_2.9.0&lt;/artifactId&gt;
-    &lt;version&gt;0.1-SNAPSHOT&lt;/version&gt;
-  &lt;/dependency&gt;
-  ...
-&lt;/dependencies&gt;
-
-&lt;repositories&gt;
-  ...
-  &lt;repository&gt;
-    &lt;id&gt;aloiscochard snapshots&lt;/id&gt;
-    &lt;url&gt;http://orexio.org/~alois/repositories/snapshots&lt;/url&gt;
-  &lt;/repository&gt;
-  ...
-&lt;/repositories&gt;
-</code></pre></div>
+    <div id="content">
+      <p><em>This library is hosted on the <a href="http://scala-tools.org/repo-releases/org/scala-tools/sindi">Scala Tools</a> repository.</em></p>
+<p>You can find more informations about the differents versions available,
+as well as how to integrate Sindi in your SBT/Maven project on the Wiki's <a href="https://github.com/aloiscochard/sindi/wiki/Download">Download</a> page.</p>
+    </div>
     </div>
     <div id="footer">
         Source Code at <a href="http://github.com/aloiscochard/sindi">GitHub.com</a>
         &middot;
         Licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a>
     </div>
+    <a href="http://twitter.com/SindiContainer" class="twitter-follow-button" data-show-count="false">Follow @SindiContainer</a>
+    <script src="http://platform.twitter.com/widgets.js" type="text/javascript"></script>
 </body>
 </html>
