@@ -26,7 +26,7 @@ import nsc.plugins.PluginComponent
 // TODO [acochard] Warn when dependencies can't be checked
 // TODO [acochard] Add options to configure warning/error level of checks
 
-class DependencyChecker(val global: Global) extends Plugin {
+class ModuleValidator(val global: Global) extends Plugin {
   import global._
 
   val name = "sindi"
