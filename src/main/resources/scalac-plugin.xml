@@ -1,4 +1,4 @@
 <plugin>
-  <name>sindi.depchecks</name>
+  <name>sindi</name>
   <classname>sindi.compiler.DependencyChecker</classname>
 </plugin>
