@@ -20,6 +20,8 @@ import nsc.ast.TreeBrowsers
 import nsc.plugins.Plugin
 import nsc.plugins.PluginComponent
 
+// TODO [acochard] Check for injection of non-imported modules (transitive must be explicit)
+
 class DependencyChecker(val global: Global) extends Plugin {
   import global._
 
@@ -38,80 +40,77 @@ class DependencyChecker(val global: Global) extends Plugin {
       override def name = DependencyChecker.this.name
 
       def apply(unit: CompilationUnit) {
-
-        @tailrec def find(matcher: (Tree) => Boolean, trees: Tree*): Option[Tree] = {
-          var children = List[Tree]()
-          trees.flatMap((tree: Tree) => {
-            if (matcher(tree)) {
-              Some(tree)
-            } else {
-              children = children ++ tree.children
-              None
-            }
-          }).headOption match {
-            case Some(tree) => return Some(tree)
-            case _ =>
+        (for (tree @ ClassDef(_, _, _, _) <- unit.body) yield {
+          if (isModule(tree)) {
+            Left((tree, getBindings(tree)))
+          } else if (isComponent(tree)) {
+            Right((tree, getDependencies(tree)))
+          } else {
+            None
           }
-          if (children.isEmpty) return None
-          return find(matcher, children:_*)
+        }).foreach((entity) => {
+          entity match {
+            case Left((tree, bindings)) =>
+            case Right((tree, dependencies)) =>
+          }
+        })
+
+        for (tree @ ClassDef(_, _, _, _) <- unit.body) {
+          
+          if (isModule(tree)) {
+            println("[module]" + tree.name)
+            getBindings(tree).foreach((t) => {
+              println("<- %s".format(t))
+            })
+          }
+          if (isComponent(tree)) {
+            println("[component]" + tree.name)
+            getDependencies(tree).foreach((d) => {
+              val (injected, module) = d
+              println("%s -> %s".format(module, injected))
+            })
+          }
         }
 
-        def implement[T : Manifest](tree: Tree): Boolean = {
-          find((tree) => {
-            tree.tpe.toString == manifest[T].erasure.getName
-          }, tree).isDefined
-        }
+        //DependencyChecker.this.global.treeBrowsers.create().browse(tree) 
+      }
 
-
-        def isComponent(tree: Tree) = implement[sindi.Component](tree)
-        def isModule(tree: Tree) = implement[sindi.Module](tree)
-
-        def getBindings(tree: ClassDef): List[Type] = {
-          var bindings = List[Type]()
-          for (tree @ ValDef(_, _, _, _) <- tree.impl.body) {
-            if (tree.tpt.tpe.toString == "List[sindi.binder.binding.Binding[_]]" ||
-                tree.tpt.tpe.toString == "sindi.package.Bindings") {
-              //println(tree.rhs)
-              for (tree @ Apply(_, _) <- tree.children) {
-                // Collect all TypeTree, typeTree.tpe = Bound
-                @tailrec def collect(lookup: List[Tree], accumulator: List[TypeTree] = Nil): List[TypeTree] = {
-                  var children = List[Tree]()
-                  val found = for(tree <- lookup) yield {
-                    children = children ++ tree.children
-                    tree match {
-                      case tree: TypeApply => {
-                        if (tree.symbol.owner.toString == "trait DSL" && tree.symbol.name.toString == "bind") {
-                          var f: Option[TypeTree] = None
-                          for (t <- tree.children) {
-                            t match {
-                              case t: TypeTree => f = Some(t)
-                              case _ => 
-                            }
-                          }
-                          f
-                        } else {
-                          None
+      private def getBindings(tree: ClassDef): List[Type] = {
+        var bindings = List[Type]()
+        for (tree @ ValDef(_, _, _, _) <- tree.impl.body) {
+          if (tree.tpt.tpe.toString == "List[sindi.binder.binding.Binding[_]]" ||
+              tree.tpt.tpe.toString == "sindi.package.Bindings") {
+            for (tree @ Apply(_, _) <- tree.children) {
+              // Collect all TypeTree, typeTree.tpe = Bound
+              collect[TypeTree](tree.children)((tree) => {
+                tree match {
+                  case tree: TypeApply => {
+                    if (tree.symbol.owner.toString == "trait DSL" && tree.symbol.name.toString == "bind") {
+                      var f: Option[TypeTree] = None
+                      for (t <- tree.children) {
+                        t match {
+                          case t: TypeTree => f = Some(t)
+                          case _ => 
                         }
                       }
-                      case _ => None
+                      f
+                    } else {
+                      None
                     }
                   }
-                  if (children.isEmpty) {
-                    accumulator
-                  } else {
-                    collect(children, found.flatten ++ accumulator)
-                  }
+                  case _ => None
                 }
-                collect(tree.children).foreach((tree) => {
-                  bindings = tree.tpe :: bindings
-                })
-              }
+              }).foreach((tree) => {
+                bindings = tree.tpe :: bindings
+              })
             }
           }
-          bindings
         }
+        bindings
+      }
 
-        def getDependencies(tree: Tree): List[Tuple2[Type, Type]] = {
+      private def getDependencies(tree: Tree): List[Tuple2[Type, Type]] = {
+          val dependencies: List[Option[Tuple2[Type, Type]]] = 
             for (tree @ DefDef(_, _, _, _, _, _) <- tree.children.head.children) yield {
               var injected: Type = null
               var module: Type = null
@@ -148,30 +147,50 @@ class DependencyChecker(val global: Global) extends Plugin {
                 }
                 case None =>
               }
-              (injected, module)
-            } 
-        }
+              if (injected == null || module == null) { None } else { Some((injected, module)) }
+            }
 
-        for (tree @ ClassDef(_, _, _, _) <- unit.body) {
-          //println(tree.name)
-          //println(tree.impl.parents)
-          if (isModule(tree)) {
-            println("[module]" + tree.name)
-            getBindings(tree).foreach((t) => {
-              println("<- %s".format(t))
-            })
-          }
-          if (isComponent(tree)) {
-            println("[component]" + tree.name)
-            getDependencies(tree).foreach((d) => {
-              val (injected, module) = d
-              println("%s -> %s".format(module, injected))
-            })
-          }
-        }
-
-        //DependencyChecker.this.global.treeBrowsers.create().browse(tree) 
+          dependencies.flatten
       }
+
+      private def isComponent(tree: Tree) = implement[sindi.Component](tree)
+      private def isModule(tree: Tree) = implement[sindi.Module](tree)
+
+      private def implement[T : Manifest](tree: Tree): Boolean = {
+        find((tree) => {
+          tree.tpe.toString == manifest[T].erasure.getName
+        }, tree).isDefined
+      }
+
+      private def find(matcher: (Tree) => Boolean, tree: Tree): Option[Tree] = {
+        findA[Tree]((tree) => {
+          if (matcher(tree)) { Some(tree) } else { None }
+        }, tree)
+      }
+
+      private def findA[T <: Tree](filter: (Tree) => Option[T], tree: Tree): Option[T] = {
+        val trees = collect[T](List(tree))(filter)
+        if (trees.isEmpty) {
+          None
+        } else {
+          Some(trees.head)
+        }
+      }
+
+      @tailrec private def collect[T <: Tree](lookup: List[Tree], accumulator: List[T] = Nil)
+          (filter: (Tree) => Option[T]): List[T] = {
+        var children = List[Tree]()
+        val found = for(tree <- lookup) yield {
+          children = children ++ tree.children
+          filter(tree)
+        }
+        if (children.isEmpty) {
+          accumulator
+        } else {
+          collect(children, found.flatten ++ accumulator)(filter)
+        }
+      }
+
     }
   }
 }
