@@ -221,6 +221,7 @@ class DependencyChecker(val global: Global) extends Plugin {
         }
         if (children.isEmpty) { accumulator } else { collect(children, found.flatten ++ accumulator)(filter) }
       }
+
     }
   }
 }
