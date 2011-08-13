@@ -6,7 +6,7 @@ organization := "org.scala-tools.sindi"
 
 scalaVersion := "2.9.0-1"
 
-scalacOptions += "-unchecked"
+scalacOptions ++= Seq("-unchecked", "-deprecation")
 
 crossScalaVersions := Seq("2.8.1", "2.9.0-1", "2.9.1.RC1")
 
