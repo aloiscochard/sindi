@@ -48,14 +48,14 @@ class ModuleValidator(val global: Global) extends Plugin {
     "  -P:sindi:debug              show debug informations")
 
   private object Component extends PluginComponent {
-    val global: DependencyChecker.this.global.type = DependencyChecker.this.global
+    val global: ModuleValidator.this.global.type = ModuleValidator.this.global
     val runsAfter = List[String]("refchecks")
-    val phaseName = DependencyChecker.this.name
+    val phaseName = ModuleValidator.this.name
 
-    def newPhase(_prev: Phase) = new DependencyCheckerPhase(_prev)
+    def newPhase(_prev: Phase) = new ModuleValidatorPhase(_prev)
 
-    class DependencyCheckerPhase(prev: Phase) extends StdPhase(prev) {
-      override def name = DependencyChecker.this.name
+    class ModuleValidatorPhase(prev: Phase) extends StdPhase(prev) {
+      override def name = ModuleValidator.this.name
 
       def apply(unit: CompilationUnit) {
         val (modules, components) = filter(unit.body)
