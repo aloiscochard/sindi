@@ -8,12 +8,16 @@ scalaVersion := "2.9.0-1"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
-crossScalaVersions := Seq("2.8.1", "2.9.0-1", "2.9.1.RC1")
+crossScalaVersions := Seq("2.8.1", "2.9.0-1", "2.9.1.RC2")
 
 
-libraryDependencies ++= Seq(
-  "org.specs2" %% "specs2" % "1.5" % "test"
-)
+libraryDependencies <<= (scalaVersion, libraryDependencies) { (version, dependencies) =>
+  val specs2Version = version match {
+    case "2.9.1.RC2" => "1.6-SNAPSHOT"
+    case _ => "1.5"
+  }
+  dependencies :+ ("org.specs2" %% "specs2" % specs2Version % "test")
+}
 
 libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided")
 
