@@ -11,10 +11,12 @@
 package sindi
 package injector
 
+import utils.Reflection._
+
 object `package` {
   type Binding = Tuple2[BindingID, BindingProvider]
   type BindingProvider = () => AnyRef
-  type BindingID = Tuple2[AnyRef, Class[_]]
+  type BindingID = Tuple2[AnyRef, Manifest[_]]
 }
 
 object Injector {
@@ -35,7 +37,7 @@ private trait Bindable extends Injector {
   def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
     bindings.flatMap((binding) => {
       val (id, provider) = binding
-      if (id._1 == qualifier && manifest[T].erasure.isAssignableFrom(id._2)) {
+      if (id._1 == qualifier && isAssignable(manifest[T], id._2)) {
         Some(provider)
       } else {
         None
@@ -44,7 +46,7 @@ private trait Bindable extends Injector {
       case Some(provider) => provider.asInstanceOf[() => T]()
       case None => {
         val q = if (qualifier == None) { "" } else { " with qualifier %s".format(qualifier) }
-        throw new RuntimeException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T].erasure))
+        throw exception.TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T].erasure))
       }
     }
   }

@@ -12,12 +12,14 @@ package sindi
 
 import org.specs2.mutable._
 
+// TODO [aloiscochard] Add hierarchical tests
+
 class FunctionalSpec extends Specification {
 
   "Sindi" should {
     "throw an exception when type is not bound" in {
       class Foo extends Context
-      new Foo().inject[String] must throwAn[RuntimeException]
+      new Foo().inject[String] must throwAn[exception.TypeNotBoundException]
     }
 
     "bind concrete type" in {
@@ -28,7 +30,7 @@ class FunctionalSpec extends Specification {
     "bind concrete type with qualifier" in {
       class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" as "sindi"}
       val foo = new Foo
-      foo.inject[String] must throwAn[RuntimeException]
+      foo.inject[String] must throwAn[exception.TypeNotBoundException]
       foo.injectAs[String]("sindi") mustEqual "sindi"
     }
 
@@ -64,12 +66,23 @@ class FunctionalSpec extends Specification {
 
     "bind parameterized type" in {
       val list = List("sindi")
-      class Foo extends Context { override val bindings: Bindings = bind[List[String]] to list }
-      new Foo().inject[List[String]] mustEqual list
-      new Foo().inject[List[AnyRef]] mustEqual list
+      class FooA extends Context { override val bindings: Bindings = bind[List[String]] to list }
+      val fooA = new FooA
+      fooA.inject[List[String]] mustEqual list
+      fooA.inject[List[AnyRef]] mustEqual list
 
+      class FooB extends Context { override val bindings: Bindings = bind[List[AnyRef]] to list }
+      new FooB().inject[List[String]] must throwAn[exception.TypeNotBoundException]
     }
 
-    // TODO [aloiscochard] Test scope, qualifier, factory, Option
+    "support Option" in {
+      class FooA extends Context { override val bindings: Bindings = bind[Option[String]] to Some("sindi") }
+      val fooA = new FooA
+      fooA.inject[Option[String]] mustEqual Some("sindi")
+      fooA.inject[Option[List[String]]] mustEqual None
+
+      class FooB extends Context 
+      new FooB().inject[Option[String]] mustEqual None
+    }
   }
 }

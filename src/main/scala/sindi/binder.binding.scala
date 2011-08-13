@@ -16,16 +16,16 @@ import scala.collection.mutable.{HashMap => MHashMap}
 import scala.ref.WeakReference
 
 trait Binding[T <: AnyRef] {
-  protected[binding] val source: Class[T]
+  protected[binding] val source: Manifest[T]
 
   protected val provider: () => T
 
-  def build: Tuple2[Tuple2[AnyRef,Class[T]], () => T] = (None, source) -> provider
+  def build: Tuple2[Tuple2[AnyRef,Manifest[T]], () => T] = (None, source) -> provider
 }
 
 protected[binder] object  Binding {
   def apply[T <: AnyRef : Manifest](provider: () => T): Binding[T] =
-    new DefaultBinding[T](manifest[T].erasure.asInstanceOf[Class[T]], provider)
+    new DefaultBinding[T](manifest[T], provider)
   def apply[T <: AnyRef](binding: Binding[T], scoper: () => Any): Binding[T] =
     new ScopedBinding[T](binding, scoper)
   def apply[T <: AnyRef](binding: Binding[T], qualifier: AnyRef): Binding[T] =
@@ -52,7 +52,7 @@ private trait Qualifiable[T <: AnyRef] extends Binding[T] {
   }
 }
 
-private class DefaultBinding[T <: AnyRef](val source: Class[T], val provider: () => T)
+private class DefaultBinding[T <: AnyRef](val source: Manifest[T], val provider: () => T)
   extends Binding[T]
 
 private class ScopedBinding[T <: AnyRef](binding: Binding[T], val scoper: () => Any)
