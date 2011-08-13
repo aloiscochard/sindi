@@ -11,12 +11,16 @@
 package sindi
 package injector
 
-import scala.collection.immutable.Map
+object `package` {
+  type Binding = Tuple2[BindingID, BindingProvider]
+  type BindingProvider = () => AnyRef
+  type BindingID = Tuple2[AnyRef, Class[_]]
+}
 
 object Injector {
-  def apply(bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef]): Injector =
+  def apply(bindings : List[Binding]): Injector =
     new DefaultInjector(bindings)
-  def apply(bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef], parent: () => Injector): Injector = 
+  def apply(bindings : List[Binding], parent: () => Injector): Injector = 
     new ChildedInjector(bindings, parent)
 }
 
@@ -26,15 +30,21 @@ trait Injector {
 }
 
 private trait Bindable extends Injector {
-  val bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef]
+  val bindings : List[Binding]
 
   def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
-    val source = manifest[T].erasure
-    bindings.get(qualifier -> source) match {
+    bindings.flatMap((binding) => {
+      val (id, provider) = binding
+      if (id._1 == qualifier && manifest[T].erasure.isAssignableFrom(id._2)) {
+        Some(provider)
+      } else {
+        None
+      }
+    }).headOption match {
       case Some(provider) => provider.asInstanceOf[() => T]()
       case None => {
         val q = if (qualifier == None) { "" } else { " with qualifier %s".format(qualifier) }
-        throw new RuntimeException(("Unable to inject %s" + q + ": type is not bound.").format(source))
+        throw new RuntimeException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T].erasure))
       }
     }
   }
@@ -53,10 +63,10 @@ private trait Childable extends Injector {
 }
 
 private class DefaultInjector(
-    override val bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef])
+    override val bindings : List[Binding])
   extends Injector with Bindable
 
 private class ChildedInjector(
-    override val bindings : Map[Tuple2[AnyRef, Class[_]], () => AnyRef],
+    override val bindings : List[Binding],
     override val parent: () => Injector)
   extends DefaultInjector(bindings) with Childable
