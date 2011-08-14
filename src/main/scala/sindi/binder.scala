@@ -12,13 +12,14 @@ package sindi
 package binder
 
 import binder.binding._
+import binder.binding.provider._
 
 trait Scoper {
   def thread: () => AnyRef = () => java.lang.Thread.currentThread
 }
 
 trait Binder extends Scoper {
-  def bind[T <: AnyRef : Manifest](provider: => T): Binding[T] = Binding[T](() => provider)
+  def bind[T <: AnyRef : Manifest](provider: Provider[T]): Binding[T] = Binding[T](provider)
   def scopify[T <: AnyRef](binding: Binding[T])(scoper: () => Any): Binding[T] = Binding[T](binding, scoper)
   def qualify[T <: AnyRef](binding: Binding[T], qualifier: AnyRef): Binding[T] = Binding[T](binding, qualifier)
 }
@@ -29,7 +30,8 @@ trait DSL {
   def bind[T <: AnyRef : Manifest] = new BindSource[T]
 
   protected class BindSource[T <: AnyRef : Manifest] extends Binder {
-    def to(provider: => T) = new SimpleBind[T](provider)
+    def to(provider: => T): SimpleBind[T] = toProvider(new FunctionProvider(manifest[T], () => provider))
+    def toProvider(provider: Provider[T]): SimpleBind[T] = new SimpleBind[T](provider)
   }
 
   protected sealed abstract class Bind[T <: AnyRef : Manifest] extends Binder {
@@ -41,7 +43,7 @@ trait DSL {
   protected trait Qualifiable[T <: AnyRef] extends Bind[T] { def as(qualifier: AnyRef) = toQualified(qualifier) }
   protected trait Scopable[T <: AnyRef] extends Bind[T] { def scope(scoper: => Any) = toScopable(() => scoper) }
   
-  protected class SimpleBind[T <: AnyRef : Manifest](provider: => T) extends Bind[T] with Qualifiable[T] with Scopable[T] {
+  protected class SimpleBind[T <: AnyRef : Manifest](provider: Provider[T]) extends Bind[T] with Qualifiable[T] with Scopable[T] {
     override def build = bind(provider)
   }
 

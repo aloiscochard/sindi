@@ -51,17 +51,17 @@ class FunctionalSpec extends Specification {
     }
 
     "bind abstract type with FIFO priority" in {
-      class FooA extends Context { override val bindings = Bindings(bind[AnyRef] to "scala",
-                                                                    bind[String] to "sindi") }
+      class FooA extends Context { override val bindings = Bindings(bind[AnyRef] to "sindi") }
       val fooA = new FooA
-      fooA.inject[AnyRef] mustEqual "scala"
-      fooA.inject[String] mustEqual "sindi"
+      fooA.inject[AnyRef] mustEqual "sindi"
+      fooA.inject[String] must throwAn[exception.TypeNotBoundException]
 
-      class FooB extends Context { override val bindings = Bindings(bind[String] to "sindi",
+      class FooB extends Context { override val bindings = Bindings(bind[List[String]] to List("sindi"),
+                                                                    bind[String] to "sindi",
                                                                     bind[AnyRef] to "scala") }
       val fooB = new FooB
       fooB.inject[String] mustEqual "sindi"
-      fooB.inject[AnyRef] mustEqual "sindi"
+      fooB.inject[AnyRef] mustEqual List("sindi")
     }
 
     "bind parameterized type" in {
@@ -75,14 +75,64 @@ class FunctionalSpec extends Specification {
       new FooB().inject[List[String]] must throwAn[exception.TypeNotBoundException]
     }
 
+    "bind parameterized type to provider" in {
+      class StringProvider extends Provider[Option[String]] { override def get = Some("sindi") } 
+
+      class Foo extends Context {
+        override val bindings: Bindings = bind[Option[String]] toProvider new StringProvider
+      }
+
+      val foo = new Foo
+      foo.inject[Option[String]] mustEqual Some("sindi")
+    }
+
+    "bind parameterized type to abstract provider" in {
+      abstract class ListProvider[T <: AnyRef : Manifest] extends AbstractProvider[List[T]]
+
+      object ListProvider {
+        def create[T <: AnyRef : Manifest] = {
+          new ListProvider[T] {
+            def provide[T <: AnyRef : Manifest]: T = {
+              if (manifest[T].typeArguments.size == 1 && manifest[T].typeArguments.head == manifest[String]) {
+                List("sindi")
+              } else {
+                Nil
+              }
+            }.asInstanceOf[T]
+          }
+
+        }
+      } 
+
+      class FooA extends Context {
+        override val bindings = Bindings(bind[List[String]] toProvider ListProvider.create[String],
+                                         bind[List[AnyRef]] to List("sindi"))
+      }
+      val fooA = new FooA
+      fooA.inject[List[AnyRef]] mustEqual Nil
+      fooA.inject[List[String]] mustEqual List("sindi")
+
+      class FooB extends Context {
+        lazy val list: List[String] = ListProvider.create[String].provide[List[String]]
+        override val bindings = Bindings(bind[List[String]] to list,
+                                         bind[List[AnyRef]] to List("sindi"))
+      }
+
+      val fooB = new FooB
+      fooB.inject[List[AnyRef]] mustEqual List("sindi")
+      fooB.inject[List[String]] mustEqual List("sindi")
+    }
+
     "support Option" in {
       class FooA extends Context { override val bindings: Bindings = bind[Option[String]] to Some("sindi") }
       val fooA = new FooA
       fooA.inject[Option[String]] mustEqual Some("sindi")
+      fooA.inject[Option[AnyRef]] mustEqual Some("sindi")
       fooA.inject[Option[List[String]]] mustEqual None
 
       class FooB extends Context 
       new FooB().inject[Option[String]] mustEqual None
     }
+
   }
 }

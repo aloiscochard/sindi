@@ -15,17 +15,18 @@ import scala.collection.mutable.{HashMap => MHashMap}
 
 import scala.ref.WeakReference
 
+import sindi.binder.binding.provider.{Provider, FunctionProvider}
+
 trait Binding[T <: AnyRef] {
-  protected[binding] val source: Manifest[T]
 
-  protected val provider: () => T
+  protected val provider: Provider[T]
 
-  def build: Tuple2[Tuple2[AnyRef,Manifest[T]], () => T] = (None, source) -> provider
+  def build: Tuple2[AnyRef, Provider[T]] = (None, provider)
 }
 
-protected[binder] object  Binding {
-  def apply[T <: AnyRef : Manifest](provider: () => T): Binding[T] =
-    new DefaultBinding[T](manifest[T], provider)
+protected[binder] object Binding {
+  def apply[T <: AnyRef : Manifest](provider: Provider[T]): Binding[T] =
+    new DefaultBinding[T](provider)
   def apply[T <: AnyRef](binding: Binding[T], scoper: () => Any): Binding[T] =
     new ScopedBinding[T](binding, scoper)
   def apply[T <: AnyRef](binding: Binding[T], qualifier: AnyRef): Binding[T] =
@@ -39,7 +40,10 @@ private trait Scopable[T <: AnyRef] extends Binding[T] {
 
   override def build = {
     val e = super.build
-    e._1 -> (() => { registry.getOrElseUpdate(scoper().hashCode, new WeakReference[T](e._2())).apply })
+    (e._1, new FunctionProvider[T](e._2.signature, () => {
+      val value = e._2.provide(e._2.signature).asInstanceOf[T]
+      registry.getOrElseUpdate(scoper().hashCode, new WeakReference[T](value)).apply
+    }))
   }
 }
 
@@ -48,15 +52,27 @@ private trait Qualifiable[T <: AnyRef] extends Binding[T] {
 
   override def build = {
     val e = super.build
-    (qualifier -> e._1._2) -> e._2
+    qualifier -> e._2
   }
 }
 
-private class DefaultBinding[T <: AnyRef](val source: Manifest[T], val provider: () => T)
+private class DefaultBinding[T <: AnyRef](val provider: Provider[T])
   extends Binding[T]
 
 private class ScopedBinding[T <: AnyRef](binding: Binding[T], val scoper: () => Any)
-  extends DefaultBinding[T](binding.source, binding.build._2) with Scopable[T] 
+  extends DefaultBinding[T](binding.build._2) with Scopable[T] 
 
 private class QualifiedBinding[T <: AnyRef](binding: Binding[T], val qualifier: AnyRef)
-  extends DefaultBinding[T](binding.source, binding.build._2) with Qualifiable[T]
+  extends DefaultBinding[T](binding.build._2) with Qualifiable[T]
+
+package provider {
+
+  trait Provider[T <: AnyRef] {
+    val signature: Manifest[_ <: AnyRef]
+    def provide[T <: AnyRef : Manifest]: T
+  }
+
+  class FunctionProvider[T <: AnyRef](override val signature: Manifest[_ <: AnyRef], val f: () => _) extends Provider[T] {
+    def provide[T : Manifest] = f.asInstanceOf[() => T]()
+  }
+}

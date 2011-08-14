@@ -39,6 +39,15 @@ trait Context extends context.Context with binder.DSL {
   }
 }
 
+abstract class AbstractProvider[T <: AnyRef : Manifest] extends binder.binding.provider.Provider[T] {
+  override val signature = manifest[T]
+}
+
+abstract class Provider[T <: AnyRef : Manifest] extends AbstractProvider[T] {
+  override def provide[T <: AnyRef : Manifest]: T = get.asInstanceOf[T]
+  def get: T
+}
+
 abstract class Module(implicit context: Context) extends Context with context.Childified {
   override protected val parent = context
   def apply[S <: AnyRef : Manifest](): S = inject[S]

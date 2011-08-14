@@ -14,9 +14,7 @@ package injector
 import utils.Reflection._
 
 object `package` {
-  type Binding = Tuple2[BindingID, BindingProvider]
-  type BindingProvider = () => AnyRef
-  type BindingID = Tuple2[AnyRef, Manifest[_]]
+  type Binding = Tuple2[AnyRef, binder.binding.provider.Provider[AnyRef]]
 }
 
 object Injector {
@@ -36,14 +34,14 @@ private trait Bindable extends Injector {
 
   def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
     bindings.flatMap((binding) => {
-      val (id, provider) = binding
-      if (id._1 == qualifier && (id._2 <:< manifest[T])) {
-        Some(provider)
+      val (b_qualifier, b_provider) = binding
+      if (b_qualifier == qualifier && (b_provider.signature <:< manifest[T])) {
+        Some(b_provider)
       } else {
         None
       }
     }).headOption match {
-      case Some(provider) => provider.asInstanceOf[() => T]()
+      case Some(provider) => provider.provide[T]
       case None => {
         val q = if (qualifier == None) { "" } else { " with qualifier %s".format(qualifier) }
         throw exception.TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T].erasure))
