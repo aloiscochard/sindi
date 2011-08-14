@@ -20,12 +20,6 @@ import nsc.ast.TreeBrowsers
 import nsc.plugins.Plugin
 import nsc.plugins.PluginComponent
 
-// Remarks: not sure check must be done with imported modules, would make sense to force explicit binding of them.
-
-// TODO [acochard] Check for injection on imported modules (transitive must be explicit)
-// TODO [acochard] Warn when dependencies can't be checked
-// TODO [acochard] Add options to configure warning/error level of checks
-
 class ModuleValidator(val global: Global) extends Plugin {
   import global._
 
@@ -34,18 +28,22 @@ class ModuleValidator(val global: Global) extends Plugin {
   val components = List[PluginComponent](Component)
 
   var debug = false
+  var ignoreOption = true
   
   override def processOptions(options: List[String], error: String => Unit) {
     for (option <- options) {
       option match {
         case "debug" => debug = true
+        case "option" => ignoreOption = false
         case _ => error("Option not understood: " + option)
       }
     }
   }
-  
-  override val optionsHelp: Option[String] = Some(
-    "  -P:sindi:debug              show debug informations")
+
+  override val optionsHelp: Option[String] = Some("""
+      -P:sindi:debug             show debug informations
+      -P:sindi:option            check if scala.Option based bindings are satisfied
+    """)
 
   private object Component extends PluginComponent {
     val global: ModuleValidator.this.global.type = ModuleValidator.this.global
@@ -62,28 +60,28 @@ class ModuleValidator(val global: Global) extends Plugin {
 
         if (debug) {
           println(modules.map((m) => { "[sindi.debug] --> %s".format(m.toString) }).mkString("\n"))
+          //modules.foreach((m) => ModuleValidator.this.global.treeBrowsers.create().browse(m.tree))
           println(components.map((c) => { "[sindi.debug] <-- %s".format(c.toString) }).mkString("\n"))
         }
 
         for (component <- components;
              dependency <- component.dependencies) {
-           val (module, injected, tree) = dependency
-           modules.find((m) => m.tree.symbol.tpe == module) match {
-             case Some(m) => {
-               m.bindings.find((b) => b == injected) match {
-                 case Some(b) => 
-                 case _ =>
-                   unit.error(tree.pos, "type not bound\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module))
-               }
-             }
-             case _ => {
-               unit.warning(tree.pos, "injecting from a module not in scope should be avoided")
-               // Component use a non defined module
-               // TODO Check in imported module, if present otherwise error ?
-             }
-           }
+          val (module, injected, tree) = dependency
+          // Optionaly fiter options
+          if (!(ignoreOption && isOption(injected))) {
+            modules.find((m) => m.tree.symbol.tpe == module) match {
+              case Some(m) => {
+                m.bindings.find((b) => injected <:< b) match {
+                  case Some(b) => 
+                  case _ =>
+                    unit.error(tree.pos, "type not bound\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module))
+                }
+              }
+              case _ =>
+                unit.warning(tree.pos, "injecting from a module not in scope should be avoided, prefer components mixin")
+            }
+          }
         }
-        //DependencyChecker.this.global.treeBrowsers.create().browse(tree) 
       }
 
       private type Bindings = List[Type]
@@ -121,6 +119,11 @@ class ModuleValidator(val global: Global) extends Plugin {
       private def isComponent(tree: Tree) = implement[sindi.Component](tree)
       private def isModule(tree: Tree) = implement[sindi.Module](tree)
 
+      // FIXME [aloiscochard] this horrible hack should be removable with upcoming new reflection library
+      private def isOption(to: Type): Boolean = {
+        to.baseClasses.foreach((symbol) => { if (symbol.tpe.toString == "Option[A]") return true })
+        false
+      }
       private def implement[T : Manifest](tree: Tree): Boolean = {
         find((tree) => { tree.tpe.toString == manifest[T].erasure.getName }, tree).isDefined
       }
@@ -136,7 +139,7 @@ class ModuleValidator(val global: Global) extends Plugin {
                   case tree: TypeApply => {
                     if (tree.symbol.owner.toString == "trait DSL" && tree.symbol.name.toString == "bind") {
                       var f: Option[TypeTree] = None
-                      for (t <- tree.children) {
+                      for (t <- tree.children) { 
                         t match {
                           case t: TypeTree => f = Some(t)
                           case _ => 
@@ -149,9 +152,7 @@ class ModuleValidator(val global: Global) extends Plugin {
                   }
                   case _ => None
                 }
-              }).foreach((tree) => {
-                bindings = tree.tpe :: bindings
-              })
+              }).foreach((tree) => { bindings = tree.tpe :: bindings })
             }
           }
         }
@@ -215,10 +216,7 @@ class ModuleValidator(val global: Global) extends Plugin {
       private def collect[T <: Tree](lookup: List[Tree], accumulator: List[T] = Nil)
           (filter: (Tree) => Option[T]): List[T] = {
         var children = List[Tree]()
-        val found = for(tree <- lookup) yield {
-          children = children ++ tree.children
-          filter(tree)
-        }
+        val found = for(tree <- lookup) yield { children = children ++ tree.children; filter(tree) }
         if (children.isEmpty) { accumulator } else { collect(children, found.flatten ++ accumulator)(filter) }
       }
 
