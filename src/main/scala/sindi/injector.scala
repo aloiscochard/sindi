@@ -37,7 +37,7 @@ private trait Bindable extends Injector {
   def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
     bindings.flatMap((binding) => {
       val (id, provider) = binding
-      if (id._1 == qualifier && isAssignable(manifest[T], id._2)) {
+      if (id._1 == qualifier && (id._2 <:< manifest[T])) {
         Some(provider)
       } else {
         None

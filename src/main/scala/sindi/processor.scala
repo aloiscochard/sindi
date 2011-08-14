@@ -16,7 +16,7 @@ import utils.Reflection._
 object `package` {
   type Processor[T <: AnyRef] = (Manifest[_], (() => T) => T)
 
-  val option = processor.Processor.create[Option[AnyRef]]((f) => {
+  val option = processor.Processor.create[Option[Any]]((f) => {
     try { f() } catch {
       case e: exception.TypeNotBoundException => None
       case e => throw e
@@ -31,7 +31,7 @@ object Processor {
 
   def process[T <: AnyRef : Manifest](processors: List[Processor[AnyRef]], f: () => T): () => T = {
     processors.foldLeft(f)((f, processor) => {
-      if (isAssignable(processor._1, manifest[T])) { () => processor._2(f).asInstanceOf[T] } else { f }
+      if (manifest[T] <:< processor._1) { () => processor._2(f).asInstanceOf[T] } else { f }
     })
   }
 }

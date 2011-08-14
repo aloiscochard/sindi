@@ -29,8 +29,11 @@ trait Context extends context.Context with binder.DSL {
   }
 
   def from[M <: Module : Manifest]: sindi.injector.Injector = {
-    modules.foreach((m) => {
-        if (m.getClass == manifest[M].erasure) return m.asInstanceOf[M].injector
+    modules.foreach((module) => {
+      utils.Reflection.moduleOf[M](module) match {
+        case Some(module) => return module.injector
+        case _ =>
+      }
     })
     throw exception.ModuleNotFoundException(manifest[M].erasure)
   }
@@ -61,22 +64,17 @@ package exception {
 }
 
 package utils {
-
   object Reflection {
-    def createModule[M <: Module : Manifest](context: Context)= {
+    def createModule[M <: Module : Manifest](context: Context) = {
       (manifest[M].erasure.getConstructor(classOf[Context]).newInstance(context)).asInstanceOf[M]
     }
 
-    def isAssignable(to: Manifest[_], from: Manifest[_]): Boolean = {
-      if (to.erasure.isAssignableFrom(from.erasure)) {
-        (to.typeArguments, from.typeArguments).zipped.foreach((to, from) => {
-          if (!isAssignable(to, from)) { return false }
-        }) 
-        true
+    def moduleOf[M <: Module : Manifest](module: Module): Option[M] = {
+      if (module.getClass == manifest[M].erasure) {
+        Some(module.asInstanceOf[M])
       } else {
-        false
+        None
       }
-
     }
   }
 }
