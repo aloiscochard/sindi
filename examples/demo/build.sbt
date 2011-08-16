@@ -1,14 +1,14 @@
-name := "examples.basic"
+name := "demo"
 
-version := "0.2"
+version := "0.2-SNAPSHOT"
 
-organization := "org.scala-tools.sindi"
+organization := "org.scala-tools.sindi.examples"
 
 scalaVersion := "2.9.0-1"
 
 scalacOptions += "-unchecked"
 
-crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC1")
+crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC2")
 
 
 libraryDependencies += "org.scala-tools.sindi" %% "sindi" % "0.2-SNAPSHOT"

@@ -1,7 +1,8 @@
-package sindi.examples.basic
+package sindi.examples.demo
 
 import sindi._
 
+/*
 /////////////////
 // Application //
 /////////////////
@@ -81,3 +82,4 @@ package store {
   trait User extends Store
   trait UserPreference extends Store
 }
+*/
