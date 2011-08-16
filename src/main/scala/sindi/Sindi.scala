@@ -54,15 +54,12 @@ abstract class Module(implicit context: Context) extends Context with context.Ch
   def apply[S <: AnyRef : Manifest](qualifier: AnyRef): S = injectAs[S](qualifier)
 }
 
-abstract class ModuleFactory[M <: Module : Manifest] {
-  def apply(implicit context: Context): M = utils.Reflection.createModule[M](context)
-}
-
 trait Component { 
   protected def from[M <: Module : Manifest]: injector.Injector
 }
 
-class ComponentContext(val context: Context) extends Component {
+trait ComponentContext extends Component {
+  val context: Context
   protected def from[M <: Module : Manifest] = context.from[M]
 }
 
@@ -74,11 +71,9 @@ package exception {
 
 package utils {
   object Reflection {
-    def createModule[M <: Module : Manifest](context: Context) = {
-      (manifest[M].erasure.getConstructor(classOf[Context]).newInstance(context)).asInstanceOf[M]
-    }
 
     def moduleOf[M <: Module : Manifest](module: Module): Option[M] = {
+      // TODO [aloiscochard] add recursive check on type parameters
       if (module.getClass == manifest[M].erasure) {
         Some(module.asInstanceOf[M])
       } else {
