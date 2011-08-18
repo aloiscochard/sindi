@@ -9,33 +9,37 @@
 //
 
 package sindi
-                    
-// TODO [aloiscochard] Add assertion
 
-// SINAP
-// TODO [aloiscochard] map to config[file]
-// TODO [aloiscochard] Implement Event/Lifecycle system using processor
+// TODO [aloiscochard] Add assertions
+// TODO [aloiscochard] Improve Provider handling/implementation
 
 object `package` {
-  type Bindings = List[binder.binding.Binding[_]]
-  type Processors = List[processor.Processor[_]]
+  type Bindings = List[binder.binding.Binding[AnyRef]]
+  type Processors[T <: AnyRef] = List[processor.Processor[T]]
+  type Modules = List[Module]
 }
 
-trait Context extends context.Context with binder.DSL {
-  protected val modules: List[Module] = Nil
 
-  protected override def processing = {
-    super.processing :+ processor.option
+object Bindings {
+  def apply(bindings: binder.binding.Binding[_ <: AnyRef]*): List[binder.binding.Binding[AnyRef]] = {
+    bindings.toList.asInstanceOf[List[binder.binding.Binding[AnyRef]]]
   }
+}
+
+object Modules { def apply(modules: Module*): Modules = modules.toList }
+
+trait Context extends context.Context with binder.DSL {
+  implicit val `implicit` = this
+
+  protected lazy val modules: Modules = Nil
+  protected override def processing = super.processing :+ processor.option
 
   def from[M <: Module : Manifest]: sindi.injector.Injector = {
-    modules.foreach((module) => {
-      utils.Reflection.moduleOf[M](module) match {
-        case Some(module) => return module.injector
-        case _ =>
-      }
-    })
-    throw exception.ModuleNotFoundException(manifest[M].erasure)
+    modules.foreach((module) => { Helper.moduleOf[M](module) match {
+      case Some(module) => return module.injector
+      case _ =>
+    }})
+    throw ModuleNotFoundException(manifest[M])
   }
 }
 
@@ -50,35 +54,45 @@ abstract class Provider[T <: AnyRef : Manifest] extends AbstractProvider[T] {
 
 abstract class Module(implicit context: Context) extends Context with context.Childified {
   override protected val parent = context
-  def apply[S <: AnyRef : Manifest](): S = inject[S]
-  def apply[S <: AnyRef : Manifest](qualifier: AnyRef): S = injectAs[S](qualifier)
+}
+
+abstract class ModuleT[T <: Any : Manifest](context: Context) extends Module()(context) {
+  val manifest = implicitly[Manifest[T]]
 }
 
 trait Component { 
   protected def from[M <: Module : Manifest]: injector.Injector
 }
 
-trait ComponentContext extends Component {
-  val context: Context
+trait ComponentWithContext extends Component {
+  protected val context: Context
   protected def from[M <: Module : Manifest] = context.from[M]
 }
 
-package exception {
-  case class ModuleNotFoundException(module: Class[_]) extends Exception(
-    "Unable to inject from module %s: module not found.".format(module.getName))
-  case class TypeNotBoundException(message: String) extends Exception(message)
+abstract class ComponentContext(implicit context: Context) extends Component {
+  protected def from[M <: Module : Manifest] = context.from[M]
 }
 
-package utils {
-  object Reflection {
+case class ModuleNotFoundException(module: Manifest[_]) extends Exception(
+  "Unable to inject from module %s: module not found.".format(module))
 
-    def moduleOf[M <: Module : Manifest](module: Module): Option[M] = {
-      // TODO [aloiscochard] add recursive check on type parameters
-      if (module.getClass == manifest[M].erasure) {
-        Some(module.asInstanceOf[M])
-      } else {
-        None
+case class TypeNotBoundException(message: String) extends Exception(message)
+
+private object Helper {
+  def moduleOf[M <: Module : Manifest](module: Module): Option[M] = {
+    if (module.getClass == manifest[M].erasure) {
+      val m = module match {
+        case module: ModuleT[_] => {
+          manifest[M].typeArguments.headOption match {
+            case Some(typeManifest) => if (!(module.manifest <:< manifest[M].typeArguments.head)) return None
+            case _ => return None
+          }
+        }
+        case _ => 
       }
+      Some(module.asInstanceOf[M])
+    } else {
+      None
     }
   }
 }

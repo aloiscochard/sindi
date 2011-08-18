@@ -11,8 +11,6 @@
 package sindi
 package injector
 
-import utils.Reflection._
-
 object `package` {
   type Binding = Tuple2[AnyRef, binder.binding.provider.Provider[AnyRef]]
 }
@@ -44,7 +42,7 @@ private trait Bindable extends Injector {
       case Some(provider) => provider.provide[T]
       case None => {
         val q = if (qualifier == None) { "" } else { " with qualifier %s".format(qualifier) }
-        throw exception.TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T].erasure))
+        throw TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T]))
       }
     }
   }
@@ -57,7 +55,7 @@ private trait Childable extends Injector {
     try {
       parent().injectAs[T](qualifier)
     } catch {
-      case e: Exception => super.injectAs[T](qualifier)
+      case e: TypeNotBoundException => super.injectAs[T](qualifier)
     }
   }
 }

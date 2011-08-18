@@ -11,14 +11,12 @@
 package sindi
 package processor
 
-import utils.Reflection._
-
 object `package` {
   type Processor[T <: AnyRef] = (Manifest[_], (() => T) => T)
 
   val option = processor.Processor.create[Option[Any]]((f) => {
     try { f() } catch {
-      case e: exception.TypeNotBoundException => None
+      case e: TypeNotBoundException => None
       case e => throw e
     }
   })

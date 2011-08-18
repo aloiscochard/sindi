@@ -19,7 +19,7 @@ class FunctionalSpec extends Specification {
   "Sindi" should {
     "throw an exception when type is not bound" in {
       class Foo extends Context
-      new Foo().inject[String] must throwAn[exception.TypeNotBoundException]
+      new Foo().inject[String] must throwAn[TypeNotBoundException]
     }
 
     "bind concrete type" in {
@@ -30,7 +30,7 @@ class FunctionalSpec extends Specification {
     "bind concrete type with qualifier" in {
       class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" as "sindi"}
       val foo = new Foo
-      foo.inject[String] must throwAn[exception.TypeNotBoundException]
+      foo.inject[String] must throwAn[TypeNotBoundException]
       foo.injectAs[String]("sindi") mustEqual "sindi"
     }
 
@@ -54,7 +54,7 @@ class FunctionalSpec extends Specification {
       class FooA extends Context { override val bindings = Bindings(bind[AnyRef] to "sindi") }
       val fooA = new FooA
       fooA.inject[AnyRef] mustEqual "sindi"
-      fooA.inject[String] must throwAn[exception.TypeNotBoundException]
+      fooA.inject[String] must throwAn[TypeNotBoundException]
 
       class FooB extends Context { override val bindings = Bindings(bind[List[String]] to List("sindi"),
                                                                     bind[String] to "sindi",
@@ -72,7 +72,7 @@ class FunctionalSpec extends Specification {
       fooA.inject[List[AnyRef]] mustEqual list
 
       class FooB extends Context { override val bindings: Bindings = bind[List[AnyRef]] to list }
-      new FooB().inject[List[String]] must throwAn[exception.TypeNotBoundException]
+      new FooB().inject[List[String]] must throwAn[TypeNotBoundException]
     }
 
     "bind parameterized type to provider" in {
