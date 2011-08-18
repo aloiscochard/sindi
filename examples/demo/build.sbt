@@ -1,6 +1,6 @@
 name := "demo"
 
-version := "0.2-SNAPSHOT"
+version := "0.3-SNAPSHOT"
 
 organization := "org.scala-tools.sindi.examples"
 
@@ -11,7 +11,7 @@ scalacOptions += "-unchecked"
 crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC2")
 
 
-libraryDependencies += "org.scala-tools.sindi" %% "sindi" % "0.2-SNAPSHOT"
+libraryDependencies += "org.scala-tools.sindi" %% "sindi" % "0.3-SNAPSHOT"
 
 
 resolvers += "Scala-Tools Maven2 Releases Repository" at "http://scala-tools.org/repo-releases"
@@ -21,4 +21,4 @@ resolvers += "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.or
 
 autoCompilerPlugins := true
 
-addCompilerPlugin("org.scala-tools.sindi" %% "sindi" % "0.2-SNAPSHOT")
+addCompilerPlugin("org.scala-tools.sindi" %% "sindi" % "0.3-SNAPSHOT")

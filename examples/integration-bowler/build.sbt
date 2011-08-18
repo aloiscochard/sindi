@@ -1,6 +1,6 @@
 name := "integration-bowler"
 
-version := "0.2-SNAPSHOT"
+version := "0.3-SNAPSHOT"
 
 organization := "org.scala-tools.sindi.examples"
 
@@ -12,8 +12,8 @@ crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC2")
 
 
 libraryDependencies ++= Seq(
-  "org.scala-tools.sindi" %% "sindi" % "0.2-SNAPSHOT",
-  "org.scala-tools.sindi.examples" %% "demo" % "0.2-SNAPSHOT",
+  "org.scala-tools.sindi" %% "sindi" % "0.3-SNAPSHOT",
+  "org.scala-tools.sindi.examples" %% "demo" % "0.3-SNAPSHOT",
   "org.bowlerframework" %% "core" % "0.4.2",
   "org.slf4j" % "slf4j-api" % "1.6.1",
   "org.eclipse.jetty" % "jetty-server" % "7.4.5.v20110725" % "jetty",
@@ -33,4 +33,4 @@ resolvers ++= Seq(
 
 autoCompilerPlugins := true
 
-addCompilerPlugin("org.scala-tools.sindi" %% "sindi" % "0.2-SNAPSHOT")
+addCompilerPlugin("org.scala-tools.sindi" %% "sindi" % "0.3-SNAPSHOT")
