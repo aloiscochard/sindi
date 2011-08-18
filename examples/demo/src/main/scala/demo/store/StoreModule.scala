@@ -3,15 +3,11 @@ package store
 
 import sindi._
 
-object StoreModule {
-  def of[T <: AnyRef : Manifest](context: Context): StoreModule[T] = {
-    implicit val c: Context = context
-    new StoreModule[T]
-  }
-}
-
-class StoreModule[T <: AnyRef](implicit val context: Context, val manifest: Manifest[T]) extends Module { 
-  override val bindings: Bindings = bind[Store[T]] to new Store[T] with MemoryStore[T]
+class StoreModule[T <: AnyRef : Manifest](context: Context) extends ModuleT[T](context) { 
+  override val bindings = Bindings(
+    bind[MemoryStore[T]] to new Store[T] with MemoryStore[T],
+    bind[DiskStore[T]] to new Store[T] with DiskStore[T]
+  )
 }
 
 abstract class StoreComponent[T <: AnyRef : Manifest] extends Component {

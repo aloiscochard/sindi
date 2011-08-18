@@ -6,13 +6,11 @@ import dao._
 
 object Application extends App with Context with TaskComponent with UserComponent {
   implicit val context = this
-  override val modules = (new DaoModule) :: Nil 
+  override lazy val modules = new DaoModule :: Nil
 
-  /*
-  override val bindings: Bindings = bind[store.User] to user
-
-  private lazy val user = new store.User with store.RemoteStore
-  */
+  tasks.load(Task("OSS World Domination", "TBD"))
+  users.load(User("aloiscochard", "Alois Cochard"))
 
   println(tasks.get)
+  println(users.get)
 }
