@@ -20,21 +20,36 @@ import nsc.ast.TreeBrowsers
 import nsc.plugins.Plugin
 import nsc.plugins.PluginComponent
 
+// TODO [aloiscochard] Checking imported module when mixing components:
+// If a component is mixed in from an out of scope module, check if module is imported
+
 class ModuleValidator(val global: Global) extends Plugin {
   import global._
+
+  trait Level
+  class Warn extends Level
+  class Error extends Level
 
   val name = "sindi"
   val description = "Sindi Modules Validator"
   val components = List[PluginComponent](Component)
 
   var debug = false
-  var ignoreOption = true
+  var optionIgnore = true
+  var boundEnabled = true
+  var scopeEnabled = true
+  var boundLevel: Level = new Error
+  var scopeLevel: Level = new Warn
   
   override def processOptions(options: List[String], error: String => Unit) {
     for (option <- options) {
       option match {
         case "debug" => debug = true
-        case "option" => ignoreOption = false
+        case "option" => optionIgnore = false
+        case "scope.disable" => scopeEnabled = false
+        case "scope.error" => scopeLevel = new Error
+        case "bound.disable" => boundEnabled = false
+        case "bound.warn" => boundLevel = new Warn
         case _ => error("Option not understood: " + option)
       }
     }
@@ -43,6 +58,10 @@ class ModuleValidator(val global: Global) extends Plugin {
   override val optionsHelp: Option[String] = Some("""
       -P:sindi:debug             show debug informations
       -P:sindi:option            check if scala.Option based bindings are satisfied
+      -P:sindi:scope.disable     disable out of scope binding validation
+      -P:sindi:scope.error       error instead of warn when an out of scope binding is found
+      -P:sindi:bound.disable     disable component binding validation
+      -P:sindi:bound.warn        warn instead of error when a component's binding isn't bound
     """)
 
   private object Component extends PluginComponent {
@@ -58,6 +77,11 @@ class ModuleValidator(val global: Global) extends Plugin {
       def apply(unit: CompilationUnit) {
         val (modules, components) = filter(unit.body)
 
+        def notify(level: Level, message: String, tree: Tree) = { level match {
+          case level: Warn => unit.warning(tree.pos, message)
+          case _ => unit.error(tree.pos, message)
+        } }
+
         if (debug) {
           println(modules.map((m) => { "[sindi.debug] --> %s".format(m.toString) }).mkString("\n"))
           //modules.foreach((m) => ModuleValidator.this.global.treeBrowsers.create().browse(m.tree))
@@ -68,17 +92,17 @@ class ModuleValidator(val global: Global) extends Plugin {
              dependency <- component.dependencies) {
           val (module, injected, tree) = dependency
           // Optionaly fiter options
-          if (!(ignoreOption && isOption(injected))) {
+          if (!(optionIgnore && isOption(injected))) {
             modules.find((m) => m.tree.symbol.tpe == module) match {
               case Some(m) => {
                 m.bindings.find((b) => injected <:< b) match {
                   case Some(b) => 
-                  case _ =>
-                    unit.error(tree.pos, "type not bound\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module))
+                  case _ => notify(boundLevel,
+                    "type not bound\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
                 }
               }
-              case _ =>
-                unit.warning(tree.pos, "injecting from a module not in scope should be avoided, prefer components mixin")
+              case _ => notify(scopeLevel,
+                "injecting from an out of scope module\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
             }
           }
         }
@@ -131,7 +155,7 @@ class ModuleValidator(val global: Global) extends Plugin {
       private def getBindings(tree: ClassDef): Bindings = {
         var bindings = List[Type]()
         for (tree @ ValDef(_, _, _, _) <- tree.impl.body) {
-          if (tree.tpt.tpe.toString == "List[sindi.binder.binding.Binding[_]]" ||
+          if (tree.tpt.tpe.toString.startsWith("List[sindi.binder.binding.Binding[") ||
               tree.tpt.tpe.toString == "sindi.package.Bindings") {
             for (tree @ Apply(_, _) <- tree.children) {
               collect[TypeTree](tree.children)((tree) => {
