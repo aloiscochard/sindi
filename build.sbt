@@ -8,7 +8,7 @@ scalaVersion := "2.9.0-1"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
-crossScalaVersions := Seq("2.8.1", "2.9.0-1", "2.9.1.RC2")
+crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC2")
 
 
 libraryDependencies <<= (scalaVersion, libraryDependencies) { (version, dependencies) =>
