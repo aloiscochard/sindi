@@ -1,4 +1,4 @@
 <plugin>
   <name>sindi</name>
-  <classname>sindi.compiler.ModuleValidator</classname>
+  <classname>sindi.compiler.SindiPlugin</classname>
 </plugin>
