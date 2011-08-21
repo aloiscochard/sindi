@@ -8,8 +8,8 @@ import store._
 class DaoModule(implicit val context: Context) extends Module { 
   override lazy val modules = new StoreModule[Task](this) :: new StoreModule[User](this) :: Nil
 
-  lazy val users = from[StoreModule[User]].inject[MemoryStore[User]]
-  lazy val tasks = from[StoreModule[Task]].inject[MemoryStore[Task]]
+  lazy val users = from[StoreModule[User]].inject[Store[User]]
+  lazy val tasks = from[StoreModule[Task]].inject[Store[Task]]
 
   override val bindings = Bindings(
     bind[Store[User]] to users,
