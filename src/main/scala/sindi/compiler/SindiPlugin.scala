@@ -31,7 +31,7 @@ class SindiPlugin(val global: Global) extends Plugin {
   class Error extends Level
 
   val name = "sindi"
-  val description = "Sindi Modules Validator"
+  val description = "Sindi"
   val components = List[PluginComponent](Component)
 
   var debug = false
@@ -80,15 +80,17 @@ class SindiPlugin(val global: Global) extends Plugin {
           case _ => unit.error(tree.pos, message)
         }
         
-        val (modules, components) = filter(unit.body)
+        val (contexts, modules, components) = filter(unit.body)
 
         if (debug) {
           println(modules.map((m) => { "[sindi.debug] --> %s".format(m.toString) }).mkString("\n"))
           //modules.foreach((m) => SindiPlugin.this.global.treeBrowsers.create().browse(m.tree))
           println(components.map((c) => { "[sindi.debug] <-- %s".format(c.toString) }).mkString("\n"))
           //components.foreach((c) => SindiPlugin.this.global.treeBrowsers.create().browse(c.tree))
+          println(contexts.map((c) => { "[sindi.debug] <-> %s".format(c.toString) }).mkString("\n"))
         }
 
+        // Validating components
         for (component <- components;
              dependency <- component.dependencies) {
           val (module, injected, tree) = dependency
@@ -106,6 +108,11 @@ class SindiPlugin(val global: Global) extends Plugin {
                 "injecting from an out of scope module\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
             }
           }
+        }
+
+        // Validating contexts
+        for (context <- contexts) {
+
         }
       }
 
