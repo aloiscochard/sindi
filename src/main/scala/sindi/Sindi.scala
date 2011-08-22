@@ -8,91 +8,100 @@
 //  http://aloiscochard.github.com/sindi
 //
 
-package sindi
-
-// TODO [aloiscochard] Add assertions
+// TODO [aloiscochard] Add assertions (security checks)
 // TODO [aloiscochard] Improve Provider handling/implementation
 
-object `package` {
+/** Sindi IoC Container APIs.
+  *
+  * Provides facilities to declare/consume: [[sindi.Module]], [[sindi.Component]] and [[sindi.Context]]
+ **/
+package object sindi {
+  /** A list of bindings.*/
   type Bindings = List[binder.binding.Binding[AnyRef]]
+  /** A list of processors.*/
   type Processors[T <: AnyRef] = List[processor.Processor[T]]
+  /** A list of modules.*/
   type Modules = List[Module]
 }
+package sindi {
 
-
-object Bindings {
-  def apply(bindings: binder.binding.Binding[_ <: AnyRef]*): List[binder.binding.Binding[AnyRef]] = {
-    bindings.toList.asInstanceOf[List[binder.binding.Binding[AnyRef]]]
+  /** Bindings companion **/
+  object Bindings {
+    /** Create a new list of bindings **/
+    def apply(bindings: binder.binding.Binding[_ <: AnyRef]*): List[binder.binding.Binding[AnyRef]] = {
+      bindings.toList.asInstanceOf[List[binder.binding.Binding[AnyRef]]]
+    }
   }
-}
 
-object Modules { def apply(modules: Module*): Modules = modules.toList }
+  object Modules { def apply(modules: Module*): Modules = modules.toList }
 
-trait Context extends context.Context with binder.DSL {
-  implicit val `implicit` = this
+  /** Context who contain bindings informations and dependencies to modules. */
+  trait Context extends context.Context with binder.DSL {
+    implicit val `implicit` = this
 
-  protected lazy val modules: Modules = Nil
-  protected override def processing = super.processing :+ processor.option
+    protected lazy val modules: Modules = Nil
+    protected override def processing = super.processing :+ processor.option
 
-  def from[M <: Module : Manifest]: sindi.injector.Injector = {
-    modules.foreach((module) => { Helper.moduleOf[M](module) match {
-      case Some(module) => return module.injector
-      case _ =>
-    }})
-    throw ModuleNotFoundException(manifest[M])
+    def from[M <: Module : Manifest]: sindi.injector.Injector = {
+      modules.foreach((module) => { Helper.moduleOf[M](module) match {
+        case Some(module) => return module.injector
+        case _ =>
+      }})
+      throw ModuleNotFoundException(manifest[M])
+    }
   }
-}
 
-abstract class AbstractProvider[T <: AnyRef : Manifest] extends binder.binding.provider.Provider[T] {
-  override val signature = manifest[T]
-}
+  abstract class AbstractProvider[T <: AnyRef : Manifest] extends binder.binding.provider.Provider[T] {
+    override val signature = manifest[T]
+  }
 
-abstract class Provider[T <: AnyRef : Manifest] extends AbstractProvider[T] {
-  override def provide[T <: AnyRef : Manifest]: T = get.asInstanceOf[T]
-  def get: T
-}
+  abstract class Provider[T <: AnyRef : Manifest] extends AbstractProvider[T] {
+    override def provide[T <: AnyRef : Manifest]: T = get.asInstanceOf[T]
+    def get: T
+  }
 
-abstract class Module(implicit context: Context) extends Context with context.Childified {
-  override protected val parent = context
-}
+  abstract class Module(implicit context: Context) extends Context with context.Childified {
+    override protected val parent = context
+  }
 
-abstract class ModuleT[T <: Any : Manifest](context: Context) extends Module()(context) {
-  val manifest = implicitly[Manifest[T]]
-}
+  abstract class ModuleT[T <: Any : Manifest](context: Context) extends Module()(context) {
+    val manifest = implicitly[Manifest[T]]
+  }
 
-trait Component { 
-  protected def from[M <: Module : Manifest]: injector.Injector
-}
+  trait Component { 
+    protected def from[M <: Module : Manifest]: injector.Injector
+  }
 
-trait ComponentWithContext extends Component {
-  protected val context: Context
-  protected def from[M <: Module : Manifest] = context.from[M]
-}
+  trait ComponentWithContext extends Component {
+    protected val context: Context
+    protected def from[M <: Module : Manifest] = context.from[M]
+  }
 
-abstract class ComponentContext(implicit context: Context) extends Component {
-  protected def from[M <: Module : Manifest] = context.from[M]
-}
+  abstract class ComponentContext(implicit context: Context) extends Component {
+    protected def from[M <: Module : Manifest] = context.from[M]
+  }
 
-case class ModuleNotFoundException(module: Manifest[_]) extends Exception(
-  "Unable to inject from module %s: module not found.".format(module))
+  case class ModuleNotFoundException(module: Manifest[_]) extends Exception(
+    "Unable to inject from module %s: module not found.".format(module))
 
-case class TypeNotBoundException(message: String) extends Exception(message)
+  case class TypeNotBoundException(message: String) extends Exception(message)
 
-private object Helper {
-  def moduleOf[M <: Module : Manifest](module: Module): Option[M] = {
-    if (module.getClass == manifest[M].erasure) {
-      val m = module match {
-        case module: ModuleT[_] => {
-          manifest[M].typeArguments.headOption match {
-            case Some(typeManifest) => if (!(module.manifest <:< manifest[M].typeArguments.head)) return None
-            case _ => return None
+  private object Helper {
+    def moduleOf[M <: Module : Manifest](module: Module): Option[M] = {
+      if (module.getClass == manifest[M].erasure) {
+        val m = module match {
+          case module: ModuleT[_] => {
+            manifest[M].typeArguments.headOption match {
+              case Some(typeManifest) => if (!(module.manifest <:< manifest[M].typeArguments.head)) return None
+              case _ => return None
+            }
           }
+          case _ => 
         }
-        case _ => 
+        Some(module.asInstanceOf[M])
+      } else {
+        None
       }
-      Some(module.asInstanceOf[M])
-    } else {
-      None
     }
   }
 }
