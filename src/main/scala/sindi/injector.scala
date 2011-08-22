@@ -39,7 +39,7 @@ private trait Bindable extends Injector {
         None
       }
     }).headOption match {
-      case Some(provider) => provider.provide[T]
+      case Some(provider) => provider.provide.asInstanceOf[T]
       case None => {
         val q = if (qualifier == None) { "" } else { " with qualifier %s".format(qualifier) }
         throw TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T]))

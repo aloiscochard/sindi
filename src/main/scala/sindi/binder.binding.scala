@@ -41,7 +41,7 @@ private trait Scopable[T <: AnyRef] extends Binding[T] {
   override def build = {
     val e = super.build
     (e._1, new FunctionProvider[T](e._2.signature, () => {
-      val value = e._2.provide(e._2.signature).asInstanceOf[T]
+      val value = e._2.provide
       registry.getOrElseUpdate(scoper().hashCode, new WeakReference[T](value)).apply
     }))
   }
@@ -68,11 +68,11 @@ private class QualifiedBinding[T <: AnyRef](binding: Binding[T], val qualifier: 
 package provider {
 
   trait Provider[T <: AnyRef] {
-    val signature: Manifest[_ <: AnyRef]
-    def provide[T <: AnyRef : Manifest]: T
+    val signature: Manifest[T]
+    def provide: T
   }
 
-  class FunctionProvider[T <: AnyRef](override val signature: Manifest[_ <: AnyRef], val f: () => _) extends Provider[T] {
-    def provide[T : Manifest] = f.asInstanceOf[() => T]()
+  class FunctionProvider[T <: AnyRef](override val signature: Manifest[T], val f: () => T) extends Provider[T] {
+    def provide = f()
   }
 }

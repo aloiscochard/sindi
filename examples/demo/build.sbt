@@ -21,4 +21,4 @@ resolvers += "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.or
 
 autoCompilerPlugins := true
 
-addCompilerPlugin("org.scala-tools.sindi" %% "sindi" % "0.3-SNAPSHOT")
+//addCompilerPlugin("org.scala-tools.sindi" %% "sindi" % "0.3-SNAPSHOT")

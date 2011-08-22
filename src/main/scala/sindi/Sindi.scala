@@ -42,22 +42,17 @@ package sindi {
     protected lazy val modules: Modules = Nil
     protected override def processing = super.processing :+ processor.option
 
-    def from[M <: Module : Manifest]: sindi.injector.Injector = {
+    def from[M <: Module : Manifest]: Module = {
       modules.foreach((module) => { Helper.moduleOf[M](module) match {
-        case Some(module) => return module.injector
+        case Some(module) => return module
         case _ =>
       }})
       throw ModuleNotFoundException(manifest[M])
     }
   }
 
-  abstract class AbstractProvider[T <: AnyRef : Manifest] extends binder.binding.provider.Provider[T] {
+  abstract class Provider[T <: AnyRef : Manifest] extends binder.binding.provider.Provider[T] {
     override val signature = manifest[T]
-  }
-
-  abstract class Provider[T <: AnyRef : Manifest] extends AbstractProvider[T] {
-    override def provide[T <: AnyRef : Manifest]: T = get.asInstanceOf[T]
-    def get: T
   }
 
   abstract class Module(implicit context: Context) extends Context with context.Childified {
@@ -69,9 +64,7 @@ package sindi {
   }
 
 
-  trait Component[M <: Module] extends Contextual { 
-    protected def from[M <: Module : Manifest]: injector.Injector
-  }
+  trait Component[M <: Module] extends Contextual
 
   trait ComponentWithContext extends Contextual {
     protected val context: Context
@@ -88,7 +81,7 @@ package sindi {
   case class TypeNotBoundException(message: String) extends Exception(message)
 
   private[sindi] trait Contextual {
-    protected def from[M <: Module : Manifest]: injector.Injector
+    protected def from[M <: Module : Manifest]: Module
   }
 
   private object Helper {
