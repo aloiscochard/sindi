@@ -1,4 +1,0 @@
-<plugin>
-  <name>sindi</name>
-  <classname>sindi.compiler.SindiPlugin</classname>
-</plugin>
