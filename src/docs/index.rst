@@ -1,20 +1,18 @@
-.. Sindi documentation master file, created by
-   sphinx-quickstart on Thu Jul 28 21:39:56 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Sindi
+=====
 
-Welcome to Sindi's documentation!
-=================================
-
-Contents:
+Table of contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 4
+
+    basic
+    advanced
+    addendum
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 
