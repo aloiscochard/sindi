@@ -79,16 +79,32 @@ class SindiPlugin(val global: Global) extends Plugin {
           case level: Warn => unit.warning(tree.pos, message)
           case _ => unit.error(tree.pos, message)
         }
+
+        def notifyBound(dependency: Dependency) = {
+          if (boundEnabled) {
+            val (module, injected, tree) = dependency
+            notify(boundLevel, "type not bound\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
+          }
+        }
+
+        def notifyScope(dependency: Dependency) = {
+          if (scopeEnabled) {
+            val (module, injected, tree) = dependency
+            notify(scopeLevel,
+                  "injecting from an out of scope module\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
+          }
+        }
         
         val (contexts, modules, components) = filter(unit.body)
 
         if (debug) {
-          println(modules.map((m) => { "[sindi.debug] --> %s".format(m.toString) }).mkString("\n"))
-          //modules.foreach((m) => SindiPlugin.this.global.treeBrowsers.create().browse(m.tree))
-          println(components.map((c) => { "[sindi.debug] <-- %s".format(c.toString) }).mkString("\n"))
-          //components.foreach((c) => SindiPlugin.this.global.treeBrowsers.create().browse(c.tree))
-          println(contexts.map((c) => { "[sindi.debug] <-> %s".format(c.toString) }).mkString("\n"))
+          print(contexts.map((c) => { "[sindi.debug] <-> %s\n".format(c.toString) }).mkString)
+          print(modules.map((m) => { "[sindi.debug] --> %s\n".format(m.tree.name.toString) }).mkString)
+          print(components.map((c) => { "[sindi.debug] <-- %s\n".format(c.toString) }).mkString)
+          //global.treeBrowsers.create().browse(tree)
         }
+
+ 
 
         // Validating components
         for (component <- components;
@@ -100,19 +116,24 @@ class SindiPlugin(val global: Global) extends Plugin {
               case Some(m) => {
                 m.bindings.find((b) => isAssignable(injected, b)) match {
                   case Some(b) => 
-                  case _ => notify(boundLevel,
-                    "type not bound\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
+                  case _ => notifyBound(dependency)
                 }
               }
-              case _ => notify(scopeLevel,
-                "injecting from an out of scope module\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
+              case _ => notifyScope(dependency)
             }
           }
         }
 
         // Validating contexts
         for (context <- contexts) {
-
+          for (dependency <- context.dependencies) {
+            val (module, injected, tree) = dependency
+            context.modules.find((m) => isAssignable(m, module)) match {
+              case Some (m) =>
+              case None => notifyScope(dependency)
+            }
+          }
+          //global.treeBrowsers.create().browse(context.tree)
         }
       }
 

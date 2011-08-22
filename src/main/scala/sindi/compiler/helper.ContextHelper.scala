@@ -19,8 +19,10 @@ trait ContextHelper extends Helper {
   case class Context(tree: ClassDef) {
     val modules = getModules(tree)
     val bindings = getBindings(tree)
+    val dependencies = getDependencies(tree)
     override def toString = tree.name + ":\n\t\tmodules {" + modules.map("\n\t\t\t" + _).mkString  +
-                            "\n\t\t}\n\t\tbindings {" + bindings.map("\n\t\t\t" + _).mkString + "\n\t\t}"
+                            "\n\t\t}\n\t\tbindings {" + bindings.map("\n\t\t\t" + _).mkString + 
+                            "\n\t\t}\n\t\tdependencies {" + dependencies.map("\n\t\t\t" + _._1).mkString + "\n\t\t}"
   }
 
   protected def isContext(tree: Tree) = {
@@ -41,8 +43,6 @@ trait ContextHelper extends Helper {
             case _ => None
           }
         }) map ((tree) => {
-          //global.treeBrowsers.create().browse(tree)
-          //println("module -> " + tree)
           tree.symbol.tpe
         })
       }
