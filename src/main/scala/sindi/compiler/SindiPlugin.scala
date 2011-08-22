@@ -104,7 +104,9 @@ class SindiPlugin(val global: Global) extends Plugin {
           //global.treeBrowsers.create().browse(tree)
         }
 
-        // Validating components
+        ///////////////////////////
+        // Validating components //
+        ///////////////////////////
         for (component <- components;
              dependency <- component.dependencies) {
           val (module, injected, tree) = dependency
@@ -122,8 +124,11 @@ class SindiPlugin(val global: Global) extends Plugin {
           }
         }
 
-        // Validating contexts
+        /////////////////////////
+        // Validating contexts //
+        /////////////////////////
         for (context <- contexts) {
+          // Validate dependencies
           for (dependency <- context.dependencies) {
             val (module, injected, tree) = dependency
             context.modules.find((m) => isAssignable(m, module)) match {
@@ -131,7 +136,24 @@ class SindiPlugin(val global: Global) extends Plugin {
               case None => notifyScope(dependency)
             }
           }
-          //global.treeBrowsers.create().browse(context.tree)
+          // Validate inferred dependencies
+          /*
+          if (isComponent(context.tree)) {
+            println(context.tree.name)
+            collect[TypeTree](context.tree.children)((tree) => tree match {
+              case tree: TypeTree => {
+                if (isComponent(tree) && !tree.symbol.isSubClass(context.tree.symbol)) {
+                  Some(tree)
+                } else {
+                  None
+                }
+              }
+              case _ => None
+            }).foreach((tree) => {
+              global.treeBrowsers.create().browse(tree)
+            })
+          }
+          */
         }
       }
 

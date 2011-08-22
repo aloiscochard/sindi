@@ -16,6 +16,8 @@ import scala.tools.nsc.Global
 trait ContextHelper extends Helper {
   import global._
 
+  lazy val symContext = global.definitions.getClass(manifest[sindi.Context].erasure.getName)
+
   case class Context(tree: ClassDef) {
     val modules = getModules(tree)
     val bindings = getBindings(tree)
@@ -25,9 +27,7 @@ trait ContextHelper extends Helper {
                             "\n\t\t}\n\t\tdependencies {" + dependencies.map("\n\t\t\t" + _._1).mkString + "\n\t\t}"
   }
 
-  protected def isContext(tree: Tree) = {
-    find((tree) => { tree.tpe.toString == manifest[sindi.Context].erasure.getName }, tree).isDefined
-  }
+  protected def isContext(tree: Tree) = tree.symbol.isSubClass(symContext)
 
   protected def getModules(tree: ClassDef) = {
     collect[DefDef](tree.children)((tree) => {
