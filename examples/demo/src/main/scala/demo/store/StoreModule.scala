@@ -7,6 +7,6 @@ class StoreModule[T <: AnyRef : Manifest](context: Context) extends ModuleT[T](c
   override val bindings: Bindings = bind[Store[T]] to new Store[T] with MemoryStore[T]
 }
 
-abstract class StoreComponent[T <: AnyRef : Manifest] extends Component {
+abstract class StoreComponent[T <: AnyRef : Manifest] extends Component[StoreModule[T]] {
   lazy val store = from[StoreModule[T]].inject[Store[T]]
 }

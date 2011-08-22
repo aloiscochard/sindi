@@ -36,7 +36,7 @@ package sindi {
   object Modules { def apply(modules: Module*): Modules = modules.toList }
 
   /** Context who contain bindings informations and dependencies to modules. */
-  trait Context extends context.Context with binder.DSL {
+  trait Context extends context.Context with binder.DSL with Contextual {
     implicit val `implicit` = this
 
     protected lazy val modules: Modules = Nil
@@ -68,16 +68,17 @@ package sindi {
     val manifest = implicitly[Manifest[T]]
   }
 
-  trait Component { 
+
+  trait Component[M <: Module] extends Contextual { 
     protected def from[M <: Module : Manifest]: injector.Injector
   }
 
-  trait ComponentWithContext extends Component {
+  trait ComponentWithContext extends Contextual {
     protected val context: Context
     protected def from[M <: Module : Manifest] = context.from[M]
   }
 
-  abstract class ComponentContext(implicit context: Context) extends Component {
+  abstract class ComponentContext(implicit context: Context) extends Contextual {
     protected def from[M <: Module : Manifest] = context.from[M]
   }
 
@@ -85,6 +86,10 @@ package sindi {
     "Unable to inject from module %s: module not found.".format(module))
 
   case class TypeNotBoundException(message: String) extends Exception(message)
+
+  private[sindi] trait Contextual {
+    protected def from[M <: Module : Manifest]: injector.Injector
+  }
 
   private object Helper {
     def moduleOf[M <: Module : Manifest](module: Module): Option[M] = {

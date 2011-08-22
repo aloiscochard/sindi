@@ -36,19 +36,15 @@ class SindiPlugin(val global: Global) extends Plugin {
 
   var debug = false
   var optionIgnore = true
-  var boundEnabled = true
-  var scopeEnabled = true
   var boundLevel: Level = new Error
-  var scopeLevel: Level = new Warn
+  var scopeLevel: Level = new Error
   
   override def processOptions(options: List[String], error: String => Unit) {
     for (option <- options) {
       option match {
         case "debug" => debug = true
         case "option" => optionIgnore = false
-        case "scope.disable" => scopeEnabled = false
-        case "scope.error" => scopeLevel = new Error
-        case "bound.disable" => boundEnabled = false
+        case "scope.warn" => scopeLevel = new Warn
         case "bound.warn" => boundLevel = new Warn
         case _ => error("Option not understood: " + option)
       }
@@ -58,9 +54,7 @@ class SindiPlugin(val global: Global) extends Plugin {
   override val optionsHelp: Option[String] = Some("""
       -P:sindi:debug             show debug informations
       -P:sindi:option            check if scala.Option based bindings are satisfied
-      -P:sindi:scope.disable     disable out of scope binding validation
-      -P:sindi:scope.error       error instead of warn when an out of scope binding is found
-      -P:sindi:bound.disable     disable component binding validation
+      -P:sindi:scope.warn        warn instead of error when an out of scope binding is found
       -P:sindi:bound.warn        warn instead of error when a component's binding isn't bound
     """)
 
@@ -81,20 +75,21 @@ class SindiPlugin(val global: Global) extends Plugin {
         }
 
         def notifyBound(dependency: Dependency) = {
-          if (boundEnabled) {
-            val (module, injected, tree) = dependency
-            notify(boundLevel, "type not bound\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
-          }
+          val (module, injected, tree) = dependency
+          notify(boundLevel, "type not bound\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
         }
 
         def notifyScope(dependency: Dependency) = {
-          if (scopeEnabled) {
-            val (module, injected, tree) = dependency
-            notify(scopeLevel,
-                  "injecting from an out of scope module\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
-          }
+          val (module, injected, tree) = dependency
+          notify(scopeLevel,
+                "injecting from an out of scope module\n\ttype: '%s'\n\tmodule: '%s'".format(injected, module), tree)
         }
         
+        def notifyScopeComponent(tree: Tree, component: Type, module: Type) = {
+          notify(scopeLevel,
+            "injecting from an out of scope module\n\tcomponent: '%s'\n\tmodule: '%s'".format(component, module), tree)
+        }
+
         val (contexts, modules, components) = filter(unit.body)
 
         if (debug) {
@@ -136,10 +131,8 @@ class SindiPlugin(val global: Global) extends Plugin {
               case None => notifyScope(dependency)
             }
           }
-          // Validate inferred dependencies
-          /*
+          // Validate inferred dependencies (thru components)
           if (isComponent(context.tree)) {
-            println(context.tree.name)
             collect[TypeTree](context.tree.children)((tree) => tree match {
               case tree: TypeTree => {
                 if (isComponent(tree) && !tree.symbol.isSubClass(context.tree.symbol)) {
@@ -150,10 +143,17 @@ class SindiPlugin(val global: Global) extends Plugin {
               }
               case _ => None
             }).foreach((tree) => {
-              global.treeBrowsers.create().browse(tree)
+              tree.symbol.info.baseType(symComponent).typeArgs.headOption match {
+                case Some(module) => {
+                  context.modules.find((m) => isAssignable(m, module)) match {
+                    case Some (m) =>
+                    case None => notifyScopeComponent(tree, tree.tpe, module)
+                  }
+                }
+                case None =>
+              }
             })
           }
-          */
         }
       }
 

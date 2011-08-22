@@ -17,10 +17,10 @@ class DaoModule(implicit val context: Context) extends Module {
   )
 }
 
-trait UserComponent extends Component {
+trait UserComponent extends Component[DaoModule] {
   lazy val users = from[DaoModule].inject[Store[User]]
 }
 
-trait TaskComponent extends Component {
+trait TaskComponent extends Component[DaoModule] {
   lazy val tasks = from[DaoModule].inject[Store[Task]]
 }

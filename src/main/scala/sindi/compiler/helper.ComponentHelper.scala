@@ -16,7 +16,7 @@ import scala.tools.nsc.Global
 trait ComponentHelper extends Helper {
   import global._
 
-  lazy val symComponent = global.definitions.getClass(manifest[sindi.Component].erasure.getName)
+  lazy val symComponent = global.definitions.getClass(manifest[sindi.Component[_]].erasure.getName)
 
   case class Component(tree: ClassDef) {
     val dependencies = getDependencies(tree)
