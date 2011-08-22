@@ -104,8 +104,6 @@ class SindiPlugin(val global: Global) extends Plugin {
           //global.treeBrowsers.create().browse(tree)
         }
 
- 
-
         // Validating components
         for (component <- components;
              dependency <- component.dependencies) {
