@@ -36,7 +36,7 @@ package sindi {
   object Modules { def apply(modules: Module*): Modules = modules.toList }
 
   /** Context who contain bindings informations and dependencies to modules. */
-  trait Context extends context.Context with binder.DSL with Contextual {
+  trait Context extends context.Context with binder.DSL with Composable {
     implicit val `implicit` = this
 
     protected lazy val modules: Modules = Nil
@@ -64,14 +64,14 @@ package sindi {
   }
 
 
-  trait Component[M <: Module] extends Contextual
+  trait Component[M <: Module] extends Composable
 
-  trait ComponentWithContext extends Contextual {
+  trait ComponentWithContext extends Composable {
     protected val context: Context
     protected def from[M <: Module : Manifest] = context.from[M]
   }
 
-  abstract class ComponentContext(implicit context: Context) extends Contextual {
+  abstract class ComponentContext(implicit context: Context) extends Composable {
     protected def from[M <: Module : Manifest] = context.from[M]
   }
 
@@ -80,7 +80,7 @@ package sindi {
 
   case class TypeNotBoundException(message: String) extends Exception(message)
 
-  private[sindi] trait Contextual {
+  private[sindi] trait Composable {
     protected def from[M <: Module : Manifest]: Module
   }
 
