@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import ProguardPlugin._
 
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Seq (
@@ -11,7 +12,11 @@ object BuildSettings {
   )
 
   val publishSettings = Seq(
-    publishTo := Some("Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/snapshots/"),
+    publishTo <<= (version) { version: String =>
+      val nexus = "http://nexus.scala-tools.org/content/repositories/"
+      if (version.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "snapshots/") 
+      else                                   Some("releases"  at nexus + "releases/")
+    },
     credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
   )
 }
@@ -40,19 +45,36 @@ object SindiBuild extends Build {
   lazy val sindi = Project (
     "sindi",
     file ("."),
-    settings = buildSettings 
+    settings = buildSettings ++
+                Seq(publishArtifact in (Compile, packageBin) := false) ++
+                Seq(publishArtifact in (Compile, packageDoc) := false) ++
+                Seq(publishArtifact in (Compile, packageSrc) := false) 
   ) aggregate (core, compiler)
 
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
-    settings = buildSettings ++ publishSettings ++ testDependencies
+    settings = buildSettings ++ publishSettings ++ testDependencies ++
+                // WORKAROUND for https://github.com/harrah/xsbt/issues/85
+                // Remove when updated to SBT 0.11
+                Seq(unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist")))
   ) 
 
   lazy val compiler = Project(
     "sindi-compiler",
     file("sindi-compiler"),
     settings = buildSettings ++ publishSettings ++ testDependencies ++
-                  Seq(libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided"))
+                  Seq(
+                    libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided")
+                  ) ++
+                  seq(
+                    (proguardSettings ++ seq(
+                      proguardInJars := Seq(),
+                      proguardLibraryJars <++=
+                        (update) map (_.select(module =
+                          moduleFilter(name = "scala-compiler") | moduleFilter(name = "scala-library"))),
+                      proguardOptions ++= Seq("-keep class sindi.** { *; }")
+                    ):_*)
+                ) 
   ) dependsOn (core)
 }
