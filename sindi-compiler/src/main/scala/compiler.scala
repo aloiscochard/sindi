@@ -12,17 +12,18 @@ package sindi
 package compiler 
 
 import scala.annotation.tailrec
-import scala.tools.nsc 
 
+import scala.tools.nsc 
 import nsc.Global 
 import nsc.Phase 
 import nsc.ast.TreeBrowsers
 import nsc.plugins.Plugin
 import nsc.plugins.PluginComponent
 
+import utils.ParallelPluginComponent
+import model.{Model, Registry}
 import reader.Reader
 import checker.Checker
-import model.Registry
 
 class CompilerPlugin(val global: Global) extends Plugin {
   import global._
@@ -32,71 +33,75 @@ class CompilerPlugin(val global: Global) extends Plugin {
   val components = List[PluginComponent](Read, Check)
   var options: Option[Options] = None
 
-  trait Component extends PluginComponent {
+  trait Component extends ParallelPluginComponent {
     val global: CompilerPlugin.this.global.type = CompilerPlugin.this.global
     val pluginName = CompilerPlugin.this.name
-  }
-
-  override def processOptions(o: List[String], error: String => Unit) {
-    options = Options(o) match {
-      case Left(options) => Some(options)
-      case Right(message) => error(message); None
-    }
+    def options = _options.getOrElse(Options())
+    private val _options: Option[Options] = CompilerPlugin.this.options
   }
 
   override val optionsHelp: Option[String] = Some(Options.help)
 
-  object Read extends Component with Reader {
-    class ReadPhase(prev: Phase) extends StdPhase(prev) {
-      override def name = Check.phaseName
-      var registry: Option[Registry] = None
-
-      def apply(unit: CompilationUnit) { registry = read(unit) }
-    }
-
+  object Read extends Component with Model with Reader {
     val runsAfter = List[String]("refchecks")
     val phaseName = pluginName + "-read"
     def newPhase(_prev: Phase) = new ReadPhase(_prev)
-  }
 
-  object Check extends Component with Checker {
-    class CheckPhase(prev: Phase) extends StdPhase(prev) {
+    class ReadPhase(prev: Phase) extends ParallelPhase(prev) {
       override def name = Check.phaseName
+      val registry: model.Registry = new RegistryWriter
 
-      def apply(unit: CompilationUnit) {
-        prev match {
-          case phase: Read.ReadPhase => phase.registry match {
-            case Some(registry) => check(unit, registry)
-            case _ => throw new RuntimeException("Registry is empty, cannot check compilation unit.")
-          }
-          case _ => throw new RuntimeException("Phase '" + name + "' isn't after phase '" + Read.phaseName + "'.")
-        }
+      def async(unit: CompilationUnit) = registry match {
+        case registry: RegistryWriter => read(unit, registry)
+        case _ =>
       }
     }
+  }
 
+  object Check extends Component with Model with Checker {
     val runsAfter = List[String](Read.phaseName)
     val phaseName = pluginName + "-check"
     def newPhase(_prev: Phase) = new CheckPhase(_prev)
+
+    class CheckPhase(prev: Phase) extends ParallelPhase(prev) {
+      override def name = Check.phaseName
+
+      def async(unit: CompilationUnit) = prev match {
+        case phase: Read.ReadPhase => {
+          phase.registry match {
+            case registry: RegistryWriter => check(unit, registry.toReader)
+            case _ => throw new RuntimeException("Invalid registry")
+          }
+        }
+        case _ => throw new RuntimeException("Phase '" + name + "' isn't after phase '" + Read.phaseName + "'.")
+      }
+    }
   }
 }
 
-trait Component { val global: Global }
+trait Component {
+  val global: Global
+  def options: Options
+}
 
-case class Options(val verbose: Boolean)
+case class Options(val verbose: Boolean = false)
 
 private object Options {
-  def apply(options: List[String]): Either[Options, String] = {
-    var oVerbose = false
+  val default = Options()
+
+  def apply(options: List[String]): Either[String, Options] = {
+    var oVerbose = default.verbose
     for (option <- options) {
       option match {
         case "verbose" => oVerbose = true
-        case _ => return Right("Option not understood: " + option)
+        case _ => return Left("Option not understood: " + option)
       }
     }
-    Left(new Options(verbose = oVerbose))
+    Right(new Options(verbose = oVerbose))
   }
 
   def help = """
       -P:sindi:verbose           show compiler informations
   """
 }
+

@@ -11,10 +11,26 @@
 package sindi.compiler
 package reader 
 
-import model.Registry
+import model.Model
 
-trait Reader extends Component {
+// TODO [aloiscochard] Think about par colletion usage!
+trait Reader extends Component with Model {
   import global._
 
-  def read(unit: CompilationUnit): Option[Registry] = None
+  def read(unit: CompilationUnit, registry: RegistryWriter): Unit = {
+    var contexts: List[Context] = Nil
+    var components: List[Component] = Nil
+
+    for (tree @ ClassDef(_, _, _, _) <- unit.body) {
+      /*
+      if (isContext(tree)) {
+        contexts = Context(tree) :: contexts
+      } else if (isComponent(tree)) {
+        components = Component(tree) :: components
+      }
+      */
+    }
+
+    registry += CompilationUnitInfo(unit, contexts, components)
+  }
 }

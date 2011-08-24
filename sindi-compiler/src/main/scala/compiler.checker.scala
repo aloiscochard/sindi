@@ -11,11 +11,11 @@
 package sindi.compiler
 package checker 
 
-import model.Registry
+import model.Model
 
-trait Checker extends Component {
+trait Checker extends Component with Model {
   import global._
 
-  def check(unit: CompilationUnit, registry: Registry) = None
+  def check(unit: CompilationUnit, registry: RegistryReader) = None
 }
 
