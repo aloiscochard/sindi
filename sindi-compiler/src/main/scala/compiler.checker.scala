@@ -11,9 +11,13 @@
 package sindi.compiler
 package checker 
 
-import model.Model
+import scala.tools.nsc
+import nsc.Global 
+import nsc.plugins.Plugin
 
-trait Checker extends Component with Model {
+import reader.ReaderPlugin
+
+abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(global) {
   import global._
 
   def check(unit: CompilationUnit, registry: RegistryReader) = None

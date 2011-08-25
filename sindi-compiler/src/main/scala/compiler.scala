@@ -20,12 +20,7 @@ import nsc.ast.TreeBrowsers
 import nsc.plugins.Plugin
 import nsc.plugins.PluginComponent
 
-import utils.ParallelPluginComponent
-import model.{Model, Registry}
-import reader.Reader
-import checker.Checker
-
-class CompilerPlugin(val global: Global) extends Plugin {
+class CompilerPlugin(override val global: Global) extends checker.CheckerPlugin(global) {
   import global._
 
   val name = "sindi"
@@ -33,7 +28,7 @@ class CompilerPlugin(val global: Global) extends Plugin {
   val components = List[PluginComponent](Read, Check)
   var options: Option[Options] = None
 
-  trait Component extends ParallelPluginComponent {
+  trait Component extends utils.ParallelPluginComponent {
     val global: CompilerPlugin.this.global.type = CompilerPlugin.this.global
     val pluginName = CompilerPlugin.this.name
     def options = _options.getOrElse(Options())
@@ -42,14 +37,14 @@ class CompilerPlugin(val global: Global) extends Plugin {
 
   override val optionsHelp: Option[String] = Some(Options.help)
 
-  object Read extends Component with Model with Reader {
+  object Read extends Component {
     val runsAfter = List[String]("refchecks")
     val phaseName = pluginName + "-read"
     def newPhase(_prev: Phase) = new ReadPhase(_prev)
 
     class ReadPhase(prev: Phase) extends ParallelPhase(prev) {
       override def name = Check.phaseName
-      val registry: model.Registry = new RegistryWriter
+      val registry = new RegistryWriter
 
       def async(unit: CompilationUnit) = registry match {
         case registry: RegistryWriter => read(unit, registry)
@@ -58,7 +53,7 @@ class CompilerPlugin(val global: Global) extends Plugin {
     }
   }
 
-  object Check extends Component with Model with Checker {
+  object Check extends Component {
     val runsAfter = List[String](Read.phaseName)
     val phaseName = pluginName + "-check"
     def newPhase(_prev: Phase) = new CheckPhase(_prev)
@@ -67,12 +62,7 @@ class CompilerPlugin(val global: Global) extends Plugin {
       override def name = Check.phaseName
 
       def async(unit: CompilationUnit) = prev match {
-        case phase: Read.ReadPhase => {
-          phase.registry match {
-            case registry: RegistryWriter => check(unit, registry.toReader)
-            case _ => throw new RuntimeException("Invalid registry")
-          }
-        }
+        case phase: Read.ReadPhase => check(unit, phase.registry.toReader)
         case _ => throw new RuntimeException("Phase '" + name + "' isn't after phase '" + Read.phaseName + "'.")
       }
     }

@@ -14,21 +14,22 @@ package model
 import scala.actors.Actor
 import scala.collection.immutable.HashMap
 
-trait Registry 
+import scala.tools.nsc
+import nsc.Global 
+import nsc.plugins.Plugin
 
-trait Model extends Component {
+abstract class ModelPlugin(val global: Global) extends Plugin {
   import global._
 
   case class CompilationUnitInfo(unit: CompilationUnit, contexts: List[Context], components: List[Component])
 
-  case class Context(tree: Tree, dependencies: List[Dependency], modules: List[Type]) extends Entity
+  case class Context(tree: Tree, modules: List[Type], bindings: List[Binding], dependencies: List[Dependency]) extends Entity
   case class Component(tree: Tree, module: Type, dependencies: List[Dependency]) extends Entity
 
-  case class Dependency(val tree: Tree, val entity: Entity, val dependency: Option[Dependency])
+  case class Dependency(val tree: Tree, val tpe: Type, val dependency: Option[Dependency])
   case class Binding(val tree: Tree, tpe: Type)
 
-
-  class RegistryWriter extends model.Registry {
+  class RegistryWriter {
     def += (u: CompilationUnitInfo) = Writer ! Add(u)
     def toReader = new RegistryReader(Writer.entities, Writer.units)
 
@@ -51,8 +52,7 @@ trait Model extends Component {
     Writer.start
   }
 
-  class RegistryReader(val entities: Map[Type, Entity], val units: Map[CompilationUnit, CompilationUnitInfo])
-      extends model.Registry {
+  class RegistryReader(val entities: Map[Type, Entity], val units: Map[CompilationUnit, CompilationUnitInfo]) {
     def apply(u: CompilationUnit): Option[CompilationUnitInfo] = units.get(u)
 
     def getContext(t: Type): Option[Context] = entities.get(t) match {
