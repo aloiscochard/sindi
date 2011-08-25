@@ -8,7 +8,7 @@ scalaVersion := "2.9.0-1"
 
 scalacOptions += "-unchecked"
 
-crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC3")
+crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC4")
 
 
 libraryDependencies += "org.scala-tools.sindi" %% "sindi-core" % "0.3-SNAPSHOT"
