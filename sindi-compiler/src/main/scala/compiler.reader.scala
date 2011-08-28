@@ -18,50 +18,87 @@ import nsc.plugins.Plugin
 
 import model.ModelPlugin
 
+// TODO [acochard] add support for binding not created with DSL ? I think no
+// TODO [acochard] add support for injectAs
 abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(global) {
   import global._
 
-  private lazy val symContext = global.definitions.getClass(manifest[sindi.Context].erasure.getName)
-  private lazy val symComponent = global.definitions.getClass(manifest[sindi.Component[_]].erasure.getName)
+  private final val symContext = global.definitions.getClass(manifest[sindi.Context].erasure.getName)
+  private final val symComponent = global.definitions.getClass(manifest[sindi.Component[_]].erasure.getName)
+  private final val symInjector = global.definitions.getClass(manifest[sindi.injector.Injector].erasure.getName)
 
-  def read(unit: CompilationUnit, registry: RegistryWriter): Unit = {
+  def read(unit: CompilationUnit, body: Tree, registry: RegistryWriter): Unit = {
     var contexts: List[Context] = Nil
     var components: List[Component] = Nil
 
+    //println("read.a: " + unit)
+
     for (tree @ ClassDef(_, _, _, _) <- unit.body) {
-      if (isContext(tree)) {
-        contexts = createContext(tree) :: contexts
-      } else if (isComponent(tree)) {
-        //components = createComponent(tree) :: components
+      /*
+      def browse(tree: Tree) {
+        tree.children.foreach(browse(_))
+        tree.tpe
+        tree.symbol
+        //println(tree.symbol.owner)
+        //tree.symbol.tpe
       }
+      browse(tree)
+      */
+      if (isContext(tree)) {
+        //println("component: " + tree.name)
+        contexts = createContext(tree) :: contexts
+        // TODO Check if context mixin component and add corresponding dependencies
+      } else if (isComponent(tree)) {
+        //println("context: " + tree.name)
+        components = createComponent(tree) :: components
+      }  
     }
 
-    registry += CompilationUnitInfo(unit, contexts, components)
-  }
+    //println("read.b: " + unit)
+    
+    println("""
+    ------------------------------------
+    """ + unit + """
+    """ + contexts + """
+    """ + components + """
+    ------------------------------------
+    """)
 
-  protected def isContext(tree: Tree) = tree.symbol.isSubClass(symContext)
-  protected def isComponent(tree: Tree) = tree.symbol.isSubClass(symComponent)
+    registry += CompilationUnitInfo(unit.source, contexts, components)
+  }
+  //global.treeBrowsers.create().browse(tree)
+
 
   private def createContext(tree: ClassDef): Context = {
     new Context(tree, getModules(tree), getBindings(tree), getDependencies(tree))
   }
 
-  private def getModules(tree: ClassDef) = {
-    collect[DefDef](tree.children)((tree) => {
-      tree match {
-        case tree: DefDef => if (tree.symbol.name.toString == "modules") Some(tree) else None
-        case _ => None
+  private def createComponent(tree: ClassDef): Component = {
+    // TODO [aloiscochard] Fix that ugly hack to take component type parameter
+    val module = find[Symbol](List(tree))((tree) => tree match {
+      case tree: TypeTree => {
+        val typeName = tree.tpe.toString
+        if (typeName.startsWith("sindi.Component") && typeName.contains("[")) {
+          var moduleName = typeName.slice(typeName.indexOf("[") + 1, typeName.lastIndexOf("]"))
+          if (moduleName.contains("[")) { moduleName = moduleName.slice(0, moduleName.indexOf("[")) }
+          Some(global.definitions.getClass(moduleName))
+        } else None
       }
+      case _ => None
+    })
+    new Component(tree, module, getDependencies(tree))
+  }
+
+  private def getModules(tree: ClassDef) = {
+    collect[DefDef](tree.children)((tree) => tree match {
+      case tree: DefDef => if (tree.name.toString == "modules") Some(tree) else None
+      case _ => None
     }).headOption match {
       case Some(tree) => {
-        collect[ValDef](tree.children)((tree) => {
-          tree match {
-            case tree: ValDef => Some(tree)
-            case _ => None
-          }
-        }) map ((tree) => {
-          tree.symbol.tpe
-        })
+        collect[ValDef](tree.children)((tree) => tree match {
+          case tree: ValDef => Some(tree)
+          case _ => None
+        }) map (_.symbol.tpe)
       }
       case None => Nil
     }
@@ -70,99 +107,85 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
   protected def getBindings(tree: ClassDef): List[Binding] = {
     var bindings = List[Binding]()
     for (tree @ ValDef(_, _, _, _) <- tree.impl.body) {
-      if (tree.tpt.tpe.toString.startsWith("List[sindi.binder.binding.Binding[") ||
-          tree.tpt.tpe.toString == "sindi.package.Bindings") {
-        for (tree @ Apply(_, _) <- tree.children) {
-          collect[TypeTree](tree.children)((tree) => {
-            tree match {
-              case tree: TypeApply => {
-                if (tree.symbol.owner.toString == "trait DSL" && tree.symbol.name.toString == "bind") {
-                  var f: Option[TypeTree] = None
-                  for (t <- tree.children) { 
-                    t match {
-                      case t: TypeTree => f = Some(t)
-                      case _ => 
-                    }
-                  }
-                  f
-                } else {
-                  None
-                }
-              }
-              case _ => None
+      if (tree.name.toString.trim == "bindings") {
+        collect[TypeTree](tree.children)((tree) => tree match {
+          case tree: TypeApply => {
+            def isBind(tree: Tree) = tree.children.headOption match {
+              case Some(tree: Select) => tree.name.toString.trim == "bind"
+              case _ => false
             }
-          }).foreach((tree) => { bindings = Binding(tree,tree.tpe) :: bindings })
-        }
+            if (isBind(tree)) { 
+              tree.children.collectFirst({ case t: TypeTree => t})
+            } else {
+              None
+            }
+          }
+          case _ => None
+        }).foreach((tree) => { bindings = Binding(tree,tree.tpe) :: bindings })
       }
     }
     bindings
   }
 
   private def getDependencies(tree: Tree): List[Dependency] = {
-    val dependencies: List[Option[Dependency]] = 
-      collect[Tree](List(tree))((tree) => {
-        tree match {
-          case d: DefDef => Some(tree)
+    collect[Tree](tree.children)((tree) => tree match {
+      case tree: Apply => {
+        if (tree.symbol.name.toString == "inject" && tree.symbol.owner.isSubClass(symInjector)) {
+          Some(tree)
+        } else { None }
+      }
+      case _ => None
+    }).map((tree) => {
+      val injected = Dependency(tree, tree.tpe, None)
+      def getDependency(tree: Tree, dependency: Dependency): Dependency = {
+        find[TypeApply](List(tree))((tree) => tree match {
+          case tree: TypeApply => if (tree.symbol.name.toString == "from") { Some(tree) } else None
           case _ => None
-        }
-      }).map((tree) => {
-        var injected: Type = null
-        var module: Type = null
-        find((tree) => {
-          tree match {
-            case apply: Apply => {
-              apply.symbol.owner.toString == "trait Injector" && apply.symbol.name.toString == "inject"
-            }
-            case _ => false
-          }
-        }, tree) match {
+        }) match {
           case Some(tree) => {
-            injected = tree.tpe
-            find((tree) => {
-              tree match {
-                case typeApply: TypeApply =>
-                  typeApply.symbol.name.toString == "from"
-                case _ => false
+            tree.children.collectFirst({ case t: TypeTree => t}) match {
+              case Some(typeTree) => {
+                getDependency(tree.children.head, Dependency(tree, typeTree.tpe, Some(dependency)))
               }
-            }, tree) match {
-              case Some(tree) =>
-                find((tree) => {
-                  tree match {
-                    case typeTree: TypeTree => true
-                    case _ => false
-                  }
-                }, tree) match {
-                  case Some(tree) => {
-                    module = tree.tpe
-                  }
-                  case _ =>
-                }
-              case _ =>
+              case _ => dependency
             }
           }
-          case None =>
+          case _ => dependency
         }
-        if (injected == null) { None } else {
-          Some(Dependency(tree, module, Some(Dependency(tree, injected, None))))
-        }
-      })
-    dependencies.flatten
+      }
+      getDependency(tree, injected)
+    })
   }
 
-  private def find(matcher: (Tree) => Boolean, tree: Tree): Option[Tree] = {
-    findA[Tree]((tree) => { if (matcher(tree)) { Some(tree) } else { None } }, tree)
+
+  private def isContext(tree: Tree) = tree.symbol.classBound <:< symContext.classBound
+  private def isComponent(tree: Tree) = tree.symbol.classBound <:< symComponent.classBound
+
+  ///////////////////
+  // AST Utilities //
+  ///////////////////
+
+  /** Find first matching tree using Depth First Search **/
+  private def find[T <: AnyRef](lookup: List[Tree])(filter: (Tree) => Option[T]): Option[T] = {
+    for(tree <- lookup) {
+      filter(tree) match {
+        case Some(tree) => return Some(tree)
+        case _ =>
+      }
+      find[T](tree.children)(filter) match {
+        case Some(tree) => return Some(tree)
+        case _ =>
+      }
+    }
+    return None
   }
 
-  private def findA[T <: Tree](filter: (Tree) => Option[T], tree: Tree): Option[T] = {
-    val trees = collect[T](List(tree))(filter)
-    if (trees.isEmpty) { None } else { Some(trees.head) }
-  }
-
+  /** Collect all matchings trees **/
   @tailrec
   private final def collect[T <: Tree](lookup: List[Tree], accumulator: List[T] = Nil)
       (filter: (Tree) => Option[T]): List[T] = {
     var children = List[Tree]()
     val found = for(tree <- lookup) yield { children = children ++ tree.children; filter(tree) }
-    if (children.isEmpty) { accumulator } else { collect(children, found.flatten ++ accumulator)(filter) }
+    if (children.isEmpty) { found.flatten ++ accumulator } else { collect(children, found.flatten ++ accumulator)(filter) }
   }
 }

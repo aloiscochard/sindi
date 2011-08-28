@@ -46,9 +46,9 @@ class CompilerPlugin(override val global: Global) extends checker.CheckerPlugin(
       override def name = Check.phaseName
       val registry = new RegistryWriter
 
-      def async(unit: CompilationUnit) = registry match {
-        case registry: RegistryWriter => read(unit, registry)
-        case _ =>
+      def async(unit: CompilationUnit, body: Tree) = {
+        println("async: " + unit);
+        read(unit, body, registry)
       }
     }
   }
@@ -61,7 +61,7 @@ class CompilerPlugin(override val global: Global) extends checker.CheckerPlugin(
     class CheckPhase(prev: Phase) extends ParallelPhase(prev) {
       override def name = Check.phaseName
 
-      def async(unit: CompilationUnit) = prev match {
+      def async(unit: CompilationUnit, body: Tree) = prev match {
         case phase: Read.ReadPhase => check(unit, phase.registry.toReader)
         case _ => throw new RuntimeException("Phase '" + name + "' isn't after phase '" + Read.phaseName + "'.")
       }

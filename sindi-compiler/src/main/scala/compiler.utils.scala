@@ -12,6 +12,7 @@ package sindi.compiler
 package utils 
 
 import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 import scala.actors.scheduler.ExecutorScheduler
 import scala.tools.nsc
@@ -29,10 +30,14 @@ abstract class ParallelPluginComponent extends PluginComponent {
     override def run() = {
       super.run()
       scheduler.shutdown
+      executor.awaitTermination(timeout, TimeUnit.MILLISECONDS)
     }
 
-    def async(unit: CompilationUnit): Unit
+    def async(unit: CompilationUnit, body: Tree): Unit
 
-    final def apply(unit: CompilationUnit) = scheduler.execute { async(unit) }
+    final def apply(unit: CompilationUnit) = {
+      val body = unit.body
+      println("apply: " + unit); scheduler.execute {  async(unit, body) }
+    }
   }
 }

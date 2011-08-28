@@ -20,6 +20,11 @@ import reader.ReaderPlugin
 abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(global) {
   import global._
 
-  def check(unit: CompilationUnit, registry: RegistryReader) = None
+  def check(unit: CompilationUnit, registry: RegistryReader) = {
+    registry(unit.source) match {
+      case Some(info) => 
+      case _ =>
+    }
+  }
 }
 
