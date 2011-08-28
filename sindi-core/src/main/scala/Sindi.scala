@@ -42,7 +42,7 @@ package sindi {
     protected lazy val modules: Modules = Nil
     protected override def processing = super.processing :+ processor.option
 
-    def from[M <: Module : Manifest]: Module = {
+    def from[M <: Module : Manifest]: M = {
       modules.foreach((module) => { Helper.moduleOf[M](module) match {
         case Some(module) => return module
         case _ =>
@@ -81,7 +81,7 @@ package sindi {
   case class TypeNotBoundException(message: String) extends Exception(message)
 
   private[sindi] trait Composable {
-    protected def from[M <: Module : Manifest]: Module
+    protected def from[M <: Module : Manifest]: M
   }
 
   private object Helper {

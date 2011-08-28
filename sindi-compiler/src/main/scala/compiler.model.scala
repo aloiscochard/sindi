@@ -22,6 +22,8 @@ import nsc.util.SourceFile
 abstract class ModelPlugin(val global: Global) extends Plugin {
   import global._
 
+  var options: Options
+
   // TODO Replace unit with static field like sourcename
   case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Component])
 
@@ -45,8 +47,8 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
     }
   }
 
-  case class Dependency(val tree: Tree, val tpe: Type, val dependency: Option[Dependency]) {
-    override def toString = { tpe.typeSymbol.name + (dependency match {
+  case class Dependency(val tree: Tree, val symbol: Symbol, val dependency: Option[Dependency]) {
+    override def toString = { symbol.name + (dependency match {
       case Some(dependency) => " -> " + dependency.toString
       case _ => ""
     }) }

@@ -26,16 +26,22 @@ class CompilerPlugin(override val global: Global) extends checker.CheckerPlugin(
   val name = "sindi"
   val description = "Sindi Compiler"
   val components = List[PluginComponent](Read, Check)
-  var options: Option[Options] = None
+  override var options = Options()
+  override val optionsHelp = Some(Options.help)
+
+  override def processOptions(o: List[String], error: String => Unit) = {
+    Options.apply(o) match {
+      case Right(o) => options = o
+      case Left(e) => error(e)
+    }
+  }
 
   trait Component extends utils.ParallelPluginComponent {
     val global: CompilerPlugin.this.global.type = CompilerPlugin.this.global
     val pluginName = CompilerPlugin.this.name
-    def options = _options.getOrElse(Options())
-    private val _options: Option[Options] = CompilerPlugin.this.options
+    def options = CompilerPlugin.this.options
   }
 
-  override val optionsHelp: Option[String] = Some(Options.help)
 
   object Read extends Component {
     val runsAfter = List[String]("refchecks")

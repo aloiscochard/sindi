@@ -47,7 +47,6 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
       if (isContext(tree)) {
         //println("component: " + tree.name)
         contexts = createContext(tree) :: contexts
-        // TODO Check if context mixin component and add corresponding dependencies
       } else if (isComponent(tree)) {
         //println("context: " + tree.name)
         components = createComponent(tree) :: components
@@ -56,13 +55,15 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
 
     //println("read.b: " + unit)
     
-    println("""
-    ------------------------------------
-    """ + unit + """
-    """ + contexts + """
-    """ + components + """
-    ------------------------------------
-    """)
+    if (options.verbose) {
+      println("""
+      ------------------------------------
+      """ + unit + """
+      """ + contexts.map(_ + "\n") + """
+      """ + components.map(_ + "\n") + """
+      ------------------------------------
+      """)
+    }
 
     registry += CompilationUnitInfo(unit.source, contexts, components)
   }
@@ -77,12 +78,14 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
     // TODO [aloiscochard] Fix that ugly hack to take component type parameter
     val module = find[Symbol](List(tree))((tree) => tree match {
       case tree: TypeTree => {
-        val typeName = tree.tpe.toString
-        if (typeName.startsWith("sindi.Component") && typeName.contains("[")) {
-          var moduleName = typeName.slice(typeName.indexOf("[") + 1, typeName.lastIndexOf("]"))
-          if (moduleName.contains("[")) { moduleName = moduleName.slice(0, moduleName.indexOf("[")) }
-          Some(global.definitions.getClass(moduleName))
-        } else None
+        global.synchronized {
+          val typeName = tree.tpe.toString
+          if (typeName.startsWith("sindi.Component") && typeName.contains("[")) {
+            var moduleName = typeName.slice(typeName.indexOf("[") + 1, typeName.lastIndexOf("]"))
+            if (moduleName.contains("[")) { moduleName = moduleName.slice(0, moduleName.indexOf("[")) }
+            Some(global.definitions.getClass(moduleName))
+          } else None
+        }
       }
       case _ => None
     })
@@ -127,8 +130,9 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
     bindings
   }
 
-  private def getDependencies(tree: Tree): List[Dependency] = {
-    collect[Tree](tree.children)((tree) => tree match {
+  private def getDependencies(root: Tree): List[Dependency] = {
+    // TODO Find dependency with 'from' only (without 'inject')
+    val dependencies = collect[Tree](root.children)((tree) => tree match {
       case tree: Apply => {
         if (tree.symbol.name.toString == "inject" && tree.symbol.owner.isSubClass(symInjector)) {
           Some(tree)
@@ -136,7 +140,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
       }
       case _ => None
     }).map((tree) => {
-      val injected = Dependency(tree, tree.tpe, None)
+      val injected = Dependency(tree, tree.tpe.typeSymbol, None)
       def getDependency(tree: Tree, dependency: Dependency): Dependency = {
         find[TypeApply](List(tree))((tree) => tree match {
           case tree: TypeApply => if (tree.symbol.name.toString == "from") { Some(tree) } else None
@@ -145,7 +149,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
           case Some(tree) => {
             tree.children.collectFirst({ case t: TypeTree => t}) match {
               case Some(typeTree) => {
-                getDependency(tree.children.head, Dependency(tree, typeTree.tpe, Some(dependency)))
+                getDependency(tree.children.head, Dependency(tree, typeTree.symbol, Some(dependency)))
               }
               case _ => dependency
             }
@@ -155,6 +159,22 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
       }
       getDependency(tree, injected)
     })
+    // Adding mixed-in component's dependencies
+    val infered = global.synchronized {
+      collect[Dependency](root.children)((tree) => tree match {
+        case tree: TypeTree => {
+          if (tree.symbol.exists &&
+              isComponent(tree) && !isContext(tree) &&
+              !(tree.symbol.classBound =:= symComponent.classBound) &&
+              !(tree.symbol.classBound =:= root.symbol.classBound)) {
+            Some(Dependency(tree, tree.symbol, None)) 
+          } else None
+        }
+        case _ => None
+      })
+    }
+    //global.treeBrowsers.create().browse(tree)
+    dependencies ++ infered
   }
 
 
@@ -182,7 +202,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
 
   /** Collect all matchings trees **/
   @tailrec
-  private final def collect[T <: Tree](lookup: List[Tree], accumulator: List[T] = Nil)
+  private final def collect[T <: AnyRef](lookup: List[Tree], accumulator: List[T] = Nil)
       (filter: (Tree) => Option[T]): List[T] = {
     var children = List[Tree]()
     val found = for(tree <- lookup) yield { children = children ++ tree.children; filter(tree) }
