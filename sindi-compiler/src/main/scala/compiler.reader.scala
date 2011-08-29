@@ -18,7 +18,7 @@ import nsc.plugins.Plugin
 
 import model.ModelPlugin
 
-// TODO [acochard] add support for binding not created with DSL ? I think no
+// TODO Finner syncronized granularity + par collection for contexts/components creation
 // TODO [acochard] add support for injectAs
 abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(global) {
   import global._
@@ -31,19 +31,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
     var contexts: List[Context] = Nil
     var components: List[Component] = Nil
 
-    //println("read.a: " + unit)
-
     for (tree @ ClassDef(_, _, _, _) <- unit.body) {
-      /*
-      def browse(tree: Tree) {
-        tree.children.foreach(browse(_))
-        tree.tpe
-        tree.symbol
-        //println(tree.symbol.owner)
-        //tree.symbol.tpe
-      }
-      browse(tree)
-      */
       if (isContext(tree)) {
         //println("component: " + tree.name)
         contexts = createContext(tree) :: contexts
@@ -52,8 +40,6 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
         components = createComponent(tree) :: components
       }  
     }
-
-    //println("read.b: " + unit)
     
     if (options.verbose) {
       println("""

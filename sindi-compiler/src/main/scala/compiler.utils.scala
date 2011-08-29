@@ -37,8 +37,7 @@ abstract class ParallelPluginComponent extends PluginComponent {
 
     final def apply(unit: CompilationUnit) = {
       val body = unit.body
-      //println("apply: " + unit); async(unit, body)
-      println("apply: " + unit); scheduler.execute {  async(unit, body) }
+      scheduler.execute {  async(unit, body) }
     }
   }
 }
