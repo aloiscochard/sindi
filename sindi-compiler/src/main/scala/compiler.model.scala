@@ -29,7 +29,7 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
 
   case class Context(tree: Tree, modules: List[Type], bindings: List[Binding], dependencies: List[Dependency]) extends Entity {
     override def toString = super.toString + {
-      if (!modules.isEmpty) " [ modules: " + modules.mkString(", ") + " ]"
+      if (!modules.isEmpty) " [ modules: " + modules.mkString(", ") + " ]" else ""
     }
 
   }
@@ -43,7 +43,7 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
     def tree: Tree 
     def dependencies: List[Dependency]
     override def toString = tree.symbol.name.toString + {
-      if (!dependencies.isEmpty) " { dependencies: " + dependencies.mkString(", ") + " }"
+      if (!dependencies.isEmpty) " { dependencies: " + dependencies.mkString(", ") + " }" else ""
     }
   }
 

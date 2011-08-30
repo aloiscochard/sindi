@@ -53,7 +53,6 @@ class CompilerPlugin(override val global: Global) extends checker.CheckerPlugin(
       val registry = new RegistryWriter
 
       def async(unit: CompilationUnit, body: Tree) = {
-        println("async: " + unit);
         read(unit, body, registry)
       }
     }

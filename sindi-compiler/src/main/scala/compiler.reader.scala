@@ -41,14 +41,11 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
       }  
     }
     
-    if (options.verbose) {
-      println("""
-      ------------------------------------
-      """ + unit + """
-      """ + contexts.map(_ + "\n") + """
-      """ + components.map(_ + "\n") + """
-      ------------------------------------
-      """)
+    if (options.verbose && (!contexts.isEmpty || !components.isEmpty)) {
+      global.inform(unit + " {\n" +
+        { if (!contexts.isEmpty) contexts.map("\t" + _ + "\n").mkString else "" } +
+        { if (!components.isEmpty) components.map("\t" + _ + "\n").mkString else "" } +
+        "}")
     }
 
     registry += CompilationUnitInfo(unit.source, contexts, components)
@@ -162,7 +159,6 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
     //global.treeBrowsers.create().browse(tree)
     dependencies ++ infered
   }
-
 
   private def isContext(tree: Tree) = tree.symbol.classBound <:< symContext.classBound
   private def isComponent(tree: Tree) = tree.symbol.classBound <:< symComponent.classBound
