@@ -6,9 +6,9 @@ object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Seq (
     organization        := "org.scala-tools.sindi",
     version             := "0.3-SNAPSHOT",
-    scalaVersion        := "2.9.0-1",
+    scalaVersion        := "2.9.1",
     scalacOptions       := Seq("-unchecked", "-deprecation"),
-    crossScalaVersions  := Seq("2.9.0-1", "2.9.1.RC4")
+    crossScalaVersions  := Seq("2.9.0-1", "2.9.1")
   )
 
   val publishSettings = Seq(
@@ -28,11 +28,11 @@ object Resolvers {
 
 object Dependencies {
   val testDependencies = Seq(libraryDependencies <<= (scalaVersion, libraryDependencies) { (version, dependencies) =>
-    val specs2Version = version match {
-      case "2.9.1.RC4" => "1.6-SNAPSHOT"
-      case _ => "1.5"
+    val specs2 = version match {
+      case "2.9.1" => ("org.specs2" % "specs2_2.9.1.RC4" % "1.5" % "test")
+      case _ => ("org.specs2" %% "specs2" % "1.5" % "test")
     }
-    dependencies :+ ("org.specs2" %% "specs2" % specs2Version % "test")
+    dependencies :+ specs2
   })
 }
 

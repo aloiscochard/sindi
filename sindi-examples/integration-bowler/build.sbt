@@ -4,11 +4,11 @@ version := "0.3-SNAPSHOT"
 
 organization := "org.scala-tools.sindi.examples"
 
-scalaVersion := "2.9.0-1"
+scalaVersion := "2.9.1"
 
 scalacOptions += "-unchecked"
 
-crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC4")
+crossScalaVersions := Seq("2.9.0-1", "2.9.1")
 
 
 libraryDependencies ++= Seq(
