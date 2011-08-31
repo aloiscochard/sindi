@@ -33,10 +33,8 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
 
     for (tree @ ClassDef(_, _, _, _) <- unit.body) {
       if (isContext(tree)) {
-        //println("component: " + tree.name)
         contexts = createContext(tree) :: contexts
       } else if (isComponent(tree)) {
-        //println("context: " + tree.name)
         components = createComponent(tree) :: components
       }  
     }
@@ -51,7 +49,6 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
     registry += CompilationUnitInfo(unit.source, contexts, components)
   }
   //global.treeBrowsers.create().browse(tree)
-
 
   private def createContext(tree: ClassDef): Context = {
     new Context(tree, getModules(tree), getBindings(tree), getDependencies(tree))
@@ -114,25 +111,17 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
   }
 
   private def getDependencies(root: Tree): List[Dependency] = {
-    // TODO Find dependency with 'from' only (without 'inject')
-    val dependencies = collect[Tree](root.children)((tree) => tree match {
-      case tree: Apply => {
-        if (tree.symbol.name.toString == "inject" && tree.symbol.owner.isSubClass(symInjector)) {
-          Some(tree)
-        } else { None }
-      }
-      case _ => None
-    }).map((tree) => {
+    def getDependency(tree: Tree) = {
       val injected = Dependency(tree, tree.tpe.typeSymbol, None)
-      def getDependency(tree: Tree, dependency: Dependency): Dependency = {
+      def get(tree: Tree, dependency: Dependency): Dependency = {
         find[TypeApply](List(tree))((tree) => tree match {
-          case tree: TypeApply => if (tree.symbol.name.toString == "from") { Some(tree) } else None
+          case tree: TypeApply => if (tree.symbol.name.toString == "from") Some(tree) else None
           case _ => None
         }) match {
           case Some(tree) => {
             tree.children.collectFirst({ case t: TypeTree => t}) match {
               case Some(typeTree) => {
-                getDependency(tree.children.head, Dependency(tree, typeTree.symbol, Some(dependency)))
+                get(tree.children.head, Dependency(tree, typeTree.symbol, Some(dependency)))
               }
               case _ => dependency
             }
@@ -140,8 +129,23 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
           case _ => dependency
         }
       }
-      getDependency(tree, injected)
-    })
+      get(tree, injected)
+    }
+
+    val dependencies = collect[Tree](root.children)((tree) => tree match {
+      case tree: Apply => {
+        if ((tree.symbol.name.toString == "inject" || tree.symbol.name.toString == "injectAs") && 
+            tree.symbol.owner.isSubClass(symInjector)) Some(tree) else None
+      }
+      case _ => None
+    }).map(getDependency(_)) ++
+    collect[Tree](root.children)((tree) => tree match {
+      case tree: Apply => {
+        if (tree.symbol.owner.isSubClass(symInjector)) Some(tree) else None
+      }
+      case _ => None
+    }).map(getDependency(_)).distinct.filter(_.tree.symbol.toString == "<none>")
+
     // Adding mixed-in component's dependencies
     val infered = global.synchronized {
       collect[Dependency](root.children)((tree) => tree match {
@@ -156,7 +160,6 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
         case _ => None
       })
     }
-    //global.treeBrowsers.create().browse(tree)
     dependencies ++ infered
   }
 
