@@ -39,14 +39,15 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
       }  
     }
     
-    if (options.verbose && (!contexts.isEmpty || !components.isEmpty)) {
-      global.inform(unit + " {\n" +
-        { if (!contexts.isEmpty) contexts.map("\t" + _ + "\n").mkString else "" } +
-        { if (!components.isEmpty) components.map("\t" + _ + "\n").mkString else "" } +
-        "}")
+    if ((!contexts.isEmpty || !components.isEmpty)) {
+      if (options.verbose) {
+        global.inform(unit + " {\n" +
+          { if (!contexts.isEmpty) contexts.map("\t" + _ + "\n").mkString else "" } +
+          { if (!components.isEmpty) components.map("\t" + _ + "\n").mkString else "" } +
+          "}")
+      }
+      registry += CompilationUnitInfo(unit.source, contexts, components)
     }
-
-    registry += CompilationUnitInfo(unit.source, contexts, components)
   }
   //global.treeBrowsers.create().browse(tree)
 
@@ -121,7 +122,9 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
           case Some(tree) => {
             tree.children.collectFirst({ case t: TypeTree => t}) match {
               case Some(typeTree) => {
-                get(tree.children.head, Dependency(tree, typeTree.symbol, Some(dependency)))
+                val d = if (dependency.symbol.toString == typeTree.symbol.toString) dependency else 
+                          Dependency(tree, typeTree.symbol, Some(dependency))
+                get(tree.children.head, d)
               }
               case _ => dependency
             }
@@ -144,7 +147,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
         if (tree.symbol.owner.isSubClass(symInjector)) Some(tree) else None
       }
       case _ => None
-    }).map(getDependency(_)).distinct.filter(_.tree.symbol.toString == "<none>")
+    }).map(getDependency(_)).distinct.filter(_.symbol.name.toString != "<none>")
 
     // Adding mixed-in component's dependencies
     val infered = global.synchronized {

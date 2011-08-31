@@ -22,7 +22,16 @@ abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(g
 
   def check(unit: CompilationUnit, registry: RegistryReader) = {
     registry(unit.source) match {
-      case Some(info) => 
+      case Some(info) => {
+        info.contexts.foreach((context) => {
+          context.dependencies.foreach((dependency) => {
+
+          })
+        })
+        info.components.foreach((component) => {
+
+        })
+      }
       case _ =>
     }
   }
