@@ -31,15 +31,13 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
     override def toString = super.toString + {
       if (!modules.isEmpty) " [ modules: " + modules.mkString(", ") + " ]" else ""
     }
-
   }
 
   case class Component(tree: Tree, module: Option[Symbol], dependencies: List[Dependency]) extends Entity {
     override def toString = "[" + module.map(_.name).getOrElse("undefined") + "] " + super.toString
-
   }
 
-  private[model] trait Entity {
+  sealed trait Entity {
     def tree: Tree 
     def dependencies: List[Dependency]
     override def toString = tree.symbol.name.toString + {
@@ -48,7 +46,7 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   }
 
   case class Dependency(val tree: Tree, val symbol: Symbol, val dependency: Option[Dependency]) {
-    override def toString = { symbol.name + (dependency match {
+    override def toString = { symbol.name.toString + (dependency match {
       case Some(dependency) => " -> " + dependency.toString
       case _ => ""
     }) }

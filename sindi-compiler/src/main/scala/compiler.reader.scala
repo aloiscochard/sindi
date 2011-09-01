@@ -18,8 +18,9 @@ import nsc.plugins.Plugin
 
 import model.ModelPlugin
 
-// TODO Finner syncronized granularity + par collection for contexts/components creation
 // TODO [acochard] add support for injectAs
+// TODO [acochard] add support for ModuleT
+//
 abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(global) {
   import global._
 
@@ -147,7 +148,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
         if (tree.symbol.owner.isSubClass(symInjector)) Some(tree) else None
       }
       case _ => None
-    }).map(getDependency(_)).distinct.filter(_.symbol.name.toString != "<none>")
+    }).map(getDependency(_)).filter(_.symbol.name.toString != "<none>")
 
     // Adding mixed-in component's dependencies
     val infered = global.synchronized {

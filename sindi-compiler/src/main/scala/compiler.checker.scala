@@ -23,17 +23,29 @@ abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(g
   def check(unit: CompilationUnit, registry: RegistryReader) = {
     registry(unit.source) match {
       case Some(info) => {
-        info.contexts.foreach((context) => {
-          context.dependencies.foreach((dependency) => {
-
-          })
-        })
-        info.components.foreach((component) => {
-
+        (info.contexts ++ info.components).par.foreach((entity) => {
+          println(entity.getClass)
+          (entity match {
+            case c: Context => Some(c)
+            case Component(_, Some(module), _) => {
+              val context = registry.getContext(module.classBound)
+              println("\ncontext found: " + context)
+              context
+            }
+            case _ => None
+          }) match {
+            case Some(context) => entity.dependencies.par.foreach((dependency) => {
+              resolve(context, dependency)
+            })
+            case None => 
+          }
         })
       }
       case _ =>
     }
+  }
+
+  private def resolve(context: Context, dependency: Dependency) = {
   }
 }
 
