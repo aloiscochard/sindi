@@ -4,5 +4,6 @@ Advanced
 .. toctree::
     :maxdepth: 2
 
-    advanced/providers
-    advanced/processors
+    advanced/modulet
+    advanced/provider
+    advanced/processor
