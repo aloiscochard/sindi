@@ -12,6 +12,8 @@ class DaoModule(implicit val context: Context) extends Module {
   lazy val tasks = from[StoreModule[Task]].inject[Store[Task]]
 }
 
-trait UserComponent extends Component[DaoModule] { def users = from[DaoModule].users }
+trait DaoComponent extends Component { val `sindi.examples.demo.dao` = new ModuleManifest[DaoModule] }
 
-trait TaskComponent extends Component[DaoModule] { def tasks = from[DaoModule].tasks }
+trait UserComponent extends DaoComponent { def users = from[DaoModule].users }
+
+trait TaskComponent extends DaoComponent { def tasks = from[DaoModule].tasks }

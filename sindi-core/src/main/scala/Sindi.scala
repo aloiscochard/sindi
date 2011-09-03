@@ -63,8 +63,9 @@ package sindi {
     val manifest = implicitly[Manifest[T]]
   }
 
+  class ModuleManifest[M <: Module : Manifest]
 
-  trait Component[M <: Module] extends Composable
+  trait Component extends Composable
 
   trait ComponentWithContext extends Composable {
     protected val context: Context
