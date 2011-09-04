@@ -26,14 +26,17 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
 
   case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Component])
 
-  case class Context(tree: Tree, modules: List[Type], bindings: List[Binding], dependencies: List[Dependency]) extends Entity
+  case class Context(tree: Tree, modules: List[Module], bindings: List[Binding], dependencies: List[Dependency]) extends Entity
 
-  case class Component(tree: Tree, modules: List[Type], dependencies: List[Dependency]) extends Entity
+  case class Component(tree: Tree, modules: List[Module], dependencies: List[Dependency]) extends Entity {
+    val bindings: List[Binding] = Nil
+  }
 
   sealed trait Entity {
     def tree: Tree 
     def dependencies: List[Dependency]
-    def modules: List[Type]
+    def modules: List[Module]
+    def bindings: List[Binding]
     override def toString = tree.symbol.name.toString + {
       if (!dependencies.isEmpty) " { dependencies: " + dependencies.mkString(", ") + " }" else ""
     } + {
@@ -60,7 +63,8 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
     }) }
   }
 
-  case class Binding(val tree: Tree, symbol: Symbol) { override def toString = symbol.name.toString }
+  case class Binding(tree: Tree, symbol: Symbol) { override def toString = symbol.name.toString }
+  case class Module(symbol: Symbol, val name: String) { override def toString = name }
 
   class RegistryWriter {
     def += (u: CompilationUnitInfo) = Writer ! Add(u)

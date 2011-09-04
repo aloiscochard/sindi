@@ -27,6 +27,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
 
   private final val symContext = global.definitions.getClass(manifest[sindi.Context].erasure.getName)
   private final val symComponent = global.definitions.getClass(manifest[sindi.Component].erasure.getName)
+  private final val symComposable = global.definitions.getClass(manifest[sindi.Composable].erasure.getName)
   private final val symInjector = global.definitions.getClass(manifest[sindi.injector.Injector].erasure.getName)
   private final val symModule = global.definitions.getClass(manifest[sindi.Module].erasure.getName)
   private final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
@@ -62,8 +63,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
   }
 
   private def createComponent(tree: ClassDef): Component = {
-    // TODO [aloiscochard] Add imported module
-    new Component(tree, Nil, getDependencies(tree))
+    new Component(tree, getModulesFromComponent(tree), getDependencies(tree))
   }
 
   private def getModules(tree: ClassDef) = {
@@ -75,10 +75,34 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
         collect[ValDef](tree.children)((tree) => tree match {
           case tree: ValDef => Some(tree)
           case _ => None
-        }) map (_.symbol.tpe)
+        }).map((tree) => {
+          Module(tree.symbol.tpe.typeSymbol, tree.symbol.tpe.toString)
+        })
       }
       case None => Nil
     }
+  }
+
+  private def getModulesFromComponent(root: ClassDef) = {
+    var types = List[String]()
+    collect[TypeTree](root.children)((tree) => tree match {
+      case tree: TypeTree => {
+        if (tree.symbol.exists &&
+            isComponent(tree) && !isContext(tree) &&
+            !(tree.symbol.classBound =:= symComponent.classBound) &&
+            !(tree.symbol.classBound =:= root.symbol.classBound)) {
+          Some(tree)
+        } else None
+      }
+      case _ => None
+    }).foreach((tree) => {
+      tree.tpe.members.filter((s) => {
+        s.isValue && (s.tpe.typeSymbol.isSubClass(symModuleManifest))
+      }).foreach((s) => {
+        types = getTypeParam(s.tpe.toString) :: types
+      })
+    })
+    types.distinct.map((s) => { Module(global.definitions.getClass(s), s) })
   }
 
   protected def getBindings(tree: ClassDef): List[Binding] = {
@@ -130,7 +154,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
 
     // Adding dependency (from[T].*)
     val dependencies = collect[Tree](root.children)((tree) => tree match {
-      case tree: Apply => if (tree.symbol.owner.isSubClass(symInjector)) Some(tree) else None
+      case tree: Apply => if (tree.symbol.owner.isSubClass(symComposable)) Some(tree) else None
       case _ => None
     }).map(getDependency(_)).filter((tree) => {
       (tree.symbol.name.toString != "<none>") &&
@@ -163,12 +187,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
   }
 
   private def isContext(tree: Tree) = tree.symbol.classBound <:< symContext.classBound
-  private def isComponent(tree: Tree) = {
-    val b = tree.symbol.classBound <:< symComponent.classBound
-    //val b = tree.tpe.baseClasses.find((s) => s.classBound <:< symComponent.classBound).isDefined
-    //println(tree.symbol.name + "/" + symComponent.name + ": " + b)
-    b
-  }
+  private def isComponent(tree: Tree) = tree.symbol.classBound <:< symComponent.classBound
 
   ///////////////////
   // AST Utilities //
