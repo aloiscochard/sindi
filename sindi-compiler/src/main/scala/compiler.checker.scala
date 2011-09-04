@@ -20,6 +20,8 @@ import reader.ReaderPlugin
 abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(global) {
   import global._
 
+  private final val symOption = global.definitions.getClass(manifest[Option[_]].erasure.getName)
+
   // TODO [aloiscochard] more detailed error message ?
   private case class DependencyNotBound(dependency: Dependency) extends Failure {
     override def tree = dependency.tree
@@ -53,22 +55,29 @@ abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(g
   }
 
   private def resolve(registry: RegistryReader)(entity: Entity, dependency: Dependency): Option[Failure] = {
-    entity.modules.find(_.symbol == dependency.symbol) match {
-      case Some(module) => {
-        dependency.dependency match {
-          case Some(dependency) => {
-            registry.getContext(module.symbol) match {
-              case Some(module) => resolve(registry)(module, dependency)
-              case None => Some(DependencyOutOfScope(dependency))
+    // TODO: Configurable exclude filter
+    // Filtering excluded types
+    if (dependency.symbol == symOption) {
+      None
+    } else {
+      // Resolving
+      entity.modules.find(_.symbol == dependency.symbol) match {
+        case Some(module) => {
+          dependency.dependency match {
+            case Some(dependency) => {
+              registry.getContext(module.symbol) match {
+                case Some(module) => resolve(registry)(module, dependency)
+                case None => Some(DependencyOutOfScope(dependency))
+              }
             }
+            case _ => None
           }
-          case _ => None
         }
-      }
-      case None => {
-        entity.bindings.find(_.symbol == dependency.symbol) match {
-          case Some(binding) => None
-          case None => Some(DependencyNotBound(dependency))
+        case None => {
+          entity.bindings.find(_.symbol == dependency.symbol) match {
+            case Some(binding) => None
+            case None => Some(DependencyNotBound(dependency))
+          }
         }
       }
     }

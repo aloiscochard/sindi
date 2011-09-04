@@ -152,8 +152,18 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
       get(tree, injected)
     }
 
-    // Adding dependency (from[T].*)
+    // Adding direct dependencies
     val dependencies = collect[Tree](root.children)((tree) => tree match {
+      case tree: Apply => {
+        if (tree.symbol.name.toString == "inject" && tree.symbol.owner.isSubClass(symInjector)) {
+          Some(tree)
+        } else { None }
+      }
+      case _ => None
+    }).map(getDependency(_))
+
+    // Adding imported dependencies (from[T].*)
+    val imported = collect[Tree](root.children)((tree) => tree match {
       case tree: Apply => if (tree.symbol.owner.isSubClass(symComposable)) Some(tree) else None
       case _ => None
     }).map(getDependency(_)).filter((tree) => {
@@ -183,7 +193,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
       })
     })
 
-    (dependencies ++ infered).distinct
+    (dependencies ++ imported ++ infered).distinct
   }
 
   private def isContext(tree: Tree) = tree.symbol.classBound <:< symContext.classBound
