@@ -14,7 +14,7 @@ crossScalaVersions := Seq("2.9.0-1", "2.9.1")
 libraryDependencies ++= Seq(
   "org.scala-tools.sindi" %% "sindi-core" % "0.3-SNAPSHOT",
   "org.scala-tools.sindi.examples" %% "demo" % "0.3-SNAPSHOT",
-  "org.bowlerframework" %% "core" % "0.4.2",
+  "org.bowlerframework" %% "core" % "0.5-SNAPSHOT",
   "org.slf4j" % "slf4j-api" % "1.6.1",
   "org.eclipse.jetty" % "jetty-server" % "7.4.5.v20110725" % "jetty",
   "org.eclipse.jetty" % "jetty-webapp" % "7.4.5.v20110725" % "jetty"

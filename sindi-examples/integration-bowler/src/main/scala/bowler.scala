@@ -9,19 +9,16 @@ import sindi.examples.demo.dao._
 
 class Bootstrap extends Context with UserComponent with TaskComponent {
   override lazy val modules = new DaoModule :: Nil
-  val indexController = new IndexController
-  val tasksController = new TasksController
+  val indexController = new ComponentContext with IndexController
+  val tasksController = new ComponentContext with TasksController
   users.load(User("aloiscochard", "Alois Cochard"))
   tasks.load(Task("My Task", "..."))
 }
 
-class IndexController(implicit override val context: Context) extends ControllerWithContext with UserComponent {
+trait IndexController extends Controller with FunctionNameConventionRoutes with Renderable with UserComponent {
   def `GET /` = render("user" -> users.get)
 }
 
-class TasksController(implicit override val context: Context) extends ControllerWithContext with TaskComponent {
+trait TasksController extends Controller with FunctionNameConventionRoutes with Renderable with TaskComponent {
   def `GET /tasks` = render("task" -> tasks.get)
 }
-
-abstract class ControllerWithContext(implicit override val context: Context) extends Controller
-  with ComponentWithContext with FunctionNameConventionRoutes with Renderable with UserComponent 
