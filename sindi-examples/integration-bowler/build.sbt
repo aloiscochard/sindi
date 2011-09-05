@@ -8,6 +8,8 @@ scalaVersion := "2.9.0-1"
 
 scalacOptions += "-unchecked"
 
+scalacOptions += "-P:sindi:verbose"
+
 crossScalaVersions := Seq("2.9.0-1", "2.9.1")
 
 

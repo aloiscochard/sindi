@@ -19,19 +19,12 @@ import nsc.plugins.Plugin
 import model.ModelPlugin
 
 // TODO [acochard] check if component import needed modulemanifest otherwise optionally generate them
-// TODO [acochard] add support for injectAs
-// TODO [acochard] add support for ModuleT
-//
+// TODO [acochard] add injectAs support
+// TODO [acochard] check ModuleT support
+// TODO [acochard] actually inline component have '$anon' as name, find workaround if possible
+
 abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(global) {
   import global._
-
-  private final val symContext = global.definitions.getClass(manifest[sindi.Context].erasure.getName)
-  private final val symComponent = global.definitions.getClass(manifest[sindi.Component].erasure.getName)
-  private final val symComposable = global.definitions.getClass(manifest[sindi.Composable].erasure.getName)
-  private final val symInjector = global.definitions.getClass(manifest[sindi.injector.Injector].erasure.getName)
-  private final val symModule = global.definitions.getClass(manifest[sindi.Module].erasure.getName)
-  private final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
-  private final val symModuleManifest = global.definitions.getClass(manifest[sindi.ModuleManifest[_]].erasure.getName)
 
   def read(unit: CompilationUnit, body: Tree, registry: RegistryWriter): Unit = {
     var contexts: List[Context] = Nil
@@ -152,6 +145,15 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
       get(tree, injected)
     }
 
+    def getComponentDependencies(tree: Tree) = {
+      tree.tpe.members.filter((s) => {
+        s.isValue && (s.tpe.typeSymbol.isSubClass(symModuleManifest))
+      }).map((s) => {
+        val typeParamName = getTypeParam(s.tpe.toString)
+        Dependency(tree, global.definitions.getClass(typeParamName), None, typeParamName)
+      })
+    }
+
     // Adding direct dependencies
     val dependencies = collect[Tree](root.children)((tree) => tree match {
       case tree: Apply => {
@@ -163,37 +165,37 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
     }).map(getDependency(_))
 
     // Adding imported dependencies (from[T].*)
-    val imported = collect[Tree](root.children)((tree) => tree match {
+    val (imported, components) = collect[Tree](root.children)((tree) => tree match {
       case tree: Apply => if (tree.symbol.owner.isSubClass(symComposable)) Some(tree) else None
       case _ => None
     }).map(getDependency(_)).filter((tree) => {
       (tree.symbol.name.toString != "<none>") &&
       (tree.symbol != symModule) &&
-      (tree.symbol != symModuleT)
-    })
+      (tree.symbol != symModuleT) &&
+      (tree.symbol != symComponentContext)
+    }).partition((d) =>
+      // Filtering ComponentContext instantiation
+      !(d.symbol.classBound <:< symComponentContext.classBound && !(d.symbol.classBound <:< symModule.classBound))
+    )
 
-    // Adding mixed-in component's dependencies
-    var infered = List[Dependency]() // WARNING: Mutable, compiler crash if using 'val' and 'reduce'
+    var inferred = List[Dependency]() // WARNING: Mutable, compiler crash if using 'val' and 'reduce'
+
+    // Resolve ComponentContext intantiation into component dependencies
+    components.map((dependency) => { getComponentDependencies(dependency.tree).foreach((d) => { inferred = d :: inferred }) })
+
+    // Adding mixed-in context component's dependencies
     collect[TypeTree](root.children)((tree) => tree match {
       case tree: TypeTree => {
-        if (tree.symbol.exists &&
-            isComponent(tree) && !isContext(tree) &&
+        if (tree.symbol.exists && isComponent(tree) && !isContext(tree) &&
             !(tree.symbol.classBound =:= symComponent.classBound) &&
             !(tree.symbol.classBound =:= root.symbol.classBound)) {
           Some(tree)
         } else None
       }
       case _ => None
-    }).foreach((tree) => {
-      tree.tpe.members.filter((s) => {
-        s.isValue && (s.tpe.typeSymbol.isSubClass(symModuleManifest))
-      }).map((s) => {
-        val typeParamName = getTypeParam(s.tpe.toString)
-        infered = Dependency(tree, global.definitions.getClass(typeParamName), None, typeParamName) :: infered
-      })
-    })
+    }).foreach((tree) => getComponentDependencies(tree).foreach((d) => { inferred = d :: inferred }) )
 
-    (dependencies ++ imported ++ infered).distinct
+    (dependencies ++ imported ++ inferred).distinct
   }
 
   private def isContext(tree: Tree) = tree.symbol.classBound <:< symContext.classBound
