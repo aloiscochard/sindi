@@ -27,19 +27,25 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   protected final val symContext = global.definitions.getClass(manifest[sindi.Context].erasure.getName)
   protected final val symComponent = global.definitions.getClass(manifest[sindi.Component].erasure.getName)
   protected final val symComponentContext = global.definitions.getClass(manifest[sindi.ComponentContext].erasure.getName)
-  protected final val symComponentWithContext = global.definitions.getClass(manifest[sindi.ComponentWithContext].erasure.getName)
+  protected final val symComponentWithContext = global.definitions.getClass(manifest[sindi.ComponentWith[_]].erasure.getName)
   protected final val symComposable = global.definitions.getClass(manifest[sindi.Composable].erasure.getName)
   protected final val symInjector = global.definitions.getClass(manifest[sindi.injector.Injector].erasure.getName)
   protected final val symModule = global.definitions.getClass(manifest[sindi.Module].erasure.getName)
   protected final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
   protected final val symModuleManifest = global.definitions.getClass(manifest[sindi.ModuleManifest[_]].erasure.getName)
 
-  case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Component])
+  case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Entity])
 
   case class Context(tree: Tree, modules: List[Module], bindings: List[Binding], dependencies: List[Dependency]) extends Entity
 
   case class Component(tree: Tree, modules: List[Module], dependencies: List[Dependency]) extends Entity {
     val bindings: List[Binding] = Nil
+  }
+
+  case class ComponentWithContext(tree: Tree, context: String, dependencies: List[Dependency]) extends Entity {
+    val bindings: List[Binding] = Nil
+    val modules: List[Module] = Nil
+    override def toString = "[" + context + "] " + super.toString 
   }
 
   sealed trait Entity {
@@ -101,6 +107,13 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
 
   class RegistryReader(val entities: Map[Symbol, Entity], val units: Map[SourceFile, CompilationUnitInfo]) {
     def apply(u: SourceFile): Option[CompilationUnitInfo] = units.get(u)
+
+    def getContext(s: String): Option[Context] = entities.find((e) => {
+      (e._1.fullName.compareTo(s) == 0)
+    }) match {
+      case Some(( _, e: Context)) => Some(e)
+      case _ => None
+    }
 
     def getContext(s: Symbol): Option[Context] = get(s) match {
       case Some(e: Context) => Some(e)

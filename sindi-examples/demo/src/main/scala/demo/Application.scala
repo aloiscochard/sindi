@@ -5,7 +5,6 @@ import sindi._
 import dao._
 
 object Application extends App with Context {
-  implicit val context = this
   override lazy val modules = new DaoModule :: Nil
 
   val tasks = from[DaoModule].tasks
@@ -18,8 +17,12 @@ object Application extends App with Context {
   println(users.get)
 }
 
+abstract class ApplicationComponent extends ComponentWith[Application.type] {
+  override val context = Application
+  def users = from[DaoModule].users
+}
+
 object ApplicationWithComponents extends App with Context with UserComponent with TaskComponent {
-  implicit val context = this
   override lazy val modules = new DaoModule :: Nil
 
   tasks.load(Task("OSS World Domination", "TBD"))

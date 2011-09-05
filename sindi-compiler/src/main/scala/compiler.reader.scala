@@ -28,7 +28,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
 
   def read(unit: CompilationUnit, body: Tree, registry: RegistryWriter): Unit = {
     var contexts: List[Context] = Nil
-    var components: List[Component] = Nil
+    var components: List[Entity] = Nil
 
     // TODO [aloiscochard] Better synchronized granularity
     for (tree @ ClassDef(_, _, _, _) <- unit.body) {
@@ -41,9 +41,9 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
     
     if ((!contexts.isEmpty || !components.isEmpty)) {
       if (options.verbose) global.synchronized {
+        val entities = contexts ++ components
         global.inform(unit + " {\n" +
-          { if (!contexts.isEmpty) contexts.map("\t" + _ + "\n").mkString else "" } +
-          { if (!components.isEmpty) components.map("\t" + _ + "\n").mkString else "" } +
+          { if (!entities.isEmpty) entities.map("\t" + _ + "\n").mkString else "" } +
           "}")
       }
       registry += CompilationUnitInfo(unit.source, contexts, components)
@@ -51,12 +51,25 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
   }
   //global.treeBrowsers.create().browse(tree)
 
-  private def createContext(tree: ClassDef): Context = {
-    new Context(tree, getModules(tree), getBindings(tree), getDependencies(tree))
-  }
+  private def createContext(tree: ClassDef) = new Context(tree, getModules(tree), getBindings(tree), getDependencies(tree))
 
-  private def createComponent(tree: ClassDef): Component = {
-    new Component(tree, getComponentModules(tree), getDependencies(tree))
+  private def createComponent(tree: ClassDef) = {
+    val context = if (tree.symbol.isSubClass(symComponentWithContext)) {
+      find[String](List(tree))((tree) => tree match {
+        case tree: TypeTree => {
+          val typeName = tree.tpe.toString
+          if (typeName.startsWith("sindi.ComponentWith")) Some(getTypeParam(typeName)) else None
+        }
+        case _ => None
+      })
+    } else None
+
+    val dependencies = getDependencies(tree)
+
+    context match {
+      case Some(context) => new ComponentWithContext(tree, context, dependencies)
+      case _ => new Component(tree, getComponentModules(tree), dependencies)
+    }
   }
 
   private def getModules(tree: ClassDef) = {
@@ -210,6 +223,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
   private def getTypeParam(typeName: String) = {
     var paramName = typeName.slice(typeName.indexOf("[") + 1, typeName.lastIndexOf("]"))
     if (paramName.contains("[")) { paramName = paramName.slice(0, paramName.indexOf("[")) }
+    if (paramName.endsWith(".type")) { paramName = paramName.substring(0, paramName.size - 5) }
     paramName
   }
 }

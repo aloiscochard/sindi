@@ -32,6 +32,11 @@ abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(g
     override def tree = dependency.tree
     override def message = "module out of scope: '%s'".format(dependency.name)
   }
+  
+  private case class ContextOutOfScope(component: ComponentWithContext) extends Failure {
+    override def tree = component.tree
+    override def message = "context out of scope: '%s'".format(component.context)
+  }
 
   private trait Failure {
     def tree: Tree
@@ -47,6 +52,17 @@ abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(g
     registry(unit.source) match {
       case Some(info) => {
         (info.contexts ++ info.components).par.foreach((entity) => {
+          entity match {
+            case component: ComponentWithContext => {
+              registry.getContext(component.context) match {
+                case Some(context) => {
+                  entity.dependencies.par.flatMap((dependency) => resolver(context, dependency)).foreach(notify(_))
+                }
+                case _ => notify(ContextOutOfScope(component))
+              }
+            }
+            case _ =>
+          }
           entity.dependencies.par.flatMap((dependency) => resolver(entity, dependency)).foreach(notify(_))
         })
       }

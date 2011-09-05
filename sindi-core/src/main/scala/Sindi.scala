@@ -67,8 +67,8 @@ package sindi {
 
   trait Component extends Composable
 
-  trait ComponentWithContext extends Composable {
-    protected val context: Context
+  trait ComponentWith[C <: Context] extends Composable {
+    protected val context: C
     protected def from[M <: Module : Manifest] = context.from[M]
   }
 
