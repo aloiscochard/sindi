@@ -56,7 +56,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
   }
 
   private def createComponent(tree: ClassDef): Component = {
-    new Component(tree, getModulesFromComponent(tree), getDependencies(tree))
+    new Component(tree, getComponentModules(tree), getDependencies(tree))
   }
 
   private def getModules(tree: ClassDef) = {
@@ -76,29 +76,10 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
     }
   }
 
-  private def getModulesFromComponent(root: ClassDef) = {
-    var types = List[String]()
-    collect[TypeTree](root.children)((tree) => tree match {
-      case tree: TypeTree => {
-        if (tree.symbol.exists &&
-            isComponent(tree) && !isContext(tree) &&
-            !(tree.symbol.classBound =:= symComponent.classBound) &&
-            !(tree.symbol.classBound =:= root.symbol.classBound)) {
-          Some(tree)
-        } else None
-      }
-      case _ => None
-    }).foreach((tree) => {
-      tree.tpe.members.filter((s) => {
-        s.isValue && (s.tpe.typeSymbol.isSubClass(symModuleManifest))
-      }).foreach((s) => {
-        types = getTypeParam(s.tpe.toString) :: types
-      })
-    })
-    types.distinct.map((s) => { Module(global.definitions.getClass(s), s) })
-  }
+  private def getComponentModules(root: ClassDef) = 
+    getTypeDependencies(root.symbol.classBound).map((s) => Module(global.definitions.getClass(s), s))
 
-  protected def getBindings(tree: ClassDef): List[Binding] = {
+  private def getBindings(tree: ClassDef): List[Binding] = {
     var bindings = List[Binding]()
     for (tree @ ValDef(_, _, _, _) <- tree.impl.body) {
       if (tree.name.toString.trim == "bindings") {
@@ -145,15 +126,6 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
       get(tree, injected)
     }
 
-    def getComponentDependencies(tree: Tree) = {
-      tree.tpe.members.filter((s) => {
-        s.isValue && (s.tpe.typeSymbol.isSubClass(symModuleManifest))
-      }).map((s) => {
-        val typeParamName = getTypeParam(s.tpe.toString)
-        Dependency(tree, global.definitions.getClass(typeParamName), None, typeParamName)
-      })
-    }
-
     // Adding direct dependencies
     val dependencies = collect[Tree](root.children)((tree) => tree match {
       case tree: Apply => {
@@ -180,22 +152,26 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
 
     var inferred = List[Dependency]() // WARNING: Mutable, compiler crash if using 'val' and 'reduce'
 
-    // Resolve ComponentContext intantiation into component dependencies
-    components.map((dependency) => { getComponentDependencies(dependency.tree).foreach((d) => { inferred = d :: inferred }) })
+    // Adding mixed-in (with Component) dependencies
+    getTypeDependencies(root.symbol.classBound).foreach((s) => 
+      inferred = Dependency(root, global.definitions.getClass(s), None, s) :: inferred)
 
-    // Adding mixed-in context component's dependencies
-    collect[TypeTree](root.children)((tree) => tree match {
-      case tree: TypeTree => {
-        if (tree.symbol.exists && isComponent(tree) && !isContext(tree) &&
-            !(tree.symbol.classBound =:= symComponent.classBound) &&
-            !(tree.symbol.classBound =:= root.symbol.classBound)) {
-          Some(tree)
-        } else None
+    // Resolve ComponentContext intantiation into component dependencies
+    components.foreach((dependency) => {
+      if (dependency.symbol.isSubClass(symComponentWithContext)) {
+        // TODO [aloiscochard] Add dependency for warning purpose in checker (or find alternative to check them)
+      } else {
+        getTypeDependencies(dependency.tree.tpe).foreach((s) => 
+            inferred = Dependency(dependency.tree, global.definitions.getClass(s), None, s) :: inferred)
       }
-      case _ => None
-    }).foreach((tree) => getComponentDependencies(tree).foreach((d) => { inferred = d :: inferred }) )
+    })
 
     (dependencies ++ imported ++ inferred).distinct
+  }
+
+  private def getTypeDependencies(tpe: Type): List[String] = {
+    tpe.members.filter((s) => s.isValue && (s.tpe.typeSymbol.isSubClass(symModuleManifest)))
+      .map((s) => getTypeParam(s.tpe.toString)).distinct
   }
 
   private def isContext(tree: Tree) = tree.symbol.classBound <:< symContext.classBound
@@ -230,7 +206,7 @@ abstract class ReaderPlugin (override val global: Global) extends ModelPlugin(gl
     else { collect(children, found.flatten ++ accumulator)(filter) }
   }
   
-  // TODO [aloiscochard] Fix that ugly hack to take component type paramete
+  // TODO [aloiscochard] Fix that ugly hack to take component type parameter
   private def getTypeParam(typeName: String) = {
     var paramName = typeName.slice(typeName.indexOf("[") + 1, typeName.lastIndexOf("]"))
     if (paramName.contains("[")) { paramName = paramName.slice(0, paramName.indexOf("[")) }

@@ -27,6 +27,7 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   protected final val symContext = global.definitions.getClass(manifest[sindi.Context].erasure.getName)
   protected final val symComponent = global.definitions.getClass(manifest[sindi.Component].erasure.getName)
   protected final val symComponentContext = global.definitions.getClass(manifest[sindi.ComponentContext].erasure.getName)
+  protected final val symComponentWithContext = global.definitions.getClass(manifest[sindi.ComponentWithContext].erasure.getName)
   protected final val symComposable = global.definitions.getClass(manifest[sindi.Composable].erasure.getName)
   protected final val symInjector = global.definitions.getClass(manifest[sindi.injector.Injector].erasure.getName)
   protected final val symModule = global.definitions.getClass(manifest[sindi.Module].erasure.getName)
