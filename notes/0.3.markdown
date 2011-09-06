@@ -1,6 +1,7 @@
  * Added support of Scala 2.9.1.final
  * Splitted project (sindi-core, sindi-compiler)
  * Implemented ModuleManifest support for type safe component's import validation
+ * Static component support and validation using ComponentWith[C <: Context]
  * sindi-compiler: Added proguard support for embedding core
  * sindi-compiler: Rewrote from scratch with parallel support (two-phase)
  * sindi-compiler: Implemented recursive context/component validation
