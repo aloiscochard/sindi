@@ -9,15 +9,15 @@
 //
 
 package sindi.compiler
-package checker 
+package validator 
 
 import scala.tools.nsc
 import nsc.Global 
 import nsc.plugins.Plugin
 
-import reader.ReaderPlugin
+import analyzer.AnalyzerPlugin
 
-abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(global) {
+abstract class ValidatorPlugin(override val global: Global) extends AnalyzerPlugin(global) {
   import global._
 
   private final val symOption = global.definitions.getClass(manifest[Option[_]].erasure.getName)
