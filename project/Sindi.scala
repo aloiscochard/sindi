@@ -29,7 +29,7 @@ object Resolvers {
 object Dependencies {
   val testDependencies = Seq(libraryDependencies <<= (scalaVersion, libraryDependencies) { (version, dependencies) =>
     val specs2 = version match {
-      case "2.9.1" => ("org.specs2" % "specs2_2.9.1.RC4" % "1.5" % "test")
+      case "2.9.1" => ("org.specs2" %% "specs2" % "1.6.1" % "test")
       case _ => ("org.specs2" %% "specs2" % "1.5" % "test")
     }
     dependencies :+ specs2
