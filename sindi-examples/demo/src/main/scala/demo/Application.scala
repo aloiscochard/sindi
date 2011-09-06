@@ -17,9 +17,10 @@ object Application extends App with Context {
   println(users.get)
 }
 
-abstract class ApplicationComponent extends ComponentWith[Application.type] {
+trait ApplicationComponent extends ComponentWith[Application.type] {
   override val context = Application
   def users = from[DaoModule].users
+  def tasks = from[DaoModule].tasks
 }
 
 object ApplicationWithComponents extends App with Context with UserComponent with TaskComponent {

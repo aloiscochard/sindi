@@ -48,22 +48,21 @@ abstract class CheckerPlugin(override val global: Global) extends ReaderPlugin(g
       unit.error(failure.tree.pos, failure.message)
     }
 
-    val resolver = resolve(registry)_
+    def validate(entity: Entity, dependencies: List[Dependency]) =
+      dependencies.par.flatMap((dependency) => resolve(registry)(entity, dependency)).foreach(notify(_))
+
     registry(unit.source) match {
       case Some(info) => {
         (info.contexts ++ info.components).par.foreach((entity) => {
           entity match {
             case component: ComponentWithContext => {
               registry.getContext(component.context) match {
-                case Some(context) => {
-                  entity.dependencies.par.flatMap((dependency) => resolver(context, dependency)).foreach(notify(_))
-                }
+                case Some(context) => validate(context, entity.dependencies)
                 case _ => notify(ContextOutOfScope(component))
               }
             }
-            case _ =>
+            case _ => validate(entity, entity.dependencies)
           }
-          entity.dependencies.par.flatMap((dependency) => resolver(entity, dependency)).foreach(notify(_))
         })
       }
       case _ =>
