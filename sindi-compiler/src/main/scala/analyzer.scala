@@ -40,13 +40,11 @@ abstract class AnalyzerPlugin (override val global: Global) extends ComponentPlu
     }
     
     if ((!contexts.isEmpty || !components.isEmpty)) {
+      val info = CompilationUnitInfo(unit.source, contexts, components)
       if (options.verbose) global.synchronized {
-        val entities = contexts ++ components
-        global.inform(unit + " {\n" +
-          { if (!entities.isEmpty) entities.map("\t" + _ + "\n").mkString else "" } +
-          "}")
+        global.inform(info.toString)
       }
-      registry += CompilationUnitInfo(unit.source, contexts, components)
+      registry += info
     }
   }
   //global.treeBrowsers.create().browse(tree)

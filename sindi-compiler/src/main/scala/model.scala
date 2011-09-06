@@ -19,6 +19,8 @@ import nsc.Global
 import nsc.plugins.Plugin
 import nsc.util.SourceFile
 
+// TODO [aloiscochard] Implement "toJson" and store sindi descriptor in target
+
 abstract class ModelPlugin(val global: Global) extends Plugin {
   import global._
 
@@ -34,7 +36,19 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   protected final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
   protected final val symModuleManifest = global.definitions.getClass(manifest[sindi.ModuleManifest[_]].erasure.getName)
 
-  case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Entity])
+  case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Entity]) {
+    override def toString =
+      source + " {\n" + {
+        val entities = contexts ++ components
+        if (!entities.isEmpty) entities.map("\t" + _ + "\n").mkString else ""
+      } + "}"
+
+    /*
+    override def toJson = {
+      "{'" + source.path +"': [" + entities.map(_.toJson).mkString(",") + "] }"
+    }
+    */
+  }
 
   case class Context(tree: Tree, modules: List[Module], bindings: List[Binding], dependencies: List[Dependency]) extends Entity
 
@@ -58,6 +72,7 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
     } + {
       if (!modules.isEmpty) " [ modules: " + modules.mkString(", ") + " ]" else ""
     }
+    //def toJson: String
   }
 
   case class Dependency(val tree: Tree, val symbol: Symbol, val dependency: Option[Dependency], name: String) {
