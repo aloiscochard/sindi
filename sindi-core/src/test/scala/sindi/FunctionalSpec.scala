@@ -28,10 +28,13 @@ class FunctionalSpec extends Specification {
     }
 
     "bind concrete type with qualifier" in {
-      class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" as "sindi"}
+      class Foo extends Context { override val bindings = Bindings(bind[String] to "sindi" as "sindi",
+                                                                   bind[String] to "scala" as qualifier[Foo])
+      }
       val foo = new Foo
       foo.inject[String] must throwAn[TypeNotBoundException]
       foo.injectAs[String]("sindi") mustEqual "sindi"
+      foo.injectAs[String, Foo] mustEqual "scala"
     }
 
     "bind concrete type with scope" in {

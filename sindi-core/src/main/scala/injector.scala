@@ -24,6 +24,7 @@ object Injector {
 
 trait Injector {
   final def inject[T <: AnyRef : Manifest]: T = injectAs[T](None)
+  final def injectAs[T <: AnyRef : Manifest, Q : Manifest]: T = injectAs[T](manifest[Q])
   def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T
 }
 

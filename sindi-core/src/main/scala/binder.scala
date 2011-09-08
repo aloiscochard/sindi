@@ -38,7 +38,11 @@ trait DSL {
     protected def toScopable(scoper: () => Any): ScopedBind[T] = new ScopedBind[T](this, scoper)
   }
 
-  protected trait Qualifiable[T <: AnyRef] extends Bind[T] { def as(qualifier: AnyRef) = toQualified(qualifier) }
+  protected trait Qualifiable[T <: AnyRef] extends Bind[T] {
+    def as(qualifier: AnyRef) = toQualified(qualifier)
+    def as[Q : Manifest] = toQualified(manifest[Q])
+  }
+
   protected trait Scopable[T <: AnyRef] extends Bind[T] { def scope(scoper: => Any) = toScopable(() => scoper) }
   
   protected class SimpleBind[T <: AnyRef : Manifest](provider: Provider[T]) extends Bind[T] with Qualifiable[T] with Scopable[T] {

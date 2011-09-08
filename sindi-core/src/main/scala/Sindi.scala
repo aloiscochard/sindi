@@ -22,6 +22,8 @@ package object sindi {
   type Processors[T <: AnyRef] = List[processor.Processor[T]]
   /** A list of modules.*/
   type Modules = List[Module]
+  /** Return a qualifier for the given type. (ensure safe qualified binding) **/
+  def qualifier[T <: Any : Manifest] = manifest[T]                            
 }
 
 package sindi {
