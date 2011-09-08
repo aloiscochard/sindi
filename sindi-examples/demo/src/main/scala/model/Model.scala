@@ -1,5 +1,5 @@
 package sindi.examples.demo
-package dao
+package model
 
 case class Task(title: String, description: String)
 case class User(login: String, name: String)
