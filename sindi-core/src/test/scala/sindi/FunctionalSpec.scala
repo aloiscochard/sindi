@@ -75,9 +75,8 @@ class FunctionalSpec extends Specification {
       new FooB().inject[List[String]] must throwAn[TypeNotBoundException]
     }
 
-    /*
     "bind parameterized type to provider" in {
-      class StringProvider extends Provider[Option[String]] { override def get = Some("sindi") } 
+      class StringProvider extends Provider[Option[String]] { override def provide = Some("sindi") } 
 
       class Foo extends Context {
         override val bindings: Bindings = bind[Option[String]] toProvider new StringProvider
@@ -86,44 +85,6 @@ class FunctionalSpec extends Specification {
       val foo = new Foo
       foo.inject[Option[String]] mustEqual Some("sindi")
     }
-
-    "bind parameterized type to abstract provider" in {
-      abstract class ListProvider[T <: AnyRef : Manifest] extends Provider[List[T]]
-
-      object ListProvider {
-        def create[T <: AnyRef : Manifest] = {
-          new ListProvider[T] {
-            def provide[T <: AnyRef : Manifest]: T = {
-              if (manifest[T].typeArguments.size == 1 && manifest[T].typeArguments.head == manifest[String]) {
-                List("sindi")
-              } else {
-                Nil
-              }
-            }.asInstanceOf[T]
-          }
-
-        }
-      } 
-
-      class FooA extends Context {
-        override val bindings = Bindings(bind[List[String]] toProvider ListProvider.create[String],
-                                         bind[List[AnyRef]] to List("sindi"))
-      }
-      val fooA = new FooA
-      fooA.inject[List[AnyRef]] mustEqual Nil
-      fooA.inject[List[String]] mustEqual List("sindi")
-
-      class FooB extends Context {
-        lazy val list: List[String] = ListProvider.create[String].provide[List[String]]
-        override val bindings = Bindings(bind[List[String]] to list,
-                                         bind[List[AnyRef]] to List("sindi"))
-      }
-
-      val fooB = new FooB
-      fooB.inject[List[AnyRef]] mustEqual List("sindi")
-      fooB.inject[List[String]] mustEqual List("sindi")
-    }
-      */
 
     "support Option" in {
       class FooA extends Context { override val bindings: Bindings = bind[Option[String]] to Some("sindi") }
