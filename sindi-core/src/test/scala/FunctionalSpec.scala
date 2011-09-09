@@ -34,7 +34,7 @@ class FunctionalSpec extends Specification {
       val foo = new Foo
       foo.inject[String] must throwAn[TypeNotBoundException]
       foo.injectAs[String]("sindi") mustEqual "sindi"
-      foo.injectAs[String, Foo] mustEqual "scala"
+      foo.injectAs[String](qualifier[Foo]) mustEqual "scala"
     }
 
     "bind concrete type with scope" in {
