@@ -33,8 +33,25 @@ class FunctionalSpec extends Specification {
       }
       val foo = new Foo
       foo.inject[String] must throwAn[TypeNotBoundException]
+      foo.injectAs[String](qualifier[Int]) must throwAn[TypeNotBoundException]
       foo.injectAs[String]("sindi") mustEqual "sindi"
       foo.injectAs[String](qualifier[Foo]) mustEqual "scala"
+    }
+
+    "bind concrete type with combined qualifier" in {
+      class Foo extends Context { override val bindings = Bindings(bind[String] to "ioc",
+                                                                   bind[String] to "sindi" as "sindi",
+                                                                   bind[String] to "scala" as qualifier[Foo])
+      }
+      val foo = new Foo
+      ("a" == "b") || ("b" == "b") mustEqual true
+      foo.injectAs[String]("sindi" or qualifier[Foo]) mustEqual "sindi"
+      foo.injectAs[String](qualifier[Foo] or "sindi") mustEqual "scala"
+      foo.injectAs[String](qualifier[String] or "scala" or None) mustEqual "ioc"
+      foo.injectAs[String](qualifier[String] or "sindi" or None) mustEqual "sindi"
+      foo.injectAs[String](qualifier[Foo] || "sindi") mustEqual "scala"
+      foo.injectAs[String](qualifier[String] || "scala" || None) mustEqual "ioc"
+      foo.injectAs[String](qualifier[String] || "sindi" || None) mustEqual "sindi"
     }
 
     "bind concrete type with scope" in {

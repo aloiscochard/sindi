@@ -22,8 +22,8 @@ trait Context extends Injector {
   val processors: List[Processor[AnyRef]] = Nil
   protected val bindings: List[binder.binding.Binding[_]] = Nil
 
-  override def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = {
-    Processor.process[T](processing, () => injector.injectAs[T](qualifier))(manifest[T])()
+  override def injectTypeAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = {
+    Processor.process[T](processing, () => injector.injectTypeAs[T](qualifier))(manifest[T])()
   }
 
   protected def processing: List[Processor[AnyRef]] = processors

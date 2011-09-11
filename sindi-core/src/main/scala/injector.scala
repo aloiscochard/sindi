@@ -15,6 +15,11 @@ object `package` {
   type Binding = Tuple2[AnyRef, binder.binding.provider.Provider[AnyRef]]
 }
 
+case class Qualifier(q: AnyRef, next: Option[Qualifier] = None) {
+  def or(that: AnyRef) = Qualifier(that, Some(this))
+  def ||(that: AnyRef) = or(that)
+}
+
 object Injector {
   def apply(bindings : List[Binding]): Injector =
     new DefaultInjector(bindings)
@@ -23,14 +28,23 @@ object Injector {
 }
 
 trait Injector {
-  final def inject[T <: AnyRef : Manifest]: T = injectAs[T](None)
-  def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T
+  final def inject[T <: AnyRef : Manifest]: T = injectTypeAs[T](None)
+
+  final def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T = {
+    def inject = injectTypeAs[T](qualifier.q)
+    qualifier.next match {
+      case Some(qualifier) => try { injectAs[T](qualifier) } catch { case e: TypeNotBoundException => inject }
+      case None => inject
+    }
+  }
+
+  def injectTypeAs[T <: AnyRef : Manifest](qualifier: AnyRef): T
 }
 
 private trait Bindable extends Injector {
   val bindings : List[Binding]
 
-  def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
+  override def injectTypeAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
     bindings.flatMap((binding) => {
       val (b_qualifier, b_provider) = binding
       if (b_qualifier == qualifier && (b_provider.signature <:< manifest[T])) {
@@ -49,13 +63,13 @@ private trait Bindable extends Injector {
 }
 
 private trait Childable extends Injector {
-  val parent: () => Injector // TODO: private
+  protected val parent: () => Injector
 
-  override abstract def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = {
+  override abstract def injectTypeAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = {
     try {
-      parent().injectAs[T](qualifier)
+      parent().injectTypeAs[T](qualifier)
     } catch {
-      case e: TypeNotBoundException => super.injectAs[T](qualifier)
+      case e: TypeNotBoundException => super.injectTypeAs[T](qualifier)
     }
   }
 }
