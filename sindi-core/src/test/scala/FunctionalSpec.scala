@@ -96,26 +96,34 @@ class FunctionalSpec extends Specification {
     }
 
     "bind parameterized type to provider" in {
-      class StringProvider extends Provider[Option[String]] { override def provide = Some("sindi") } 
+      class StringProvider extends Provider[String] { override def provide = "sindi" } 
 
       class Foo extends Context {
-        override val bindings: Bindings = bind[Option[String]] toProvider new StringProvider
+        override val bindings: Bindings = bind[String] toProvider new StringProvider
       }
 
       val foo = new Foo
-      foo.inject[Option[String]] mustEqual Some("sindi")
+      foo.inject[String] mustEqual "sindi"
     }
 
     "support Option" in {
-      class FooA extends Context { override val bindings: Bindings = bind[Option[String]] to Some("sindi") }
+      class FooA extends Context { override val bindings: Bindings = bind[String] to "sindi" }
       val fooA = new FooA
       fooA.inject[Option[String]] mustEqual Some("sindi")
-      fooA.inject[Option[AnyRef]] mustEqual Some("sindi")
       fooA.inject[Option[List[String]]] mustEqual None
+      fooA.inject[String] mustEqual "sindi"
 
       class FooB extends Context 
       new FooB().inject[Option[String]] mustEqual None
     }
 
+    "support Option with combined qualifier" in {
+      class Foo extends Context { override val bindings = Bindings(bind[String] to "scala",
+                                                                   bind[String] to "sindi" as "sindi") }
+      val foo = new Foo
+      foo.injectAs[Option[String]](qualifier[String] || None) mustEqual Some("scala")
+      foo.injectAs[Option[String]]("sindi" || None) mustEqual Some("sindi")
+      foo.injectAs[Option[String]]("scala") mustEqual None
+    }
   }
 }

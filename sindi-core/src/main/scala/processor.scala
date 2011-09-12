@@ -11,25 +11,40 @@
 package sindi
 package processor
 
-object `package` {
-  type Processor[T <: AnyRef] = (Manifest[_], (() => T) => T)
+import injector.{Injector, Qualifier}
 
-  val option = processor.Processor.create[Option[Any]]((f) => {
-    try { f() } catch {
-      case e: TypeNotBoundException => None
-      case e => throw e
-    }
-  })
+object `package` {
+  val option = new OptionProcessor
 }
 
 object Processor {
-  def create[T <: AnyRef : Manifest](f: (() => T) => AnyRef): Processor[AnyRef] = {
-    (manifest[T], f).asInstanceOf[processor.Processor[AnyRef]]
-  }
-
-  def process[T <: AnyRef : Manifest](processors: List[Processor[AnyRef]], f: () => T): () => T = {
-    processors.foldLeft(f)((f, processor) => {
-      if (manifest[T] <:< processor._1) { () => processor._2(f).asInstanceOf[T] } else { f }
+  def process[T : Manifest](processors: List[Processor[_]], default: () => T, 
+                            injector: Injector, qualifier: Qualifier): () => T = {
+    processors.foldLeft(default)((default, processor) => {
+      if (manifest[T] <:< processor.scope)
+        () => processor.asInstanceOf[Processor[T]].process[T](default, injector, qualifier)
+      else
+        default
     })
+  }
+}
+
+abstract class Processor[T : Manifest] {
+  def scope = manifest[T]
+  def process[P <: T : Manifest](default: () => P, injector: Injector, qualifier: Qualifier): P
+}
+
+private[processor] class OptionProcessor extends Processor[Option[_]] {
+  def process[T <: Option[_] : Manifest](default: () => T, injector: Injector, qualifier: Qualifier) = {
+    manifest[T].typeArguments.headOption match {
+      case Some(manifest) => {
+        try {
+          Some(injector.injectAs(qualifier)(manifest.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
+        } catch {
+          case e: TypeNotBoundException => None.asInstanceOf[T]
+        }
+      }
+      case None => default()
+    }
   }
 }
