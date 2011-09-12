@@ -125,5 +125,25 @@ class FunctionalSpec extends Specification {
       foo.injectAs[Option[String]]("sindi" || None) mustEqual Some("sindi")
       foo.injectAs[Option[String]]("scala") mustEqual None
     }
+
+    "support Either" in {
+      class Foo extends Context { override val bindings = Bindings(bind[String] to "scala",
+                                                                   bind[List[String]] to List("sindi")) }
+      val foo = new Foo
+      foo.inject[Either[List[String], String]] mustEqual Right("scala")
+      foo.inject[Either[String, List[String]]] mustEqual Right(List("sindi"))
+      foo.inject[Either[String, List[Foo]]] mustEqual Left("scala")
+      foo.inject[Either[List[Foo], List[Foo]]] must throwAn[TypeNotBoundException]
+    }
+
+    "support combined Either/Option" in {
+      class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
+      val foo = new Foo
+      foo.inject[Option[Either[String, List[String]]]] mustEqual Some(Left("sindi"))
+      foo.inject[Option[Either[String, Int]]] mustEqual Some(Left("sindi"))
+      foo.inject[Option[Either[Double, Int]]] mustEqual None
+      foo.inject[Either[Option[Int], String]] mustEqual Right("sindi")
+      foo.inject[Either[String, Option[Int]]] mustEqual Right(None) // Can't evaluate left due to Option on right
+    }
   }
 }

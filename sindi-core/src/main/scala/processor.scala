@@ -15,6 +15,7 @@ import injector.{Injector, Qualifier}
 
 object `package` {
   val option = new OptionProcessor
+  val either = new EitherProcessor
 }
 
 object Processor {
@@ -34,17 +35,37 @@ abstract class Processor[T : Manifest] {
   def process[P <: T : Manifest](default: () => P, injector: Injector, qualifier: Qualifier): P
 }
 
-private[processor] class OptionProcessor extends Processor[Option[_]] {
+private[processor] class OptionProcessor extends Processor[Option[Any]] {
   def process[T <: Option[_] : Manifest](default: () => T, injector: Injector, qualifier: Qualifier) = {
     manifest[T].typeArguments.headOption match {
       case Some(manifest) => {
         try {
           Some(injector.injectAs(qualifier)(manifest.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
         } catch {
-          case e: TypeNotBoundException => None.asInstanceOf[T]
+          case e: TypeNotBoundException => { None.asInstanceOf[T] }
         }
       }
       case None => default()
     }
   }
+}
+
+private[processor] class EitherProcessor extends Processor[Either[Any, Any]] {
+  def process[T <: Either[_, _] : Manifest](default: () => T, injector: Injector, qualifier: Qualifier) = {
+    manifest[T].typeArguments match {
+      case left :: right :: Nil => {
+        try {
+          Right(injector.injectAs(qualifier)(right.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
+        } catch {
+          case e: TypeNotBoundException => {
+            try {
+              Left(injector.injectAs(qualifier)(left.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
+            } catch { case e: TypeNotBoundException => default() }
+          }
+        }
+      }
+      case _ => default()
+    }
+  }
+
 }

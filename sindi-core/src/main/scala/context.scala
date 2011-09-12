@@ -23,7 +23,7 @@ trait Context extends Injector {
   protected val bindings: List[binder.binding.Binding[_]] = Nil
 
   override def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T = {
-    Processor.process[T](processing, () => injector.injectAs[T](qualifier), injector, qualifier)(manifest[T])()
+    Processor.process[T](processing, () => injector.injectAs[T](qualifier), this, qualifier)(manifest[T])()
   }
 
   protected def processing: List[Processor[_]] = processors

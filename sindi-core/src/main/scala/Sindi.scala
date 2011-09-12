@@ -44,7 +44,7 @@ package sindi {
     implicit val `implicit` = this
 
     protected lazy val modules: Modules = Nil
-    protected override def processing = super.processing :+ processor.option
+    protected override def processing = super.processing :+ processor.option :+ processor.either
 
     def from[M <: Module : Manifest]: M = {
       modules.foreach((module) => { Helper.moduleOf[M](module) match {
