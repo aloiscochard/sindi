@@ -73,7 +73,12 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
 
     // Adding imported dependencies (from[T].*)
     val (imported, components) = collect[Tree](root.children)((tree) => tree match {
-      case tree: Apply => if (tree.symbol.owner.isSubClass(symComposable)) Some(tree) else None
+      case tree: Apply =>
+        if (tree.symbol.owner.isSubClass(symComposable) && 
+            // Filtering inline module declaration
+            !(tree.symbol.owner.isSubClass(symContext) && tree.symbol.name.toString == "module")) 
+          Some(tree)
+        else None
       case _ => None
     }).map(getDependency(_)).filter((tree) => {
       (tree.symbol.name.toString != "<none>") &&

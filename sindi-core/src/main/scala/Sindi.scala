@@ -53,6 +53,8 @@ package sindi {
       }})
       throw ModuleNotFoundException(manifest[M])
     }
+
+    def module(l: List[binder.binding.Binding[AnyRef]]) = new Module { override val bindings = l }
   }
 
   abstract class Provider[T <: AnyRef : Manifest] extends binder.binding.provider.Provider[T] {
