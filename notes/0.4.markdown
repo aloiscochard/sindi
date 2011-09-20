@@ -1,0 +1,8 @@
+ * Implemented parameterized qualifier
+ * Implemented qualifier combinator ('or', '||')
+ * Implemented automatic ModuleManifest import into Component during compilation
+ * Implemented inline Module definition in Context
+ * Implemented Either support
+ * Improved Option validation
+ * Updated examples
+
