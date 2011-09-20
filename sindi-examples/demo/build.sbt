@@ -12,15 +12,14 @@ scalacOptions += "-P:sindi:verbose"
 
 crossScalaVersions := Seq("2.9.0-1", "2.9.1")
 
-
-libraryDependencies += "org.scala-tools.sindi" %% "sindi-core" % "0.4-SNAPSHOT"
-
-
-resolvers += "Scala-Tools Maven2 Releases Repository" at "http://scala-tools.org/repo-releases"
-
-resolvers += "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.org/repo-snapshots"
-
-
 autoCompilerPlugins := true
 
-addCompilerPlugin("org.scala-tools.sindi" %% "sindi-compiler" % "0.4-SNAPSHOT")
+libraryDependencies <++= version { version => Seq(
+  "org.scala-tools.sindi" %% "sindi-core" % version,
+  compilerPlugin("org.scala-tools.sindi" %% "sindi-compiler" % version)
+)}
+
+resolvers ++= Seq(
+  "Scala-Tools Maven2 Releases" at "http://scala-tools.org/repo-releases",
+  "Scala-Tools Maven2 Snapshots" at "http://scala-tools.org/repo-snapshots"
+)

@@ -33,11 +33,8 @@ abstract class ParallelPluginComponent extends PluginComponent {
       executor.awaitTermination(timeout, TimeUnit.MILLISECONDS)
     }
 
-    def async(unit: CompilationUnit, body: Tree): Unit
+    def async(unit: CompilationUnit): Unit
 
-    final def apply(unit: CompilationUnit) = {
-      val body = unit.body
-      scheduler.execute { async(unit, body) }
-    }
+    final def apply(unit: CompilationUnit) = scheduler.execute { async(unit) }
   }
 }

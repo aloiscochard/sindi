@@ -15,9 +15,9 @@ import scala.tools.nsc
 import nsc.Global 
 import nsc.plugins.Plugin
 
-import analyzer.AnalyzerPlugin
+import transformer.TransformerPlugin
 
-abstract class ValidatorPlugin(override val global: Global) extends AnalyzerPlugin(global) {
+abstract class ValidatorPlugin(override val global: Global) extends TransformerPlugin(global) {
   import global._
 
   private final val symOption = global.definitions.getClass(manifest[Option[_]].erasure.getName)
@@ -54,6 +54,7 @@ abstract class ValidatorPlugin(override val global: Global) extends AnalyzerPlug
     registry(unit.source) match {
       case Some(info) => {
         (info.contexts ++ info.components).par.foreach((entity) => {
+          //global.treeBrowsers.create().browse(entity.tree)
           entity match {
             case component: ComponentWithContext => {
               registry.getContext(component.context) match {

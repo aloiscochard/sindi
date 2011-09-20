@@ -20,12 +20,12 @@ import nsc.ast.TreeBrowsers
 import nsc.plugins.Plugin
 import nsc.plugins.PluginComponent
 
-class CompilerPlugin(override val global: Global) extends validator.ValidatorPlugin(global) {
+final class CompilerPlugin(override val global: Global) extends validator.ValidatorPlugin(global) {
   import global._
 
   val name = "sindi"
   val description = "Sindi Compiler"
-  val components = List[PluginComponent](Analyze, Validate)
+  val components = List[PluginComponent](Analyze, Validate, Transform)
   override var options = Options()
   override val optionsHelp = Some(Options.help)
 
@@ -42,6 +42,19 @@ class CompilerPlugin(override val global: Global) extends validator.ValidatorPlu
     def options = CompilerPlugin.this.options
   }
 
+  object Transform extends Component {
+    val runsAfter = List[String]("typer")
+    override val runsBefore = List[String]("superaccessors")
+
+    val phaseName = pluginName + "-transform"
+    def newPhase(_prev: Phase) = new TransformPhase(_prev)
+
+    class TransformPhase(prev: Phase) extends ParallelPhase(prev) {
+      override def name = Transform.phaseName
+
+      def async(unit: global.CompilationUnit) = transform(unit)
+    }
+  }
 
   object Analyze extends Component {
     val runsAfter = List[String]("refchecks")
@@ -52,26 +65,29 @@ class CompilerPlugin(override val global: Global) extends validator.ValidatorPlu
       override def name = Analyze.phaseName
       val registry = new RegistryWriter
 
-      def async(unit: CompilationUnit, body: Tree) = {
-        read(unit, body, registry)
-      }
+      def async(unit: CompilationUnit) = read(unit, registry)
     }
   }
 
   object Validate extends Component {
-    val runsAfter = List[String](Analyze.phaseName)
+    val runsAfter = List(Analyze.phaseName)
     val phaseName = pluginName + "-validate"
     def newPhase(_prev: Phase) = new ValidatePhase(_prev)
 
     class ValidatePhase(prev: Phase) extends ParallelPhase(prev) {
       override def name = Validate.phaseName
 
-      def async(unit: CompilationUnit, body: Tree) = prev match {
-        case phase: Analyze.AnalyzePhase => check(unit, phase.registry.toReader)
-        case _ => throw new RuntimeException("Phase '" + name + "' isn't after phase '" + Analyze.phaseName + "'.")
+      lazy val registry = analyzePhase().registry.toReader
+
+      def async(unit: CompilationUnit) = check(unit, registry)
+
+      private def analyzePhase(phase: Phase = prev): Analyze.AnalyzePhase = phase match {
+        case phase: Analyze.AnalyzePhase => phase
+        case _ => analyzePhase(phase.prev)
       }
     }
   }
+
 }
 
 trait Component {
@@ -79,7 +95,7 @@ trait Component {
   def options: Options
 }
 
-case class Options(val verbose: Boolean = false)
+case class Options(verbose: Boolean = false, componentAutoImport: Boolean = true)
 
 private object Options {
   val default = Options()

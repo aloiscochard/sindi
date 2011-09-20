@@ -18,11 +18,12 @@ abstract class ComponentPlugin (override val global: Global) extends ContextPlug
   import global._
 
   protected def createComponent(tree: ClassDef) = {
-    val context = if (tree.symbol.isSubClass(symComponentWithContext)) {
+    // Is it a ComponentWithContext ?
+    val context = if (tree.symbol.isSubClass(symComponentWith)) {
       find[String](List(tree))((tree) => tree match {
         case tree: TypeTree => {
           val typeName = tree.tpe.toString
-          if (typeName.startsWith("sindi.ComponentWith")) Some(getTypeParam(typeName)) else None
+          if (typeName.startsWith(symComponentWith.fullName)) Some(getTypeParam(typeName)) else None
         }
         case _ => None
       })
@@ -32,7 +33,20 @@ abstract class ComponentPlugin (override val global: Global) extends ContextPlug
 
     context match {
       case Some(context) => new ComponentWithContext(tree, context, dependencies)
-      case _ => new Component(tree, getComponentModules(tree), dependencies)
+      case _ => {
+        val modules = {
+          val modules = getComponentModules(tree)
+          if (options.componentAutoImport) {
+            // Add infered dependency (ManifestModule will be added in transform phase)
+            val unresolved = dependencies.filter(_.symbol.isSubClass(symModule))
+                              .filter((d) => modules.find(_.symbol == d.symbol).isEmpty)
+            modules ++ unresolved.map((dependency) => {
+              Module(dependency.symbol, dependency.symbol.name.toString, Some(dependency))
+            })
+          } else modules
+        }
+        new Component(tree, modules, dependencies)
+      }
     }
   }
 
@@ -40,3 +54,5 @@ abstract class ComponentPlugin (override val global: Global) extends ContextPlug
     getTypeDependencies(root.symbol.classBound).map((s) => Module(global.definitions.getClass(s), s))
 
 }
+
+

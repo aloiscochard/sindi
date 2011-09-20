@@ -29,13 +29,14 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   protected final val symContext = global.definitions.getClass(manifest[sindi.Context].erasure.getName)
   protected final val symComponent = global.definitions.getClass(manifest[sindi.Component].erasure.getName)
   protected final val symComponentContext = global.definitions.getClass(manifest[sindi.ComponentContext].erasure.getName)
-  protected final val symComponentWithContext = global.definitions.getClass(manifest[sindi.ComponentWith[_]].erasure.getName)
+  protected final val symComponentWith = global.definitions.getClass(manifest[sindi.ComponentWith[_]].erasure.getName)
   protected final val symComposable = global.definitions.getClass(manifest[sindi.Composable].erasure.getName)
   protected final val symInjector = global.definitions.getClass(manifest[sindi.injector.Injector].erasure.getName)
   protected final val symModule = global.definitions.getClass(manifest[sindi.Module].erasure.getName)
   protected final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
   protected final val symModuleManifest = global.definitions.getClass(manifest[sindi.ModuleManifest[_]].erasure.getName)
 
+  // TODO Use mkstring prefix/suffix
   case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Entity]) {
     override def toString =
       source + " {\n" + {
@@ -50,20 +51,20 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
     */
   }
 
-  case class Context(tree: Tree, modules: List[Module], bindings: List[Binding], dependencies: List[Dependency]) extends Entity
+  case class Context(tree: ClassDef, modules: List[Module], bindings: List[Binding], dependencies: List[Dependency]) extends Entity
 
-  case class Component(tree: Tree, modules: List[Module], dependencies: List[Dependency]) extends Entity {
+  case class Component(tree: ClassDef, modules: List[Module], dependencies: List[Dependency]) extends Entity {
     val bindings: List[Binding] = Nil
   }
 
-  case class ComponentWithContext(tree: Tree, context: String, dependencies: List[Dependency]) extends Entity {
+  case class ComponentWithContext(tree: ClassDef, context: String, dependencies: List[Dependency]) extends Entity {
     val bindings: List[Binding] = Nil
     val modules: List[Module] = Nil
     override def toString = "[" + context + "] " + super.toString 
   }
 
   sealed trait Entity {
-    def tree: Tree 
+    def tree: ClassDef 
     def dependencies: List[Dependency]
     def modules: List[Module]
     def bindings: List[Binding]
@@ -95,7 +96,7 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   }
 
   case class Binding(tree: Tree, symbol: Symbol) { override def toString = symbol.name.toString }
-  case class Module(symbol: Symbol, val name: String) { override def toString = name }
+  case class Module(symbol: Symbol, val name: String, inferred: Option[Dependency] = None) { override def toString = name }
 
   class RegistryWriter {
     def += (u: CompilationUnitInfo) = Writer ! Add(u)

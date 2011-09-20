@@ -75,7 +75,7 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
     val (imported, components) = collect[Tree](root.children)((tree) => tree match {
       case tree: Apply =>
         if (tree.symbol.owner.isSubClass(symComposable) && 
-            // Filtering inline module declaration
+            // Filtering inline module definition
             !(tree.symbol.owner.isSubClass(symContext) && tree.symbol.name.toString == "module")) 
           Some(tree)
         else None
@@ -83,6 +83,7 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
     }).map(getDependency(_)).filter((tree) => {
       (tree.symbol.name.toString != "<none>") &&
       (tree.symbol != symModule) &&
+      (tree.symbol != symModuleManifest) &&
       (tree.symbol != symModuleT) &&
       (tree.symbol != symComponentContext)
     }).partition((d) =>
@@ -98,8 +99,8 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
 
     // Resolve ComponentContext intantiation into component dependencies
     components.foreach((dependency) => {
-      if (dependency.symbol.isSubClass(symComponentWithContext)) {
-        // TODO [aloiscochard] Add dependency for warning purpose in checker (or find alternative to check them)
+      if (dependency.symbol.isSubClass(symComponentWith)) {
+        // Ignoring ComponentWith (they are statically checked using their linked context)
       } else {
         getTypeDependencies(dependency.tree.tpe).foreach((s) => 
             inferred = Dependency(dependency.tree, global.definitions.getClass(s), None, s) :: inferred)

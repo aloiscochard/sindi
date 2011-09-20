@@ -18,29 +18,19 @@ import nsc.plugins.Plugin
 
 import model.ModelPlugin
 
-// TODO [acochard] check if component import needed modulemanifest otherwise optionally generate them
 // TODO [acochard] add injectAs support
 // TODO [acochard] check ModuleT support
 // TODO [acochard] actually inline component have '$anon' as name, find workaround if possible
 
-abstract class AnalyzerPlugin (override val global: Global) extends ComponentPlugin(global) {
+abstract class AnalyzerPlugin(override val global: Global) extends ComponentPlugin(global) {
   import global._
 
-  def read(unit: CompilationUnit, body: Tree, registry: RegistryWriter): Unit = {
-    var contexts: List[Context] = Nil
-    var components: List[Entity] = Nil
-
-    // TODO [aloiscochard] Better synchronized granularity
-    for (tree @ ClassDef(_, _, _, _) <- unit.body) {
-      if (global.synchronized { isContext(tree) }) {
-        contexts = global.synchronized { createContext(tree) } :: contexts
-      } else if (global.synchronized { isComponent(tree) }) {
-        components = global.synchronized { createComponent(tree) } :: components
-      }  
-    }
+  def read(unit: CompilationUnit, registry: RegistryWriter): Unit = {
+    val _contexts = contexts(unit)
+    var _components = components(unit)
     
-    if ((!contexts.isEmpty || !components.isEmpty)) {
-      val info = CompilationUnitInfo(unit.source, contexts, components)
+    if ((!_contexts.isEmpty || !_components.isEmpty)) {
+      val info = CompilationUnitInfo(unit.source, _contexts, _components)
       if (options.verbose) global.synchronized {
         global.inform(info.toString)
       }
@@ -49,7 +39,28 @@ abstract class AnalyzerPlugin (override val global: Global) extends ComponentPlu
   }
   //global.treeBrowsers.create().browse(tree)
 
+
+  // TODO [aloiscochard] Better synchronized granularity
+  protected def contexts(unit: CompilationUnit) = {
+    (for (tree @ ClassDef(_, _, _, _) <- unit.body) yield {
+      global.synchronized {
+        if (isContext(tree)) Some(createContext(tree))
+        else None
+      }
+    }).flatten
+  }
+
+  protected def components(unit: CompilationUnit) = {
+    (for (tree @ ClassDef(_, _, _, _) <- unit.body) yield {
+      global.synchronized {
+        if (!isContext(tree) && isComponent(tree)) Some(createComponent(tree))
+        else None
+      }
+    }).flatten
+  }
+
   private def isContext(tree: Tree) = tree.symbol.classBound <:< symContext.classBound
+
   private def isComponent(tree: Tree) = tree.symbol.classBound <:< symComponent.classBound
 }
 
@@ -57,8 +68,10 @@ abstract class AnalyzisPlugin(override val global: Global) extends ModelPlugin(g
   import global._
 
   protected def getTypeDependencies(tpe: Type): List[String] = {
-    tpe.members.filter((s) => s.isValue && (s.tpe.typeSymbol.isSubClass(symModuleManifest)))
-      .map((s) => getTypeParam(s.tpe.toString)).distinct
+    tpe.baseClasses.flatMap((s) => {
+      s.classBound.members.filter((s) => s.isValue && (s.tpe.typeSymbol.isSubClass(symModuleManifest)))
+        .map((s) => getTypeParam(s.tpe.toString))
+    }).distinct
   }
 
   // TODO [aloiscochard] Fix that ugly hack to take component type parameter
