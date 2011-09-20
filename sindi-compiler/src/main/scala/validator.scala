@@ -21,6 +21,7 @@ abstract class ValidatorPlugin(override val global: Global) extends TransformerP
   import global._
 
   private final val symOption = global.definitions.getClass(manifest[Option[_]].erasure.getName)
+  private final val symEither = global.definitions.getClass(manifest[Either[_, _]].erasure.getName)
 
   // TODO [aloiscochard] more detailed error message ?
   private case class DependencyNotBound(dependency: Dependency) extends Failure {
@@ -71,10 +72,23 @@ abstract class ValidatorPlugin(override val global: Global) extends TransformerP
   }
 
   private def resolve(registry: RegistryReader)(entity: Entity, dependency: Dependency): Option[Failure] = {
-    // TODO: Configurable exclude filter
-    // Filtering excluded types
     if (dependency.symbol == symOption) {
-      None
+      // TODO: Configurable exclude filter
+      None 
+    } else if (dependency.symbol == symEither) {
+      // Either
+      dependency.tree.tpe.typeArgs match {
+        case left :: right :: Nil =>
+          List(right, left).map((tpe) => dependency.copy(symbol = tpe.typeSymbol, name = tpe.typeSymbol.name.toString))
+                    .flatMap(resolve(registry)(entity, _)) match {
+            case left :: right :: Nil => Some(left)
+            case any :: Nil => None
+            case _ => None
+          }
+        case _ => throw new RuntimeException("Either dependency have wrong number of type parameter.\n" + 
+                                             "It looks like some fundamental laws are broken, " +
+                                             "please fix them... tips: '%s'".format(dependency.symbol.typeParams))
+      }
     } else {
       // Resolving
       entity.modules.find(_.symbol == dependency.symbol) match {
