@@ -8,4 +8,6 @@ import store._
 trait UserService {
   def users: Store[User] = repository.users
   def repository: Repository
+  def administrator: User
+  def webmaster: User
 }

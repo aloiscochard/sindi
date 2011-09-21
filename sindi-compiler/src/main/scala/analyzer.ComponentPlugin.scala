@@ -37,6 +37,7 @@ abstract class ComponentPlugin (override val global: Global) extends ContextPlug
         val modules = {
           val modules = getComponentModules(tree)
           if (options.componentAutoImport) {
+            // TODO [aloiscochard] Make infered dependencies retrieved only when called from transform
             // Add infered dependency (ManifestModule will be added in transform phase)
             val unresolved = dependencies.filter(_.symbol.isSubClass(symModule))
                               .filter((d) => modules.find(_.symbol == d.symbol).isEmpty)
