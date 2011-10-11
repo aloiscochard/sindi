@@ -11,6 +11,32 @@
 package sindi.compiler
 package utils 
 
+object JSON {
+  import scala.util.parsing.json._
+
+  val prettyFormatter: JSONFormat.ValueFormatter = {
+    def create(level: Int): JSONFormat.ValueFormatter = (x: Any) => {
+      x match {
+        case s: String => "\"" + JSONFormat.quoteString(s) + "\""
+        case jo: JSONObject =>
+          "{\n" + 
+          "\t" * (level + 1) + 
+          jo.obj.map({
+            case (k, v) => JSONFormat.defaultFormatter(k.toString) + ": " + create(level + 1)(v) 
+          }).mkString(",\n" +
+          "\t" * (level + 1)) +
+          "\n" + 
+          "\t" * level + 
+          "}" 
+        case ja: JSONArray => ja.toString(create(level))
+        case other => other.toString
+      }
+    }
+    create(0)
+  }
+
+}
+
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 

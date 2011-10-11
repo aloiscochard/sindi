@@ -13,13 +13,16 @@ package model
 
 import scala.actors.Actor
 import scala.collection.immutable.HashMap
+import scala.util.parsing.json._
 
 import scala.tools.nsc
 import nsc.Global 
 import nsc.plugins.Plugin
 import nsc.util.SourceFile
 
-// TODO [aloiscochard] Implement "toJson" and store sindi descriptor in target
+import utils.JSON._
+
+// TODO [aloiscochard] Improve JSON support: Show bindings with full qualified names
 
 abstract class ModelPlugin(val global: Global) extends Plugin {
   import global._
@@ -36,22 +39,17 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   protected final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
   protected final val symModuleManifest = global.definitions.getClass(manifest[sindi.ModuleManifest[_]].erasure.getName)
 
-  // TODO Use mkstring prefix/suffix
   case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Entity]) {
-    override def toString =
-      source + " {\n" + {
-        val entities = contexts ++ components
-        if (!entities.isEmpty) entities.map("\t" + _ + "\n").mkString else ""
-      } + "}"
-
-    /*
-    override def toJson = {
-      "{'" + source.path +"': [" + entities.map(_.toJson).mkString(",") + "] }"
-    }
-    */
+    override def toString = prettyFormatter(toJson)
+    def toJson = JSONObject(Map(
+      "source" -> source.toString,
+      "contexts" -> JSONArray(contexts.map(_.toJson)),
+      "components" -> JSONArray(components.map(_.toJson))
+    ))
   }
 
-  case class Context(tree: ClassDef, modules: List[Module], bindings: List[Binding], dependencies: List[Dependency]) extends Entity
+  case class Context(tree: ClassDef, modules: List[Module],
+                      bindings: List[Binding], dependencies: List[Dependency]) extends Entity
 
   case class Component(tree: ClassDef, modules: List[Module], dependencies: List[Dependency]) extends Entity {
     val bindings: List[Binding] = Nil
@@ -68,12 +66,13 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
     def dependencies: List[Dependency]
     def modules: List[Module]
     def bindings: List[Binding]
-    override def toString = tree.symbol.name.toString + {
-      if (!dependencies.isEmpty) " { dependencies: " + dependencies.mkString(", ") + " }" else ""
-    } + {
-      if (!modules.isEmpty) " [ modules: " + modules.mkString(", ") + " ]" else ""
-    }
-    //def toJson: String
+    override def toString = prettyFormatter(toJson)
+    def toJson = JSONObject(Map(
+      "name" -> tree.symbol.name.toString,
+      "dependencies" -> JSONArray(dependencies.map(_.toString)),
+      "modules" -> JSONArray(modules.map(_.toString)),
+      "bindings" -> JSONArray(bindings.map(_.toString))
+    ))
   }
 
   case class Dependency(val tree: Tree, val symbol: Symbol, val dependency: Option[Dependency], name: String) {
