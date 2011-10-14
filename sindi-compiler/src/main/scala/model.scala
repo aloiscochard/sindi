@@ -68,34 +68,28 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
     def bindings: List[Binding]
     override def toString = prettyFormatter(toJson)
     def toJson = JSONObject(Map(
-      "name" -> tree.symbol.name.toString,
-      "dependencies" -> JSONArray(dependencies.map(_.toString)),
-      "modules" -> JSONArray(modules.map(_.toString)),
-      "bindings" -> JSONArray(bindings.map(_.toString))
+      // TODO [aloiscochard] Improve name retrieval for anonymous class and others jewels
+      "name" -> { if (tree.symbol.tpe.toString.contains(" with ")) { tree.symbol.name.toString } else tree.symbol.tpe.toString },
+      "dependencies" -> JSONArray(dependencies.map(_.toString).distinct),
+      "modules" -> JSONArray(modules.map(_.toString).distinct),
+      "bindings" -> JSONArray(bindings.map(_.toString).distinct)
     ))
   }
 
-  case class Dependency(val tree: Tree, val symbol: Symbol, val dependency: Option[Dependency], name: String) {
-    override def equals(that: Any) = that match {
-      case that: Dependency => symbol.equals(that.symbol) && dependency.equals(that.dependency)
-      case _ => false
-    }
+  case class Signature(symbol: Symbol, tpe: Option[Type] = None)
 
-    override def hashCode = symbol.hashCode + {
-      dependency match {
-        case Some(dependency) => dependency.hashCode
-        case _ => 0
-      }
-    }
-
+  case class Dependency(tree: Tree, signature: Signature, dependency: Option[Dependency], name: String) {
+    def symbol = signature.symbol
     override def toString = { name + (dependency match {
       case Some(dependency) => " -> " + dependency.toString
       case _ => ""
     }) }
   }
 
-  case class Binding(tree: Tree, symbol: Symbol) { override def toString = symbol.name.toString }
-  case class Module(symbol: Symbol, val name: String, inferred: Option[Dependency] = None) { override def toString = name }
+  case class Binding(tree: Tree, symbol: Symbol) { override def toString = symbol.tpe.toString }
+  case class Module(symbol: Symbol, tpe: Type, name: String, inferred: Option[Dependency] = None) {
+    override def toString = name
+  }
 
   class RegistryWriter {
     def += (u: CompilationUnitInfo) = Writer ! Add(u)

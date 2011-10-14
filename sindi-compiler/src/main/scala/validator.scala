@@ -79,7 +79,8 @@ abstract class ValidatorPlugin(override val global: Global) extends TransformerP
       // Either
       dependency.tree.tpe.typeArgs match {
         case left :: right :: Nil =>
-          List(right, left).map((tpe) => dependency.copy(symbol = tpe.typeSymbol, name = tpe.typeSymbol.name.toString))
+          List(right, left).map((tpe) => 
+              dependency.copy(signature = Signature(tpe.typeSymbol), name = tpe.typeSymbol.name.toString))
                     .flatMap(resolve(registry)(entity, _)) match {
             case left :: right :: Nil => Some(left)
             case any :: Nil => None
@@ -91,7 +92,12 @@ abstract class ValidatorPlugin(override val global: Global) extends TransformerP
       }
     } else {
       // Resolving
-      entity.modules.find(_.symbol == dependency.symbol) match {
+      entity.modules.find((module) => {
+        dependency.signature.tpe match {
+          case Some(tpe) => module.tpe <:< tpe
+          case None => module.symbol.isSubClass(dependency.symbol)
+        }
+      }) match {
         case Some(module) => {
           dependency.dependency match {
             case Some(dependency) => {

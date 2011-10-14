@@ -30,7 +30,7 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
           case tree: ValDef => Some(tree)
           case _ => None
         }).map((tree) => {
-          Module(tree.symbol.tpe.typeSymbol, tree.symbol.tpe.toString)
+          Module(tree.symbol, tree.symbol.tpe, tree.symbol.tpe.toString)
         })
       }
       case None => Nil
@@ -39,7 +39,7 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
 
   protected def getDependencies(root: Tree): List[Dependency] = {
     def getDependency(tree: Tree) = {
-      val injected = Dependency(tree, tree.tpe.typeSymbol, None, tree.tpe.toString)
+      val injected = Dependency(tree, Signature(tree.tpe.typeSymbol, Some(tree.tpe)), None, tree.tpe.toString)
       def get(tree: Tree, dependency: Dependency): Dependency = {
         find[TypeApply](List(tree))((tree) => tree match {
           case tree: TypeApply => if (tree.symbol.name.toString == "from") Some(tree) else None
@@ -49,7 +49,7 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
             tree.children.collectFirst({ case t: TypeTree => t}) match {
               case Some(typeTree) => {
                 val d = if (dependency.symbol.toString == typeTree.symbol.toString) dependency else
-                          Dependency(tree, typeTree.symbol, Some(dependency), typeTree.tpe.toString)
+                          Dependency(tree, Signature(typeTree.symbol), Some(dependency), typeTree.tpe.toString)
                 get(tree.children.head, d)
               }
               case _ => dependency
@@ -95,7 +95,7 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
 
     // Adding mixed-in (with Component) dependencies
     getTypeDependencies(root.symbol.classBound).foreach((s) => 
-      inferred = Dependency(root, global.definitions.getClass(s), None, s) :: inferred)
+      inferred = Dependency(root, Signature(global.definitions.getClass(s)), None, s) :: inferred)
 
     // Resolve ComponentContext intantiation into component dependencies
     components.foreach((dependency) => {
@@ -103,11 +103,11 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
         // Ignoring ComponentWith (they are statically checked using their linked context)
       } else {
         getTypeDependencies(dependency.tree.tpe).foreach((s) => 
-            inferred = Dependency(dependency.tree, global.definitions.getClass(s), None, s) :: inferred)
+            inferred = new Dependency(dependency.tree, Signature(global.definitions.getClass(s)), None, s) :: inferred)
       }
     })
 
-    (dependencies ++ imported ++ inferred).distinct
+    (dependencies ++ imported ++ inferred)
   }
 
   private def getBindings(tree: ClassDef): List[Binding] = {

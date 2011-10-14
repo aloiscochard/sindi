@@ -41,8 +41,12 @@ abstract class ComponentPlugin (override val global: Global) extends ContextPlug
             // Add infered dependency (ManifestModule will be added in transform phase)
             val unresolved = dependencies.filter(_.symbol.isSubClass(symModule))
                               .filter((d) => modules.find(_.symbol == d.symbol).isEmpty)
-            modules ++ unresolved.map((dependency) => {
-              Module(dependency.symbol, dependency.symbol.name.toString, Some(dependency))
+            modules ++ unresolved.flatMap((dependency) => {
+              dependency.signature.tpe match {
+                case Some(tpe) => Some(Module(dependency.symbol, tpe,
+                  dependency.symbol.tpe.toString, Some(dependency)))
+                case None => None
+              }
             })
           } else modules
         }
@@ -52,7 +56,10 @@ abstract class ComponentPlugin (override val global: Global) extends ContextPlug
   }
 
   private def getComponentModules(root: ClassDef) = 
-    getTypeDependencies(root.symbol.classBound).map((s) => Module(global.definitions.getClass(s), s))
+    getTypeDependencies(root.symbol.classBound).map((s) => {
+      val symbol = global.definitions.getClass(s)
+      Module(symbol, symbol.classBound, s)
+    })
 
 }
 
