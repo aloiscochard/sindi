@@ -37,26 +37,21 @@ private trait Bindable extends Injector {
 
   override def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T = {
     def inject = injectAs[T](qualifier.q)
+
     qualifier.next match {
       case Some(qualifier) => try { injectAs[T](qualifier) } catch { case e: TypeNotBoundException => inject }
       case None => inject
     }
   }
 
-  private def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef) : T = {
-    bindings.flatMap((binding) => {
-      val (b_qualifier, b_provider) = binding
-      if (b_qualifier == qualifier && (b_provider.signature <:< manifest[T])) {
-        Some(b_provider)
-      } else {
-        None
-      }
-    }).headOption match {
-      case Some(provider) => provider.provide.asInstanceOf[T]
-      case None => {
-        val q = if (qualifier == None) { "" } else { " with qualifier %s".format(qualifier) }
-        throw TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T]))
-      }
+  private def injectAs[T <: AnyRef : Manifest](qualifier: AnyRef): T = bindings.view.flatMap((binding) => binding match {
+    case (q, p) if q == qualifier && (p.signature <:< manifest[T]) => Some(p) 
+    case _ => None
+  }).headOption match {
+    case Some(provider) => provider().asInstanceOf[T]
+    case None => {
+      val q = if (qualifier == None) { "" } else { " with qualifier %s".format(qualifier) }
+      throw TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T]))
     }
   }
 }
@@ -64,20 +59,12 @@ private trait Bindable extends Injector {
 private trait Childable extends Injector {
   protected val parent: () => Injector
 
-  override abstract def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T = {
-    try {
-      parent().injectAs[T](qualifier)
-    } catch {
-      case e: TypeNotBoundException => super.injectAs[T](qualifier)
-    }
-  }
+  override abstract def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T =
+    try { parent().injectAs[T](qualifier) } catch { case e: TypeNotBoundException => super.injectAs[T](qualifier) }
 }
 
-private class DefaultInjector(
-    override val bindings : List[Binding])
+private class DefaultInjector(override val bindings : List[Binding])
   extends Injector with Bindable
 
-private class ChildedInjector(
-    override val bindings : List[Binding],
-    override val parent: () => Injector)
+private class ChildedInjector(override val bindings : List[Binding], override val parent: () => Injector)
   extends DefaultInjector(bindings) with Childable

@@ -96,7 +96,7 @@ class FunctionalSpec extends Specification {
     }
 
     "bind parameterized type to provider" in {
-      class StringProvider extends Provider[String] { override def provide = "sindi" } 
+      class StringProvider extends Provider[String] { override def apply = "sindi" } 
 
       class Foo extends Context {
         override val bindings: Bindings = bind[String] toProvider new StringProvider

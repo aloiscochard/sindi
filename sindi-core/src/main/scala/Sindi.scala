@@ -32,9 +32,8 @@ package sindi {
   /** Bindings companion **/
   object Bindings {
     /** Create a new list of bindings **/
-    def apply(bindings: binder.binding.Binding[_ <: AnyRef]*): List[binder.binding.Binding[AnyRef]] = {
+    def apply(bindings: binder.binding.Binding[_ <: AnyRef]*): List[binder.binding.Binding[AnyRef]] =
       bindings.toList.asInstanceOf[List[binder.binding.Binding[AnyRef]]]
-    }
   }
 
   object Modules { def apply(modules: Module*): Modules = modules.toList }
@@ -46,12 +45,9 @@ package sindi {
     protected lazy val modules: Modules = Nil
     protected override def processing = super.processing :+ processor.option :+ processor.either
 
-    def from[M <: Module : Manifest]: M = {
-      modules.foreach((module) => { Helper.moduleOf[M](module) match {
-        case Some(module) => return module
-        case _ =>
-      }})
-      throw ModuleNotFoundException(manifest[M])
+    def from[M <: Module : Manifest]: M = modules.view.flatMap(Helper.moduleOf[M](_)).headOption match {
+      case Some(module) => module
+      case _ => throw ModuleNotFoundException(manifest[M])
     }
 
     def module(l: List[binder.binding.Binding[AnyRef]]) = new Module { override val bindings = l }
@@ -87,26 +83,19 @@ package sindi {
 
   case class TypeNotBoundException(message: String) extends Exception(message)
 
-  private[sindi] trait Composable {
-    protected def from[M <: Module : Manifest]: M
-  }
+  private[sindi] trait Composable { protected def from[M <: Module : Manifest]: M }
 
   private object Helper {
-    def moduleOf[M <: Module : Manifest](module: Module): Option[M] = {
-      if (module.getClass == manifest[M].erasure) {
-        val m = module match {
-          case module: ModuleT[_] => {
-            manifest[M].typeArguments.headOption match {
-              case Some(typeManifest) => if (!(module.manifest <:< manifest[M].typeArguments.head)) return None
-              case _ => return None
-            }
-          }
-          case _ => 
+    def moduleOf[M <: Module : Manifest](module: Module): Option[M] =
+      if (isModuleOf[M](module)) Some(module.asInstanceOf[M]) else None
+
+    private def isModuleOf[M <: Module : Manifest](module: Module): Boolean =
+      if (module.getClass == manifest[M].erasure) module match {
+        case module: ModuleT[_] => manifest[M].typeArguments.headOption match {
+          case Some(typeManifest) if module.manifest <:< manifest[M].typeArguments.head => true
+          case _ => false
         }
-        Some(module.asInstanceOf[M])
-      } else {
-        None
-      }
-    }
+        case _ => true
+      } else false
   }
 }

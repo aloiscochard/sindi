@@ -22,25 +22,21 @@ trait Context extends Injector {
   val processors: List[Processor[_]] = Nil
   protected val bindings: List[binder.binding.Binding[_]] = Nil
 
-  override def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T = {
+  override def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T =
     Processor.process[T](processing, () => injector.injectAs[T](qualifier), this, qualifier)(manifest[T])()
-  }
 
   protected def processing: List[Processor[_]] = processors
   protected def build = bindings.map(_.build.asInstanceOf[Binding])
 }
 
 trait Childified extends Context {
-  override lazy val injector = Injector(build, () => parent.injector)
-
+  override lazy val injector = Injector(build, parent.injector _)
   protected val parent: Context
 
   protected override def processing = {
-    @tailrec def collect(context: Context, acc: List[Processor[_]] = Nil): List[Processor[_]] = {
-      context match {
-        case context: Childified => collect(context.parent, context.processors ++ acc)
-        case _ => context.processors ++ acc
-      }
+    @tailrec def collect(context: Context, acc: List[Processor[_]] = Nil): List[Processor[_]] = context match {
+      case context: Childified => collect(context.parent, context.processors ++ acc)
+      case _ => context.processors ++ acc
     }
     collect(this).distinct
   }

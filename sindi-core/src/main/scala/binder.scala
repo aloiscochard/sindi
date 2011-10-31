@@ -15,7 +15,7 @@ import binder.binding._
 import binder.binding.provider._
 
 trait Scoper {
-  def thread: () => AnyRef = () => java.lang.Thread.currentThread
+  def thread: () => AnyRef = java.lang.Thread.currentThread _
 }
 
 trait Binder extends Scoper {
@@ -28,7 +28,7 @@ trait DSL {
   def bind[T <: AnyRef : Manifest] = new BindSource[T]
 
   protected class BindSource[T <: AnyRef : Manifest] extends Binder {
-    def to(provider: => T): SimpleBind[T] = toProvider(new FunctionProvider(manifest[T], () => provider))
+    def to(provider: => T): SimpleBind[T] = toProvider(new FunctionProvider(manifest[T], provider _))
     def toProvider(provider: Provider[T]): SimpleBind[T] = new SimpleBind[T](provider)
   }
 
@@ -43,7 +43,7 @@ trait DSL {
     def as[Q : Manifest] = toQualified(manifest[Q])
   }
 
-  protected trait Scopable[T <: AnyRef] extends Bind[T] { def scope(scoper: => Any) = toScopable(() => scoper) }
+  protected trait Scopable[T <: AnyRef] extends Bind[T] { def scope(scoper: => Any) = toScopable(scoper _) }
   
   protected class SimpleBind[T <: AnyRef : Manifest](provider: Provider[T]) extends Bind[T] with Qualifiable[T] with Scopable[T] {
     override def build = bind(provider)
@@ -58,7 +58,6 @@ trait DSL {
   }
 
   protected implicit def bind2binding[T <: AnyRef : Manifest](bind: Bind[T]): Binding[T] = bind.build
-  protected implicit def bind2bindings[T <: AnyRef : Manifest](bind: Bind[T]): Bindings = {
+  protected implicit def bind2bindings[T <: AnyRef : Manifest](bind: Bind[T]): Bindings =
     List[binding.Binding[AnyRef]](bind.build.asInstanceOf[binding.Binding[AnyRef]])
-  }
 }

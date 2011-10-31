@@ -19,15 +19,13 @@ object `package` {
 }
 
 object Processor {
-  def process[T : Manifest](processors: List[Processor[_]], default: () => T, 
-                            injector: Injector, qualifier: Qualifier): () => T = {
+  def process[T : Manifest](processors: List[Processor[_]], default: () => T, injector: Injector, qualifier: Qualifier) =
     processors.foldLeft(default)((default, processor) => {
       if (manifest[T] <:< processor.scope)
         () => processor.asInstanceOf[Processor[T]].process[T](default, injector, qualifier)
       else
         default
     })
-  }
 }
 
 abstract class Processor[T : Manifest] {
@@ -36,36 +34,24 @@ abstract class Processor[T : Manifest] {
 }
 
 private[processor] class OptionProcessor extends Processor[Option[Any]] {
-  def process[T <: Option[_] : Manifest](default: () => T, injector: Injector, qualifier: Qualifier) = {
+  def process[T <: Option[_] : Manifest](default: () => T, injector: Injector, qualifier: Qualifier) =
     manifest[T].typeArguments.headOption match {
-      case Some(manifest) => {
-        try {
+      case Some(manifest) => try {
           Some(injector.injectAs(qualifier)(manifest.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
-        } catch {
-          case e: TypeNotBoundException => { None.asInstanceOf[T] }
-        }
-      }
+        } catch { case e: TypeNotBoundException => None.asInstanceOf[T] }
       case None => default()
     }
-  }
 }
 
 private[processor] class EitherProcessor extends Processor[Either[Any, Any]] {
-  def process[T <: Either[_, _] : Manifest](default: () => T, injector: Injector, qualifier: Qualifier) = {
+  def process[T <: Either[_, _] : Manifest](default: () => T, injector: Injector, qualifier: Qualifier) =
     manifest[T].typeArguments match {
-      case left :: right :: Nil => {
-        try {
+      case left :: right :: Nil => try { 
           Right(injector.injectAs(qualifier)(right.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
-        } catch {
-          case e: TypeNotBoundException => {
-            try {
-              Left(injector.injectAs(qualifier)(left.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
-            } catch { case e: TypeNotBoundException => default() }
-          }
+        } catch { case e: TypeNotBoundException => try {
+            Left(injector.injectAs(qualifier)(left.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
+          } catch { case e: TypeNotBoundException => default() } 
         }
-      }
       case _ => default()
     }
-  }
-
 }
