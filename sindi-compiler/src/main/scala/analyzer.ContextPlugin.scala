@@ -17,6 +17,8 @@ import nsc.Global
 abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugin(global) {
   import global._
 
+  protected final val symNone = global.definitions.getClass(manifest[scala.None.type].erasure.getName)
+
   protected def createContext(tree: ClassDef) =
     new Context(tree, getModules(tree), getBindings(tree), getDependencies(tree))
 
@@ -62,14 +64,34 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
     }
 
     // Adding direct dependencies
-    val dependencies = collect[Tree](root.children)((tree) => tree match {
-      case tree: Apply => {
-        if (tree.symbol.name.toString == "inject" && tree.symbol.owner.isSubClass(symInjector)) {
-          Some(tree)
-        } else { None }
-      }
+    def isInjectorMethod(t: Tree, n: String) = t.symbol.name.toString == n && t.symbol.owner.isSubClass(symInjector)
+    def isInject(tree: Apply) = isInjectorMethod(tree, "inject")
+    def isInjectAs(tree: Apply) = isInjectorMethod(tree,"injectAs") && tree.tpe.boundSyms.isEmpty
+
+    def isNone(tree: Tree) = tree match {
+      case tree: Select if tree.toString == "scala.None" => true
+      case _ => false
+    }
+
+    def getQualifiers(tree: Tree) = {
+      // TODO Add support of dynamic qualifier (injectAs[Foo](qualifier[Bar] || "foo"))
+      val qualifiers = find[Apply](tree.children)((t) => t match {
+        case t: Apply if t.tpe.typeSymbol.isSubClass(symQualifier) => Some(t)
+        case _ => None
+      }).map((tree) => collect[TypeTree](tree.children)((tree) => tree match {
+        case tree: TypeTree => Some(tree)
+        case _ => None
+      })).map(_.map(_.tpe).distinct).getOrElse(Nil)
+
+      if (traverse(tree).exists(isNone _)) qualifiers :+ symNone.tpe else qualifiers
+    }
+
+    val dependencies = collect[Dependency](root.children)((tree) => tree match {
+      case tree: Apply if isInject(tree) => Some(getDependency(tree))
+      case tree: Apply if isInjectAs(tree) =>
+        Some(Dependency(tree, Signature(tree.tpe.typeSymbol, Some(tree.tpe)), None, tree.tpe.toString, getQualifiers(tree)))
       case _ => None
-    }).map(getDependency(_))
+    })
 
     // Adding imported dependencies (from[T].*)
     val (imported, components) = collect[Tree](root.children)((tree) => tree match {
@@ -111,24 +133,31 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
   }
 
   private def getBindings(tree: ClassDef): List[Binding] = {
+    def typeOf(tree: Tree) = tree.children.collectFirst { case t: TypeTree => t }
+    def isSelectOfBind(tree: Tree) = isSelectOf(tree, "bind")
+    def isSelectOfAs(tree: Tree) = isSelectOf(tree, "as")
+    def isSelectOf(tree: Tree, name: String) = (tree, tree.children.headOption) match {
+      case (_: TypeApply, Some(tree: Select)) => tree.name.toString.trim == name
+      case _ => false
+    }
+
+    val backtrack = (tree: Tree) => tree match {
+      case _ if isSelectOfAs(tree) => true
+      case _ if isSelectOfBind(tree) => true
+      case _ => false
+    }
+    // TODO does it work ok with val? (/!\ compiler crash)
     var bindings = List[Binding]()
-    for (tree @ ValDef(_, _, _, _) <- tree.impl.body) {
-      if (tree.name.toString.trim == "bindings") {
-        collect[TypeTree](tree.children)((tree) => tree match {
-          case tree: TypeApply => {
-            def isBind(tree: Tree) = tree.children.headOption match {
-              case Some(tree: Select) => tree.name.toString.trim == "bind"
-              case _ => false
-            }
-            if (isBind(tree)) { 
-              tree.children.collectFirst({ case t: TypeTree => t})
-            } else {
-              None
-            }
-          }
-          case _ => None
-        }).foreach((tree) => { bindings = Binding(tree,tree.symbol) :: bindings })
-      }
+    for (tree @ ValDef(_, _, _, _) <- tree.impl.body if tree.name.toString.trim == "bindings") {
+      traversal(tree.children)(backtrack).flatMap(_ match {
+        case t if isSelectOfAs(t) => Some(traverse(t).find(isSelectOfBind(_)).flatMap(typeOf(_)) -> typeOf(t).map(_.tpe))
+        case t if isSelectOfBind(t) => Some(typeOf(t) -> None)
+        case _ =>
+          None
+      }).flatMap(_ match {
+        case (Some(tree), qualifier) => Some(Binding(tree, tree.symbol, qualifier))
+        case _ => None
+      }).foreach(b => { bindings = b :: bindings })
     }
     bindings
   }

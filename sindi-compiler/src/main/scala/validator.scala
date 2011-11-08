@@ -55,7 +55,6 @@ abstract class ValidatorPlugin(override val global: Global) extends TransformerP
     registry(unit.source) match {
       case Some(info) => {
         (info.contexts ++ info.components).par.foreach((entity) => {
-          //global.treeBrowsers.create().browse(entity.tree)
           entity match {
             case component: ComponentWithContext => {
               registry.getContext(component.context) match {
@@ -72,6 +71,15 @@ abstract class ValidatorPlugin(override val global: Global) extends TransformerP
   }
 
   private def resolve(registry: RegistryReader)(entity: Entity, dependency: Dependency): Option[Failure] = {
+    // TODO: Show and point qualifier on error
+    def isBound(d: Dependency)(b: Binding): Boolean = d.symbol == b.symbol && ((d.qualifiers, b.qualifier) match {
+      case (Nil, None) => true
+      case (Nil, Some(_)) => false
+      case (qs, _) if qs.contains(symNone.tpe) => true
+      case (qs, None) => false
+      case (qs, Some(q)) => qs.contains(q)
+    })
+
     if (dependency.symbol == symOption) {
       // TODO: Configurable exclude filter
       None 
@@ -110,7 +118,7 @@ abstract class ValidatorPlugin(override val global: Global) extends TransformerP
           }
         }
         case None => {
-          entity.bindings.find(_.symbol == dependency.symbol) match {
+          entity.bindings.find(isBound(dependency) _) match {
             case Some(binding) => None
             case None => Some(DependencyNotBound(dependency))
           }

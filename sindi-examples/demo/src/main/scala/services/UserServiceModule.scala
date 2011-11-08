@@ -9,13 +9,14 @@ import repository._
 class UserServiceModule(implicit val context: Context) extends Module { 
   override val bindings: Bindings =
     bind[User] to User("administrator", "Administrator") as qualifier[Administrator]
+
+  def administrator = injectAs[User](qualifier[Administrator])
+  def webmaster = injectAs[User](qualifier[Webmaster] || qualifier[Administrator])
 }
 
 trait UserServiceComponent extends RepositoryComponent with UserService {
-  override def administrator = user(qualifier[Administrator])
-  override def webmaster = user(qualifier[Webmaster] || qualifier[Administrator])
-
-  private lazy val user = from[UserServiceModule].injectAs[User] _
+  override def administrator = from[UserServiceModule].administrator
+  override def webmaster = from[UserServiceModule].webmaster
 }
 
 trait Administrator extends UserQualifier

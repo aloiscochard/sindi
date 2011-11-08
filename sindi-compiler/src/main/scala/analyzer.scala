@@ -86,6 +86,15 @@ abstract class AnalyzisPlugin(override val global: Global) extends ModelPlugin(g
   // AST Utilities //
   ///////////////////
 
+  // TODO Move that in utils and use it to refactor
+  import Stream._
+  def traverse(trees: Tree*): Stream[Tree] = traversal(trees.toList) { _ => false }
+  def traversal(trees: List[Tree])(implicit b: (Tree) => Boolean): Stream[Tree] = trees match {
+    case tree :: trees if b(tree) => tree #:: traversal(trees)
+    case tree :: trees => tree #:: traversal(tree.children ::: trees)
+    case Nil => empty
+  }
+
   /** Find first matching tree using Depth First Search **/
   protected def find[T <: AnyRef](lookup: List[Tree])(filter: (Tree) => Option[T]): Option[T] = {
     for(tree <- lookup) {

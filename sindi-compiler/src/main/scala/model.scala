@@ -38,6 +38,7 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   protected final val symModule = global.definitions.getClass(manifest[sindi.Module].erasure.getName)
   protected final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
   protected final val symModuleManifest = global.definitions.getClass(manifest[sindi.ModuleManifest[_]].erasure.getName)
+  protected final val symQualifier = global.definitions.getClass(manifest[sindi.injector.Qualifier].erasure.getName)
 
   case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Entity]) {
     override def toString = prettyFormatter(toJson)
@@ -78,15 +79,30 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
 
   case class Signature(symbol: Symbol, tpe: Option[Type] = None)
 
-  case class Dependency(tree: Tree, signature: Signature, dependency: Option[Dependency], name: String) {
+  case class Dependency(tree: Tree, signature: Signature,
+                        dependency: Option[Dependency], name: String, qualifiers: List[Type] = Nil) {
     def symbol = signature.symbol
-    override def toString = { name + (dependency match {
-      case Some(dependency) => " -> " + dependency.toString
-      case _ => ""
-    }) }
+
+    def fullName = qualifiers match {
+      case Nil => name
+      case qualifiers => name + qualifiers.mkString("(", ", ", ")")
+    }
+
+    override def toString = dependency match {
+      case Some(dependency) => fullName + " -> " + dependency.toString
+      case _ => fullName
+    }
   }
 
-  case class Binding(tree: Tree, symbol: Symbol) { override def toString = symbol.tpe.toString }
+  case class Binding(tree: Tree, symbol: Symbol, qualifier: Option[Type] = None) {
+    def name = symbol.tpe.toString
+
+    override def toString = qualifier match {
+      case Some(qualifier) => name + "(%s)".format(qualifier) 
+      case _ => name
+    }
+  }
+
   case class Module(symbol: Symbol, tpe: Type, name: String, inferred: Option[Dependency] = None) {
     override def toString = name
   }
