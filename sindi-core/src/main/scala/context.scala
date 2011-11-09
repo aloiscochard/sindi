@@ -22,8 +22,8 @@ trait Context extends Injector {
   lazy val processors: List[Processor[_]] = processing
   protected val bindings: List[binder.binding.Binding[_]] = Nil
 
-  override def injection[T <: AnyRef : Manifest](qualifier: Qualifier) =
-    process[T](qualifier)(injector.injection[T](qualifier))
+  override def injectionAs[T <: AnyRef : Manifest](qualifier: Qualifier) =
+    process[T](qualifier)(injector.injectionAs[T](qualifier))
 
   override def injectionAll[T <: AnyRef : Manifest](predicate: Qualifier => Boolean) =
     injector.injectionAll(predicate).map(process[T](qualifier) _)
