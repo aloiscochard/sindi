@@ -151,8 +151,9 @@ class FunctionalSpec extends Specification {
                                                                    bind[String] to "sindi" as "sindi",
                                                                    bind[List[String]] to List("ioc")) }
       val foo = new Foo
-      foo.injectAll[String].toList mustEqual List("scala", "sindi")
+      foo.injectAll[String]("sindi" || None).toList mustEqual List("scala", "sindi")
       foo.injectAll[String]("sindi").toList mustEqual List("sindi")
+      foo.injectAll[String]("scala" || "sindi").toList mustEqual List("sindi")
     }
   }
 }

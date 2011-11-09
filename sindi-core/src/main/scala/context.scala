@@ -14,7 +14,7 @@ package context
 import scala.annotation.tailrec
 import scala.collection.immutable.{HashMap, List, Map}
 
-import injector.{Injector, Binding, Qualifier}
+import injector.{Binding, Injector, Injection, Qualifiers}
 import processor.Processor
 
 /** An interface containing operations for contextual object injection. */
@@ -27,18 +27,18 @@ trait Context extends Injector {
   /** Return the bindings associated with this context. */
   protected val bindings: List[binder.binding.Binding[_]] = Nil
 
-  override def injectionAs[T <: AnyRef : Manifest](qualifier: Qualifier) =
-    process[T](qualifier)(injector.injectionAs[T](qualifier))
-  override def injectionAll[T <: AnyRef : Manifest](predicate: Qualifier => Boolean) =
-    injector.injectionAll(predicate).map(process[T](qualifier) _)
+  override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
+    process[T](qualifiers)(injector.injectionAs[T](qualifiers))
+  override def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
+    injector.injectionAll(qualifiers).map(process[T](qualifiers) _)
 
   /** Return the processors associated with this context and all linked contexts. */
   protected def processing: List[Processor[_]]
 
   protected def build = bindings.map(_.build.asInstanceOf[Binding])
 
-  private def process[T <: AnyRef : Manifest](qualifier: Qualifier)(injection: () => T) = 
-    Processor.process[T](processors, this, qualifier, injection)(manifest[T])
+  private def process[T <: AnyRef : Manifest](qualifiers: Qualifiers)(injection: Injection[T]) = 
+    Processor.process[T](processors, this, qualifiers, injection)(manifest[T])
 }
 
 /** A trait adding hierarchical link to a [[sindi.context.Context]]. */

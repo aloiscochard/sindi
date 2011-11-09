@@ -16,10 +16,11 @@ import scala.util.control.Exception._
 
 object `package` {
   type Binding = Tuple2[AnyRef, binder.binding.provider.Provider[AnyRef]]
+  type Injection[T] = () => T
 }
 
-case class Qualifier(q: AnyRef, next: Option[Qualifier] = None) {
-  def or(that: AnyRef) = Qualifier(that, Some(this))
+case class Qualifiers(q: AnyRef, next: Option[Qualifiers] = None) {
+  def or(that: AnyRef) = Qualifiers(that, Some(this))
   def ||(that: AnyRef) = or(that)
 }
 
@@ -35,69 +36,68 @@ trait Injector {
   /** Return the object associated with a given type. */
   final def inject[T <: AnyRef : Manifest]: T =
     injection[T].apply
-  /** Return the object associated with a given type and qualifier. */
-  final def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T =
-    injectionAs[T](qualifier).apply
+  /** Return the object associated with a given type and qualifiers. */
+  final def injectAs[T <: AnyRef : Manifest](qualifiers: Qualifiers): T =
+    injectionAs[T](qualifiers).apply
   /** Return all objects associated with a given type. */
   final def injectAll[T <: AnyRef : Manifest]: Stream[T] =
     injectionAll[T].map(_.apply)
-  /** Return all objects associated with a given type and qualifier. */
-  final def injectAll[T <: AnyRef : Manifest](qualifier: Qualifier): Stream[T] =
-    injectionAll[T](qualifier).map(_.apply)
-  /** Return all objects associated with a given type and that satisfy a given predicate. */
-  final def injectAll[T <: AnyRef : Manifest](predicate: Qualifier => Boolean): Stream[T] =
-    injectionAll[T](predicate).map(_.apply)
+  /** Return all objects associated with a given type and qualifiers. */
+  final def injectAll[T <: AnyRef : Manifest](qualifiers: Qualifiers): Stream[T] =
+    injectionAll[T](qualifiers).map(_.apply)
 
   /** Return the injection associated with a given type. */
-  final def injection[T <: AnyRef : Manifest]: () => T =
-    injectionAs[T](Qualifier(None))
+  final def injection[T <: AnyRef : Manifest]: Injection[T] =
+    injectionAs[T](Qualifiers(None))
   /** Return all injections associated with a given type. */
-  final def injectionAll[T <: AnyRef : Manifest]: Stream[() => T] =
-    injectionAll[T] { x: Qualifier => true }
-  /** Return all injections associated with a given type and qualifier. */
-  final def injectionAll[T <: AnyRef : Manifest](qualifier: Qualifier): Stream[() => T] =
-    injectionAll[T] { x: Qualifier => x == qualifier }
+  final def injectionAll[T <: AnyRef : Manifest]: Stream[Injection[T]] =
+    injectionAll[T](Qualifiers(None))
 
-  /** Return the injection associated with a given type and qualifier. */
-  def injectionAs[T <: AnyRef : Manifest](qualifier: Qualifier): () => T
-  /** Return all injections associated with a given type and that satisfy a given predicate. */
-  def injectionAll[T <: AnyRef : Manifest](predicate: Qualifier => Boolean): Stream[() => T]
+  /** Return the injection associated with a given type and qualifiers. */
+  def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers): Injection[T]
+  /** Return all injections associated with a given type and qualifiers. */
+  def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers): Stream[Injection[T]]
 }
 
 private trait Bindable extends Injector {
   val bindings : List[Binding]
 
-  override def injectionAs[T <: AnyRef : Manifest](qualifier: Qualifier) = () =>
-    qualifier.next.flatMap(qualifier => catching(classOf[TypeNotBoundException]).opt(injectAs[T](qualifier))).getOrElse {
-      bindings.view.filter(isBound(_)(manifest[T])(qualifier))
+  override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) = () =>
+    qualifiers.next.flatMap(qualifiers => catching(classOf[TypeNotBoundException]).opt(injectAs[T](qualifiers))).getOrElse {
+      bindings.view.filter(isBound(_)(manifest[T])(qualifiers.q))
         .map { case (q, p) => p().asInstanceOf[T] }
         .headOption.getOrElse {
-          val q = if (qualifier == None) { "" } else { " with qualifier %s".format(qualifier) }
+          val q = if (qualifiers == None) { "" } else { " with qualifiers %s".format(qualifiers) }
           throw TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T]))
         }
     }
 
-  override def injectionAll[T <: AnyRef : Manifest](predicate: Qualifier => Boolean): Stream[() => T] = bindings.toStream
-    .filter(isBound(manifest[T]) _).filter { case (q, _) => predicate(q) }
+  override def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers) = bindings.toStream
+    .filter(isBound(_)(manifest[T])(qualifiers))
     .map { case (_, p) => () => p().asInstanceOf[T] }
 
   private def isBound(manifest: Manifest[_])(b: Binding): Boolean = b._2.signature <:< manifest
-  private def isBound(qualifier: Qualifier)(b: Binding): Boolean = b._1 == qualifier.q
-  private def isBound(b: Binding): Manifest[_] => Qualifier => Boolean = {
+
+  private def isBound(qualifiers: Qualifiers)(b: Binding): Boolean = qualifiers.next match {
+    case Some(q) => isBound(q)(b) || b._1 == qualifiers.q
+    case None => b._1 == qualifiers.q
+  }
+
+  private def isBound(b: Binding): Manifest[_] => Qualifiers => Boolean = {
     // TODO Find a generalization for this (look at |+| on Arrows in scalaz)
     def f[A, B, C](ac: A => C)(bc: B => C)(ccc: (C, C) => C)(a: A)(b: B): C = ccc(ac(a), bc(b))
-    f(isBound(_: Manifest[_])(b))(isBound(_: Qualifier)(b))(_ && _) _
+    f(isBound(_: Manifest[_])(b))(isBound(_: Qualifiers)(b))(_ && _) _
   }
 }
 
 private trait Childable extends Injector {
   protected val parent: () => Injector
 
-  abstract override def injectionAs[T <: AnyRef : Manifest](qualifier: Qualifier) =
-    catching(classOf[TypeNotBoundException]).opt(parent().injectionAs[T](qualifier)).getOrElse(super.injectionAs[T](qualifier))
+  abstract override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
+    catching(classOf[TypeNotBoundException]).opt(parent().injectionAs[T](qualifiers)).getOrElse(super.injectionAs[T](qualifiers))
 
-  abstract override def injectionAll[T <: AnyRef : Manifest](predicate: Qualifier => Boolean): Stream[() => T] =
-    super.injectionAll[T](predicate).append(parent().injectionAll[T](predicate))
+  abstract override def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
+    super.injectionAll[T](qualifiers).append(parent().injectionAll[T](qualifiers))
 }
 
 private class DefaultInjector(override val bindings : List[Binding])

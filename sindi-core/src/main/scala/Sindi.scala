@@ -25,7 +25,7 @@ package object sindi {
   /** Return a qualifier for the given type. (ensure safe qualified binding) **/
   def qualifier[T <: Any : Manifest] = manifest[T]                            
 
-  implicit def any2qualifier(q: AnyRef): injector.Qualifier = injector.Qualifier(q)
+  implicit def any2qualifiers(q: AnyRef): injector.Qualifiers = injector.Qualifiers(q)
 }
 
 package sindi {
