@@ -19,14 +19,20 @@ import processor.Processor
 
 trait Context extends Injector {
   lazy val injector: Injector = Injector(build)
-  val processors: List[Processor[_]] = Nil
+  lazy val processors: List[Processor[_]] = processing
   protected val bindings: List[binder.binding.Binding[_]] = Nil
 
-  override def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T =
-    Processor.process[T](processing, () => injector.injectAs[T](qualifier), this, qualifier)(manifest[T])()
+  override def injection[T <: AnyRef : Manifest](qualifier: Qualifier) =
+    process[T](qualifier)(injector.injection[T](qualifier))
 
-  protected def processing: List[Processor[_]] = processors
+  override def injectionAll[T <: AnyRef : Manifest](predicate: Qualifier => Boolean) =
+    injector.injectionAll(predicate).map(process[T](qualifier) _)
+
+  protected def processing: List[Processor[_]]
   protected def build = bindings.map(_.build.asInstanceOf[Binding])
+
+  private def process[T <: AnyRef : Manifest](qualifier: Qualifier)(injection: () => T) = 
+    Processor.process[T](processors, this, qualifier, injection)(manifest[T])
 }
 
 trait Childified extends Context {

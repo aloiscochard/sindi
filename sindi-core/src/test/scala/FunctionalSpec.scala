@@ -145,5 +145,14 @@ class FunctionalSpec extends Specification {
       foo.inject[Either[Option[Int], String]] mustEqual Right("sindi")
       foo.inject[Either[String, Option[Int]]] mustEqual Right(None) // Can't evaluate left due to Option on right
     }
+
+    "support filtered injection" in {
+      class Foo extends Context { override val bindings = Bindings(bind[String] to "scala",
+                                                                   bind[String] to "sindi" as "sindi",
+                                                                   bind[List[String]] to List("ioc")) }
+      val foo = new Foo
+      foo.injectAll[String].toList mustEqual List("scala", "sindi")
+      foo.injectAll[String]("sindi").toList mustEqual List("sindi")
+    }
   }
 }
