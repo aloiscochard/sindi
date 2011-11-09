@@ -30,27 +30,37 @@ object Injector {
     new ChildedInjector(bindings, parent)
 }
 
-/* An interface containing operations for object injection.*/
+/** An interface containing operations for object injection. */
 trait Injector {
+  /** Return the object associated with a given type. */
   final def inject[T <: AnyRef : Manifest]: T =
     injection[T].apply
+  /** Return the object associated with a given type and qualifier. */
   final def injectAs[T <: AnyRef : Manifest](qualifier: Qualifier): T =
     injectionAs[T](qualifier).apply
+  /** Return all objects associated with a given type. */
   final def injectAll[T <: AnyRef : Manifest]: Stream[T] =
     injectionAll[T].map(_.apply)
+  /** Return all objects associated with a given type and qualifier. */
   final def injectAll[T <: AnyRef : Manifest](qualifier: Qualifier): Stream[T] =
     injectionAll[T](qualifier).map(_.apply)
+  /** Return all objects associated with a given type and that satisfy a given predicate. */
   final def injectAll[T <: AnyRef : Manifest](predicate: Qualifier => Boolean): Stream[T] =
     injectionAll[T](predicate).map(_.apply)
 
+  /** Return the injection associated with a given type. */
   final def injection[T <: AnyRef : Manifest]: () => T =
     injectionAs[T](Qualifier(None))
+  /** Return all injections associated with a given type. */
   final def injectionAll[T <: AnyRef : Manifest]: Stream[() => T] =
     injectionAll[T] { x: Qualifier => true }
+  /** Return all injections associated with a given type and qualifier. */
   final def injectionAll[T <: AnyRef : Manifest](qualifier: Qualifier): Stream[() => T] =
     injectionAll[T] { x: Qualifier => x == qualifier }
 
+  /** Return the injection associated with a given type and qualifier. */
   def injectionAs[T <: AnyRef : Manifest](qualifier: Qualifier): () => T
+  /** Return all injections associated with a given type and that satisfy a given predicate. */
   def injectionAll[T <: AnyRef : Manifest](predicate: Qualifier => Boolean): Stream[() => T]
 }
 
