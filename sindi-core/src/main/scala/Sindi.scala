@@ -9,6 +9,7 @@
 //
 
 // TODO [aloiscochard] Add assertions (security checks)
+// TODO [aloiscochard] Avoid usage of _.1 and _.2
 
 /** Sindi IoC Container APIs.
   *
@@ -53,7 +54,7 @@ package sindi {
     def module(l: List[binder.binding.Binding[AnyRef]]) = new Module { override val bindings = l }
   }
 
-  abstract class Provider[T <: AnyRef : Manifest] extends binder.binding.provider.Provider[T] {
+  abstract class Provider[T <: AnyRef : Manifest] extends provider.Provider[T] {
     override val signature = manifest[T]
   }
 

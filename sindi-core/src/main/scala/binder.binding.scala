@@ -15,12 +15,12 @@ import scala.collection.mutable.{HashMap => MHashMap}
 
 import scala.ref.WeakReference
 
-import sindi.binder.binding.provider.{Provider, FunctionProvider}
+import sindi.provider.Provider
 
 trait Binding[T <: AnyRef] {
   protected val provider: Provider[T]
 
-  def build: Tuple2[AnyRef, Provider[T]] = (None, provider)
+  def build: Tuple2[Provider[T], AnyRef] = (provider, None)
 }
 
 protected[binder] object Binding {
@@ -35,34 +35,23 @@ private trait Scopable[T <: AnyRef] extends Binding[T] {
   protected val scoper: () => Any
 
   override def build = super.build match {
-    case (qualifier, provider) => (qualifier, new FunctionProvider[T](provider.signature, () =>
-        registry.getOrElseUpdate(scoper().hashCode, new WeakReference[T](provider())).apply
-      )
-    )
+    case (provider, qualifier) => (Provider(provider.signature) { 
+      registry.getOrElseUpdate(scoper().hashCode, new WeakReference[T](provider())).apply
+    }, qualifier)
+    
   }
 }
 
 private trait Qualifiable[T <: AnyRef] extends Binding[T] {
   protected val qualifier: AnyRef
-  override def build = qualifier -> super.build._2
+  override def build = super.build._1 -> qualifier
 }
 
 private class DefaultBinding[T <: AnyRef](val provider: Provider[T])
   extends Binding[T]
 
 private class ScopedBinding[T <: AnyRef](binding: Binding[T], val scoper: () => Any)
-  extends DefaultBinding[T](binding.build._2) with Scopable[T] 
+  extends DefaultBinding[T](binding.build._1) with Scopable[T] 
 
 private class QualifiedBinding[T <: AnyRef](binding: Binding[T], val qualifier: AnyRef)
-  extends DefaultBinding[T](binding.build._2) with Qualifiable[T]
-
-package provider {
-  trait Provider[T <: AnyRef] {
-    val signature: Manifest[T]
-    def apply(): T
-  }
-
-  class FunctionProvider[T <: AnyRef](override val signature: Manifest[T], val f: () => T) extends Provider[T] {
-    def apply() = f()
-  }
-}
+  extends DefaultBinding[T](binding.build._1) with Qualifiable[T]

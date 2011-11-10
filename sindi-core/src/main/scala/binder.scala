@@ -12,7 +12,7 @@ package sindi
 package binder
 
 import binder.binding._
-import binder.binding.provider._
+import provider.Provider
 
 trait Scoper {
   def thread: () => AnyRef = java.lang.Thread.currentThread _
@@ -26,10 +26,12 @@ trait Binder extends Scoper {
 
 trait DSL {
   def bind[T <: AnyRef : Manifest] = new BindSource[T]
+  /** Return a provider with the specified function **/
+  def provider[T <: AnyRef : Manifest](injection: => T) = Provider(injection)
 
   protected class BindSource[T <: AnyRef : Manifest] extends Binder {
-    def to(provider: => T): SimpleBind[T] = toProvider(new FunctionProvider(manifest[T], provider _))
-    def toProvider(provider: Provider[T]): SimpleBind[T] = new SimpleBind[T](provider)
+    def to(injection: => T): SimpleBind[T] = to(Provider.cached(injection))
+    def to(provider: Provider[T]): SimpleBind[T] = new SimpleBind[T](provider)
   }
 
   protected sealed abstract class Bind[T <: AnyRef : Manifest] extends Binder {

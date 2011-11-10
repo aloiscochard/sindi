@@ -17,16 +17,18 @@ package injector
 import scala.Stream._
 import scala.util.control.Exception._
 
+import provider._
+
 object `package` {
-  type Binding = Tuple2[AnyRef, binder.binding.provider.Provider[AnyRef]]
+  type Binding = Tuple2[Provider[AnyRef], AnyRef]
   type Injection[T] = () => T
 }
 
-case class Qualifiers(q: AnyRef, next: Option[Qualifiers] = None) {
+case class Qualifiers(current: AnyRef, next: Option[Qualifiers] = None) {
   def or(that: AnyRef) = Qualifiers(that, Some(this))
   def ||(that: AnyRef) = or(that)
 
-  def toList: List[AnyRef] = next match { case Some(next) => q :: next.toList; case None => q :: Nil }
+  def toList: List[AnyRef] = next match { case Some(next) => current :: next.toList; case None => current :: Nil }
 
   override def toString = toList.mkString("(", " || ", ")")
 }
@@ -71,8 +73,8 @@ private trait Bindable extends Injector {
 
   override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) = () =>
     qualifiers.next.flatMap(qualifiers => catching(classOf[TypeNotBoundException]).opt(injectAs[T](qualifiers))).getOrElse {
-      bindings.view.filter(isBound(_)(manifest[T])(qualifiers.q))
-        .map { case (q, p) => p().asInstanceOf[T] }
+      bindings.view.filter(isBound(_)(manifest[T])(qualifiers.current))
+        .map { case (p, _) => p().asInstanceOf[T] }
         .headOption.getOrElse {
           val q = if (qualifiers == None) { "" } else { " with qualifiers %s".format(qualifiers) }
           throw TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T]))
@@ -81,13 +83,13 @@ private trait Bindable extends Injector {
 
   override def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers) = bindings.toStream
     .filter(isBound(_)(manifest[T])(qualifiers))
-    .map { case (_, p) => () => p().asInstanceOf[T] }
+    .map { case (p, _) => () => p().asInstanceOf[T] }
 
-  private def isBound(manifest: Manifest[_])(b: Binding): Boolean = b._2.signature <:< manifest
+  private def isBound(manifest: Manifest[_])(b: Binding): Boolean = b._1.signature <:< manifest
 
   private def isBound(qualifiers: Qualifiers)(b: Binding): Boolean = qualifiers.next match {
-    case Some(q) => isBound(q)(b) || b._1 == qualifiers.q
-    case None => b._1 == qualifiers.q
+    case Some(q) => isBound(q)(b) || b._2 == qualifiers.current
+    case None => b._2 == qualifiers.current
   }
 
   private def isBound(b: Binding): Manifest[_] => Qualifiers => Boolean = {

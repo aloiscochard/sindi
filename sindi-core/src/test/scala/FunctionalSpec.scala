@@ -27,6 +27,15 @@ class FunctionalSpec extends Specification {
       new Foo().inject[String] mustEqual "sindi"
     }
 
+    "bind concrete type and cache" in {
+      class Foo extends Context {
+        override val bindings = Bindings(bind[Object] to new Object)
+      }
+      val foo = new Foo
+      foo.inject[Object] mustEqual foo.inject[Object]
+    }
+
+
     "bind concrete type with qualifier" in {
       class Foo extends Context { override val bindings = Bindings(bind[String] to "sindi" as "sindi",
                                                                    bind[String] to "scala" as qualifier[Foo])
@@ -54,10 +63,18 @@ class FunctionalSpec extends Specification {
       foo.injectAs[String](qualifier[String] || "sindi" || None) mustEqual "sindi"
     }
 
+    "bind concrete type to provider" in {
+      class Foo extends Context {
+        override val bindings = Bindings(bind[Object] to provider { new Object })
+      }
+      val foo = new Foo
+      foo.inject[Object] mustNotEqual foo.inject[Object]
+    }
+
     "bind concrete type with scope" in {
       class Bar
       var state = 1
-      class Foo extends Context { override val bindings: Bindings = bind[Bar] to new Bar scope { state } }
+      class Foo extends Context { override val bindings: Bindings = bind[Bar] to provider { new Bar } scope { state } }
       val foo = new Foo
       val bar1 = foo.inject[Bar].hashCode
       bar1 mustEqual foo.inject[Bar].hashCode
@@ -93,17 +110,6 @@ class FunctionalSpec extends Specification {
 
       class FooB extends Context { override val bindings: Bindings = bind[List[AnyRef]] to list }
       new FooB().inject[List[String]] must throwAn[TypeNotBoundException]
-    }
-
-    "bind parameterized type to provider" in {
-      class StringProvider extends Provider[String] { override def apply = "sindi" } 
-
-      class Foo extends Context {
-        override val bindings: Bindings = bind[String] toProvider new StringProvider
-      }
-
-      val foo = new Foo
-      foo.inject[String] mustEqual "sindi"
     }
 
     "support Option" in {
