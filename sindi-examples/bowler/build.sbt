@@ -1,8 +1,8 @@
-name := "integration-bowler"
+name := "sindi-examples-bowler"
 
 version := "0.4-SNAPSHOT"
 
-organization := "org.scala-tools.sindi.examples"
+organization := "org.scala-tools.sindi"
 
 scalaVersion := "2.9.1"
 
@@ -19,7 +19,7 @@ libraryDependencies <++= version { version => Seq(
   "org.scala-tools.sindi" %% "sindi-core" % version,
   compilerPlugin("org.scala-tools.sindi" %% "sindi-compiler" % version),
   // sindi-demo
-  "org.scala-tools.sindi.examples" %% "demo" % version,
+  "org.scala-tools.sindi" %% "sindi-examples-demo" % version,
   // bowler
   "org.bowlerframework" %% "core" % "0.5.1",
   "org.slf4j" % "slf4j-api" % "1.6.1",

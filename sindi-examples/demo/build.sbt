@@ -1,8 +1,8 @@
-name := "demo"
+name := "sindi-examples-demo"
 
 version := "0.4-SNAPSHOT"
 
-organization := "org.scala-tools.sindi.examples"
+organization := "org.scala-tools.sindi"
 
 scalaVersion := "2.9.1"
 
