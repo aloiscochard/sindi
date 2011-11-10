@@ -9,7 +9,6 @@
 //
 
 // TODO [aloiscochard] Add assertions (security checks)
-// TODO [aloiscochard] Improve Provider handling/implementation
 
 /** Sindi IoC Container APIs.
   *
@@ -44,14 +43,14 @@ package sindi {
 
     protected lazy val modules: Modules = Nil
 
+    override def processors: List[processor.Processor[_]] = processor.option :: processor.either :: Nil
+
     def from[M <: Module : Manifest]: M = modules.view.flatMap(Helper.moduleOf[M](_)).headOption match {
       case Some(module) => module
       case _ => throw ModuleNotFoundException(manifest[M])
     }
 
     def module(l: List[binder.binding.Binding[AnyRef]]) = new Module { override val bindings = l }
-
-    override protected def processing: List[processor.Processor[_]] = processor.option :: processor.either :: Nil
   }
 
   abstract class Provider[T <: AnyRef : Manifest] extends binder.binding.provider.Provider[T] {

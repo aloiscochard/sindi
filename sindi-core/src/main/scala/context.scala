@@ -21,8 +21,6 @@ import processor.Processor
 trait Context extends Injector {
   /** Return the injector associated with this context. */
   lazy val injector: Injector = Injector(build)
-  /** Return the processors associated with this context. */
-  lazy val processors: List[Processor[_]] = processing
 
   /** Return the bindings associated with this context. */
   protected val bindings: List[binder.binding.Binding[_]] = Nil
@@ -32,13 +30,14 @@ trait Context extends Injector {
   override def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
     injector.injectionAll(qualifiers).map(process[T](qualifiers) _)
 
-  /** Return the processors associated with this context and all linked contexts. */
-  protected def processing: List[Processor[_]]
+  /** Return the processing associated with this context and all linked contexts. */
+  def processors: List[Processor[_]] = Nil
 
+  protected def processing: List[Processor[_]] = processors
   protected def build = bindings.map(_.build.asInstanceOf[Binding])
 
   private def process[T <: AnyRef : Manifest](qualifiers: Qualifiers)(injection: Injection[T]) = 
-    Processor.process[T](processors, this, qualifiers, injection)(manifest[T])
+    Processor.process[T](processing, this, qualifiers, injection)(manifest[T])
 }
 
 /** A trait adding hierarchical link to a [[sindi.context.Context]]. */
@@ -46,7 +45,7 @@ trait Childified extends Context {
   override lazy val injector = Injector(build, parent.injector _)
   protected val parent: Context
 
-  protected override def processing = {
+  override def processing = {
     @tailrec def collect(context: Context, acc: List[Processor[_]] = Nil): List[Processor[_]] = context match {
       case context: Childified => collect(context.parent, context.processors ++ acc)
       case _ => context.processors ++ acc

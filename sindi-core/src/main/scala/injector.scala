@@ -8,6 +8,9 @@
 //  http://aloiscochard.github.com/sindi
 //
 
+// TODO [aloiscochard] Implement injection using Option instead of Exception,
+// and throw exception in conveniance method. Big WIN for lazyness and factoring.
+
 package sindi
 package injector
 
@@ -22,6 +25,10 @@ object `package` {
 case class Qualifiers(q: AnyRef, next: Option[Qualifiers] = None) {
   def or(that: AnyRef) = Qualifiers(that, Some(this))
   def ||(that: AnyRef) = or(that)
+
+  def toList: List[AnyRef] = next match { case Some(next) => q :: next.toList; case None => q :: Nil }
+
+  override def toString = toList.mkString("(", " || ", ")")
 }
 
 object Injector {
@@ -93,10 +100,11 @@ private trait Bindable extends Injector {
 private trait Childable extends Injector {
   protected val parent: () => Injector
 
-  abstract override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
-    catching(classOf[TypeNotBoundException]).opt(parent().injectionAs[T](qualifiers)).getOrElse(super.injectionAs[T](qualifiers))
+  abstract override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) = () =>
+    catching(classOf[TypeNotBoundException]).opt(parent().injectAs[T](qualifiers))
+      .getOrElse(super.injectionAs[T](qualifiers).apply)
 
-  abstract override def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
+    abstract override def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
     super.injectionAll[T](qualifiers).append(parent().injectionAll[T](qualifiers))
 }
 
