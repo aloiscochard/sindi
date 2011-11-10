@@ -10,7 +10,7 @@ import sindi.examples.demo.services._
 import sindi.examples.demo.repository.RepositoryModule
 
 class Bootstrap extends Context with UserServiceComponent with TaskServiceComponent {
-  override lazy val modules = new RepositoryModule :: Nil
+  override lazy val modules = new UserServiceModule :: new RepositoryModule :: Nil
   val indexController = new ComponentContext with IndexController
   val tasksController = new ComponentContext with TasksController
   users.load(User("aloiscochard", "Alois Cochard"))
