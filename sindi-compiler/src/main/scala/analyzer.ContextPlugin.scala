@@ -76,7 +76,7 @@ abstract class ContextPlugin (override val global: Global) extends AnalyzisPlugi
     def getQualifiers(tree: Tree) = {
       // TODO Add support of dynamic qualifier (injectAs[Foo](qualifier[Bar] || "foo"))
       val qualifiers = find[Apply](tree.children)((t) => t match {
-        case t: Apply if t.tpe.typeSymbol.isSubClass(symQualifier) => Some(t)
+        case t: Apply if t.tpe.typeSymbol.isSubClass(symQualifiers) => Some(t)
         case _ => None
       }).map((tree) => collect[TypeTree](tree.children)((tree) => tree match {
         case tree: TypeTree => Some(tree)

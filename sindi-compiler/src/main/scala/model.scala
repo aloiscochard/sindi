@@ -38,7 +38,7 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   protected final val symModule = global.definitions.getClass(manifest[sindi.Module].erasure.getName)
   protected final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
   protected final val symModuleManifest = global.definitions.getClass(manifest[sindi.ModuleManifest[_]].erasure.getName)
-  protected final val symQualifier = global.definitions.getClass(manifest[sindi.injector.Qualifier].erasure.getName)
+  protected final val symQualifiers = global.definitions.getClass(manifest[sindi.injector.Qualifiers].erasure.getName)
 
   case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Entity]) {
     override def toString = prettyFormatter(toJson)

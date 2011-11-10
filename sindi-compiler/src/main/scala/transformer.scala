@@ -54,7 +54,8 @@ abstract class TransformerPlugin(override val global: Global) extends AnalyzerPl
                 },{
                   // DEF
                   val defSym = clazz.newMethod(clazz.pos.focus, newTermName(name))
-                  defSym setFlag (METHOD | STABLE | ACCESSOR)
+                  //defSym.setFlag (METHOD | STABLE | ACCESSOR)
+                  defSym.setFlag (METHOD)
                   defSym setInfo MethodType(defSym.newSyntheticValueParams(Nil), tpe)
                   clazz.info.decls enter defSym
                   localTyper.typed(DEF(defSym) === { THIS(clazz) DOT newTermName(name + " ") })
