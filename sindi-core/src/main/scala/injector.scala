@@ -24,6 +24,7 @@ object `package` {
   type Injection[T] = () => T
 }
 
+/** A case class containing a collection of qualifier. */
 case class Qualifiers(current: AnyRef, next: Option[Qualifiers] = None) {
   def or(that: AnyRef) = Qualifiers(that, Some(this))
   def ||(that: AnyRef) = or(that)
@@ -69,7 +70,7 @@ trait Injector {
 }
 
 private trait Bindable extends Injector {
-  val bindings : List[Binding]
+  protected val bindings : List[Binding]
 
   override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) = () =>
     qualifiers.next.flatMap(qualifiers => catching(classOf[TypeNotBoundException]).opt(injectAs[T](qualifiers))).getOrElse {
@@ -110,8 +111,8 @@ private trait Childable extends Injector {
     super.injectionAll[T](qualifiers).append(parent().injectionAll[T](qualifiers))
 }
 
-private class DefaultInjector(override val bindings : List[Binding])
+private class DefaultInjector(override protected val bindings : List[Binding])
   extends Injector with Bindable
 
-private class ChildedInjector(override val bindings : List[Binding], override val parent: () => Injector)
+private class ChildedInjector(override protected val bindings : List[Binding], override val parent: () => Injector)
   extends DefaultInjector(bindings) with Childable

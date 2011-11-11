@@ -45,7 +45,7 @@ trait Childified extends Context {
   override lazy val injector = Injector(build, parent.injector _)
   protected val parent: Context
 
-  override def processing = {
+  override protected def processing = {
     @tailrec def collect(context: Context, acc: List[Processor[_]] = Nil): List[Processor[_]] = context match {
       case context: Childified => collect(context.parent, context.processors ++ acc)
       case _ => context.processors ++ acc

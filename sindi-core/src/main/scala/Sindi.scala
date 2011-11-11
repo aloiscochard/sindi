@@ -42,6 +42,7 @@ package sindi {
   trait Context extends context.Context with binder.DSL with Composable {
     implicit val `implicit` = this
 
+    /** Return the list of [[sindi.Module]] associated with this context. */
     protected lazy val modules: Modules = Nil
 
     override def processors: List[processor.Processor[_]] = processor.option :: processor.either :: Nil
