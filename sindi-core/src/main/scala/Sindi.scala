@@ -39,7 +39,7 @@ package sindi {
   object Modules { def apply(modules: Module*): Modules = modules.toList }
 
   /** Context who contain bindings informations and dependencies to modules. */
-  trait Context extends context.Context with binder.DSL with Composable {
+  trait Context extends context.Context with context.Wirable with binder.DSL with Composable {
     implicit val `implicit` = this
 
     /** Return the list of [[sindi.Module]] associated with this context. */
@@ -53,13 +53,31 @@ package sindi {
     }
 
     def module(l: List[binder.binding.Binding[AnyRef]]) = new Module { override val bindings = l }
+
+    abstract override protected def wire[T <: AnyRef : Manifest]: Option[T] = super.wire[T].orElse {
+      import scala.util.control.Exception._
+
+      modules.view.flatMap((module) => {
+        module.getClass.getDeclaredMethods.filter((m) => Manifest.classType[AnyRef](m.getReturnType) <:< manifest[T])
+          .flatMap {
+            case method if method.getParameterTypes.size == 0 => Some(method.invoke(module).asInstanceOf[T])
+            case method => {
+              // TODO [aloiscochard] Cache arguments injection / or recursive autowiring
+              val values = method.getParameterTypes.toList.map(Manifest.classType[AnyRef](_))
+                .flatMap((m) => catching(classOf[TypeNotBoundException]).opt(inject(m)))
+              if (values.size == method.getParameterTypes.size) { Some(method.invoke(module, values:_*).asInstanceOf[T]) }
+              else None
+            }
+          }
+      }).headOption
+    }
   }
 
   abstract class Provider[T <: AnyRef : Manifest] extends provider.Provider[T] {
     override val signature = manifest[T]
   }
 
-  abstract class Module(implicit context: Context) extends Context with context.Childified {
+  abstract class Module(implicit context: Context) extends Context with context.Childable {
     override protected val parent = context
   }
 
@@ -68,6 +86,12 @@ package sindi {
   }
 
   class ModuleManifest[M <: Module : Manifest]
+
+
+  trait Composable {
+    /** (compiler-plugin: Unsafe to use injection or autowiring ... )*/
+    protected def from[M <: Module : Manifest]: M
+  }
 
   trait Component extends Composable
 
@@ -83,9 +107,8 @@ package sindi {
   case class ModuleNotFoundException(module: Manifest[_]) extends Exception(
     "Unable to inject from module %s: module not found.".format(module))
 
-  case class TypeNotBoundException(message: String) extends Exception(message)
-
-  private[sindi] trait Composable { protected def from[M <: Module : Manifest]: M }
+  case class TypeNotBoundException(manifest: Manifest[_], message: String = "") extends Exception(
+    ("Unable to inject %s" + message + ": type is not bound.").format(manifest))
 
   private object Helper {
     def moduleOf[M <: Module : Manifest](module: Module): Option[M] =

@@ -12,11 +12,9 @@ package sindi
 
 import org.specs2.mutable._
 
-// TODO [aloiscochard] Add hierarchical tests
-
 class FunctionalSpec extends Specification {
 
-  "Sindi" should {
+  "Sindi Context" should {
     "throw an exception when type is not bound" in {
       class Foo extends Context
       new Foo().inject[String] must throwAn[TypeNotBoundException]
@@ -161,5 +159,57 @@ class FunctionalSpec extends Specification {
       foo.injectAll[String]("sindi").toList mustEqual List("sindi")
       foo.injectAll[String]("scala" || "sindi").toList mustEqual List("sindi")
     }
+
+    "autowire class" in {
+      class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
+      new Foo().autowire[TClass].name mustEqual "sindi"
+      new Context{}.autowire[TClass] must throwAn[TypeNotBoundException]
+    }
+
+    "autowire case class" in {
+      class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
+      new Foo().autowire[TCaseClass].name mustEqual "sindi"
+      new Context{}.autowire[TCaseClass] must throwAn[TypeNotBoundException]
+    }
+    "autowire tuple" in {
+      class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
+      val foo = new Foo
+      foo.autowireT[(String, String)] mustEqual ("sindi", "sindi")
+      foo.autowireT[(String, Int)] must throwAn[TypeNotBoundException]
+    }
+
+    "autowire function" in {
+      class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
+      val f = (s: String) => "hello " + s
+      new Foo().autowire(f).apply mustEqual "hello sindi"
+    }
+  }
+
+  "Sindi Context with Module" should {
+
+    "autowire imported modules definitions" in {
+      class Bar(implicit context: Context) extends Module { override val bindings: Bindings = bind[String] to "sindi" }
+      class Foo extends Context { override lazy val modules: Modules = new Bar { def x = inject[String] } :: Nil}
+      new Foo().autowire[TClass].name mustEqual "sindi" 
+    }
+
+    "autowire imported modules definitions by injecting arguments" in {
+      class Helper { def f(s: String) = "hello " + s }
+
+      class Bar(implicit context: Context) extends Module {
+        override val bindings: Bindings = bind[String] to "sindi"
+        def x(h: Helper) = h.f(inject[String])
+      }
+
+      class Foo extends Context {
+        override lazy val modules: Modules = new Bar :: Nil
+        override val bindings: Bindings = bind[Helper] to new Helper
+      }
+
+      new Foo().autowire[TClass].name mustEqual "hello sindi" 
+    }
   }
 }
+
+class TClass(val name: String = "scala")
+case class TCaseClass(name: String = "scala")

@@ -8,9 +8,6 @@
 //  http://aloiscochard.github.com/sindi
 //
 
-// TODO [aloiscochard] Implement injection using Option instead of Exception,
-// and throw exception in conveniance method. Big WIN for lazyness and factoring.
-
 package sindi
 package injector
 
@@ -77,8 +74,10 @@ private trait Bindable extends Injector {
       bindings.view.filter(isBound(_)(manifest[T])(qualifiers.current))
         .map { case (p, _) => p().asInstanceOf[T] }
         .headOption.getOrElse {
-          val q = if (qualifiers == None) { "" } else { " with qualifiers %s".format(qualifiers) }
-          throw TypeNotBoundException(("Unable to inject %s" + q + ": type is not bound.").format(manifest[T]))
+          throw TypeNotBoundException(manifest[T], qualifiers match {
+            case Qualifiers(None, None) => ""
+            case qualifiers => " with qualifiers %s".format(qualifiers)
+          })
         }
     }
 
