@@ -13,6 +13,7 @@ package processor
 
 import scala.util.control.Exception._
 
+import exception._
 import injector.{Injector, Injection, Qualifiers}
 
 object `package` {

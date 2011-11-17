@@ -17,32 +17,37 @@ import scala.collection.immutable.{HashMap, List, Map}
 import injector.{Binding, Injector, Injection, Qualifiers}
 import processor.Processor
 
-/** An interface containing operations for contextual object injection. */
+/** A trait providing operations for object injection using a delegated [[sindi.injector.Injector]],
+  * which is encapsulated using a processing system.
+  *
+  * The processing system is set-up using a list of [[sindi.processor.Processor]].
+  */
 trait Context extends Injector {
   /** Return the injector associated with this context. */
-  lazy val injector: Injector = Injector(build)
+  lazy val injector: Injector = Injector(bounds)
 
   /** Return the bindings associated with this context. */
-  protected val bindings: List[binder.binding.Binding[_]] = Nil
+  protected val bindings: Bindings = Nil
 
   override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
     process[T](qualifiers)(injector.injectionAs[T](qualifiers))
   override def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
     injector.injectionAll(qualifiers).map(process[T](qualifiers) _)
 
-  /** Return the processing associated with this context and all linked contexts. */
+  /** Return the processors associated with this context. */
   def processors: List[Processor[_]] = Nil
 
   protected def processing: List[Processor[_]] = processors
-  protected def build = bindings.map(_.build.asInstanceOf[Binding])
+  protected def bounds = bindings.map(_.build.asInstanceOf[Binding])
 
   private def process[T <: AnyRef : Manifest](qualifiers: Qualifiers)(injection: Injection[T]) = 
     Processor.process[T](processing, this, qualifiers, injection)(manifest[T])
 }
 
-/** A trait adding hierarchical link to a [[sindi.context.Context]]. */
+/** A trait adding hierarchical relationship to a [[sindi.context.Context]]. */
 trait Childable extends Context {
-  override lazy val injector = Injector(build, parent.injector _)
+  /** Return the injector associated with this context. */
+  override lazy val injector = Injector(bounds, parent.injector _)
   protected val parent: Context
 
   override protected def processing = {
@@ -58,9 +63,11 @@ trait Childable extends Context {
 trait Wirable extends Context {
   import java.lang.reflect.Constructor
   import scala.util.control.Exception._
+  import exception._
 
   // TODO [aloiscochard] Improve exception message details
 
+  /** Autowire given type. */
   final def autowire[T <: AnyRef : Manifest]: T = {
     // TODO [aloiscochard] support companion methods + inner class + java statics + filter tuple and others jewel
     val create = (constructor: Constructor[_]) => (values: List[AnyRef]) => constructor.newInstance(values:_*).asInstanceOf[T]
@@ -69,12 +76,14 @@ trait Wirable extends Context {
       wireFirst[T](manifest[T], constructors)
   }
 
+  /** Autowire given function. */
   final def autowire[T <: AnyRef : Manifest, R](f: Function[T, R]): Function0[R] = {
     val newFunction = (values: List[AnyRef]) => () => f(values(0).asInstanceOf[T]).asInstanceOf[R]
     wireFirst[Function0[R]](manifest[T], List(List(manifest[T]) -> newFunction))
   }
 
   // TODO [aloiscochard] Use templating or scalamacros to support all TupleX / FunctionX
+  /** Autowire given tuple type. */
   final def autowireT[T <: Tuple2[_, _] : Manifest]: T = {
     val newTuple = (values: List[AnyRef]) => (values(0), values(1)).asInstanceOf[T]
     wireFirst[T](manifest[T], (List(manifest[T].typeArguments -> newTuple)))

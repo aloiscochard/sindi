@@ -35,9 +35,9 @@ private trait Scopable[T <: AnyRef] extends Binding[T] {
   protected val scoper: () => Any
 
   override def build = super.build match {
-    case (provider, qualifier) => (Provider(provider.signature) { 
+    case (provider, qualifier) => (Provider { 
       registry.getOrElseUpdate(scoper().hashCode, new WeakReference[T](provider())).apply
-    }, qualifier)
+    }(provider.signature), qualifier)
     
   }
 }

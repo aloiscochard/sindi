@@ -6,8 +6,9 @@ import sindi._
 import model._
 import store._
 
-class RepositoryModule(implicit val context: Context) extends Module { 
-  override lazy val modules = new StoreModule[Task](this) :: new StoreModule[User](this) :: Nil
+final class RepositoryModule(implicit context: Context) extends Module { 
+  //override lazy val modules = new StoreModule[Task](this) :: new StoreModule[User](this) :: Nil
+  override lazy val modules = new StoreModule[Task] :: new StoreModule[User] :: Nil
 
   lazy val repository = Repository(from[StoreModule[User]].store, from[StoreModule[Task]].store)
 }

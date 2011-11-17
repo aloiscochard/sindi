@@ -12,6 +12,8 @@ package sindi
 
 import org.specs2.mutable._
 
+import exception._
+
 class FunctionalSpec extends Specification {
 
   "Sindi Context" should {
@@ -188,8 +190,11 @@ class FunctionalSpec extends Specification {
   "Sindi Context with Module" should {
 
     "autowire imported modules definitions" in {
-      class Bar(implicit context: Context) extends Module { override val bindings: Bindings = bind[String] to "sindi" }
-      class Foo extends Context { override lazy val modules: Modules = new Bar { def x = inject[String] } :: Nil}
+      class Bar(implicit context: Context) extends Module {
+        override val bindings: Bindings = bind[String] to "sindi" 
+        def x = inject[String]
+      }
+      class Foo extends Context { override lazy val modules: Modules = new Bar :: Nil}
       new Foo().autowire[TClass].name mustEqual "sindi" 
     }
 

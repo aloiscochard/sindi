@@ -14,14 +14,16 @@ package injector
 import scala.Stream._
 import scala.util.control.Exception._
 
+import exception._
 import provider._
 
 object `package` {
   type Binding = Tuple2[Provider[AnyRef], AnyRef]
+  type Bindings = Seq[Tuple2[Provider[AnyRef], AnyRef]]
   type Injection[T] = () => T
 }
 
-/** A case class containing a collection of qualifier. */
+/** A sequence of qualifier. */
 case class Qualifiers(current: AnyRef, next: Option[Qualifiers] = None) {
   def or(that: AnyRef) = Qualifiers(that, Some(this))
   def ||(that: AnyRef) = or(that)
@@ -32,9 +34,9 @@ case class Qualifiers(current: AnyRef, next: Option[Qualifiers] = None) {
 }
 
 object Injector {
-  def apply(bindings : List[Binding]): Injector =
+  def apply(bindings : Bindings): Injector =
     new DefaultInjector(bindings)
-  def apply(bindings : List[Binding], parent: () => Injector): Injector = 
+  def apply(bindings : Bindings, parent: () => Injector): Injector = 
     new ChildedInjector(bindings, parent)
 }
 
@@ -67,7 +69,7 @@ trait Injector {
 }
 
 private trait Bindable extends Injector {
-  protected val bindings : List[Binding]
+  protected val bindings: Bindings
 
   override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) = () =>
     qualifiers.next.flatMap(qualifiers => catching(classOf[TypeNotBoundException]).opt(injectAs[T](qualifiers))).getOrElse {
@@ -110,8 +112,8 @@ private trait Childable extends Injector {
     super.injectionAll[T](qualifiers).append(parent().injectionAll[T](qualifiers))
 }
 
-private class DefaultInjector(override protected val bindings : List[Binding])
+private class DefaultInjector(override protected val bindings : Bindings)
   extends Injector with Bindable
 
-private class ChildedInjector(override protected val bindings : List[Binding], override val parent: () => Injector)
+private class ChildedInjector(override protected val bindings : Bindings, override val parent: () => Injector)
   extends DefaultInjector(bindings) with Childable
