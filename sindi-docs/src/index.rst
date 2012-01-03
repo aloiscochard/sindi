@@ -9,10 +9,3 @@ Table of contents:
     basic
     advanced
     addendum
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
-
