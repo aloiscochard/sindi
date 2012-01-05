@@ -16,6 +16,8 @@ you should keep in mind that Sindi take a different approach than other traditio
 In this regards please take a look at the wiki page
 "`How does Sindi compare with X? <http://github.com/aloiscochard/sindi/wiki/Comparison>`_" before continuing your reading here.
 
+/!\ EXPLAIN COMPILER PLUGIN
+
 And now let's familiarize with Sindi's core concepts!
 
 .. toctree::
