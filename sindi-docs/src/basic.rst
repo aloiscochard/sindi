@@ -14,9 +14,23 @@ If you already know an other IoC/DI framework,
 you should keep in mind that Sindi take a different approach than other traditional frameworks.
 
 In this regards please take a look at the wiki page
-"`How does Sindi compare with X? <http://github.com/aloiscochard/sindi/wiki/Comparison>`_" before continuing your reading here.
+"`How does Sindi compare with X? <http://github.com/aloiscochard/sindi/wiki/Comparison>`_"
+before continuing your reading here.
 
-/!\ EXPLAIN COMPILER PLUGIN
+The framework is composed of two main artifacts:
+ * sindi-core: A library providing IoC functionalities
+ * sindi-compiler: Compiler plugin that resolve and check dependencies during compilation
+
+The compiler plugin is totally **optional**,
+you can use Sindi without it but you'll miss some very helpful feature and unfortunatly,
+you take the risk of having your **application crashing at runtime due to missing dependecies**.
+
+*Every features who are specific to the usage of the compiler plugin
+are clearly mentioned as such in this guide.*
+
+It can be handy to have a small project to experiment with Sindi while reading this documentation, the wiki page
+"`Download <http://github.com/aloiscochard/sindi/wiki/Download>`_"
+give detailed instructions about how Sindi can be integrated in a SBT/Maven project.
 
 And now let's familiarize with Sindi's core concepts!
 
