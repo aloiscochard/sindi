@@ -6,4 +6,5 @@ Advanced
 
     advanced/modulet
     advanced/provider
+    advanced/scope
     advanced/processor
