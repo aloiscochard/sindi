@@ -4,11 +4,20 @@ Sindi is an IoC ([Inversion of Control](http://martinfowler.com/articles/injecti
  * User Guide: [http://aloiscochard.github.com/sindi](http://aloiscochard.github.com/sindi)
  * Mailling List: [http://groups.google.com/group/sindi-users](http://groups.google.com/group/sindi-users)
 
+## Contribution Policy
+
+Contributions via GitHub pull requests are gladly accepted from their original author.
+Along with any pull requests, please state that the contribution is your original work and 
+that you license the work to the project under the project's open source license.
+Whether or not you state this explicitly, by submitting any copyrighted material via pull request, 
+email, or other means you agree to license the material under the project's open source license and 
+warrant that you have the legal authority to do so.
+
 ## License
 
     This software is licensed under the Apache 2 license, quoted below.
 
-    Copyright 2009-2011 Alois Cochard 
+    Copyright 2009-2012 Alois Cochard 
 
     Licensed under the Apache License, Version 2.0 (the "License"); you may not
     use this file except in compliance with the License. You may obtain a copy of
