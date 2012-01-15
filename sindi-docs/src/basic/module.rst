@@ -8,5 +8,7 @@ Let's take a look at this simple modularization use case (arrows indicate "depen
              
 .. image:: /images/basic_module_01.png
 
+When designing application with an IoC container, you want to avoid coupling as much as possible.
+For instance, ModuleC could be self-contained in a jar file and he doesn't need other modules to be used.
 
           
