@@ -35,7 +35,8 @@ trait DSL {
     /** Assign given injection to this binding declaration as cached provider. */
     def to(injection: => T): SimpleBind[T] = to(Provider.cached(injection))
     /** Assign given provider to this binding declaration. */
-    def to(provider: Provider[T]): SimpleBind[T] = new SimpleBind[T](provider)
+    def to[P <: T : Manifest](provider: Provider[P]): SimpleBind[T] =
+      new SimpleBind[T](provider)//.asInstanceOf[SimpleBind[T]]
   }
 
   protected sealed abstract class Bind[T <: AnyRef : Manifest] extends Binder {

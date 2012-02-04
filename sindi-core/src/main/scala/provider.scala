@@ -12,9 +12,9 @@ package sindi
 package provider
 
 /** An injection provider. */
-trait Provider[T <: AnyRef] extends Function0[T] {
+trait Provider[+T <: AnyRef] extends Function0[T] {
   /** Return the signature (scope defining which type can be applied to this provider). */
-  val signature: Manifest[T]
+  val signature: Manifest[_]
   def apply(): T
 }
 
@@ -22,9 +22,16 @@ trait Provider[T <: AnyRef] extends Function0[T] {
 object Provider {
   /** Return a new provider for a given function (provider signature is defined using implicit manifest). */
   def apply[T <: AnyRef : Manifest](f: => T): Provider[T] = new Provider[T] {
-    val signature: Manifest[T] = manifest[T]
+    val signature = manifest[T]
     def apply() = f
   }
+
+  /** Return a new provider for a given function and explicit manifest. */
+  def create[T <: AnyRef](f: => T, manifest: Manifest[_]): Provider[T] = new Provider[T] {
+    val signature = manifest
+    def apply() = f
+  }
+
   /** Return a new cached provider for a given function.
    *
    * Function is applied only once when the provider is called the first time,
