@@ -1,0 +1,157 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &mdash; Sindi User Guide</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.3-SNAPSHOT',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Sindi User Guide" href="index.html" />
+    <link rel="next" title="Context" href="basic/context.html" />
+    <link rel="prev" title="Welcome" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="basic/context.html" title="Context"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome"
+             accesskey="P">previous</a> |</li>
+<li><a href="http://aloiscochard.github.com/sindi/">Sindi</a> &raquo;</li>
+
+        <li><a href="index.html">User Guide</a> &raquo;</li>
+ 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="basic/context.html"
+                        title="next chapter">Context</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/basic.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>Welcome to the Sindi IoC Container official documentation!</p>
+<p>This guide will explain you what you can achieve with Sindi and how to do so,
+but it won&#8217;t explain you why/how using IoC to achieve a well crafted modular architecture.</p>
+<dl class="docutils">
+<dt>If your looking for an introduction to IoC, here is some resources that might be of interest to you:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="http://martinfowler.com/bliki/InversionOfControl.html">Inversion of Control</a></li>
+<li><a class="reference external" href="http://martinfowler.com/articles/injection.html">IoC and the DI pattern</a></li>
+</ul>
+</dd>
+</dl>
+<p>If you already know an other IoC/DI framework,
+you should keep in mind that Sindi take a different approach than others traditionals frameworks.</p>
+<p>In this regards please take a look at the wiki page
+&#8220;<a class="reference external" href="http://github.com/aloiscochard/sindi/wiki/Comparison">How does Sindi compare with X?</a>&#8221;
+before continuing your reading here.</p>
+<dl class="docutils">
+<dt>The framework is composed of two main artifacts:</dt>
+<dd><ul class="first last simple">
+<li>sindi-core: A library providing IoC functionalities</li>
+<li>sindi-compiler: A compiler plugin that resolve and check dependencies during compilation</li>
+</ul>
+</dd>
+</dl>
+<p>The compiler plugin is totally <strong>optional</strong>,
+you can use Sindi without it but you&#8217;ll miss some very helpful feature and unfortunatly,
+you take the risk of having your <strong>application crashing at runtime due to missing dependecies</strong>.</p>
+<p><em>Every features who are specific to the usage of the compiler plugin
+are clearly mentioned as such in this guide.</em></p>
+<p>It can be handy to have a small project to experiment with Sindi while reading this documentation, give a look at the wiki page
+&#8220;<a class="reference external" href="http://github.com/aloiscochard/sindi/wiki/Download">Download</a>&#8221;
+to integrate Sindi in a SBT or Maven project.</p>
+<p>You can find a ready to use project with all examples used in this guide
+<a class="reference external" href="http://github.com/aloiscochard/sindi/blob/0.4/sindi-examples/userguide/">here</a>.</p>
+<p>And now let&#8217;s familiarize with Sindi&#8217;s core concepts!</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="basic/context.html">Context</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic/module.html">Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic/component.html">Component</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="basic/context.html" title="Context"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome"
+             >previous</a> |</li>
+<li><a href="http://aloiscochard.github.com/sindi/">Sindi</a> &raquo;</li>
+
+        <li><a href="index.html">User Guide</a> &raquo;</li>
+ 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Alois Cochard.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

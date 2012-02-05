@@ -1,0 +1,323 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>sindi</title>
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link type="text/css" media="screen" rel="stylesheet" href="../lib/template.css" />
+      <script type="text/javascript" src="../lib/jquery.js"></script>
+      <script type="text/javascript" src="../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../lib/template.js"></script>
+      <script type="text/javascript" src="../lib/tools.tooltip.js"></script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../lib/package_big.png" />
+        
+        <h1>sindi</h1>
+      </div>
+
+      <h4 class="signature" id="signature">
+      <span class="kind">package</span>
+      <span class="symbol"> 
+        <span class="name">sindi</span>
+        
+        
+      </span>
+      </h4>
+      
+          <div class="fullcommenttop" id="comment"><div class="comment cmt"><p>Sindi IoC Container APIs.</p><p><a name="sindi.Module" class="extype" href="Module.html">Module</a> is used as the basic building block to design loosely coupled and reconfigurable librairies with Sindi.</p><p>Modules are composable and can be consumed in <a name="sindi.Context" class="extype" href="Context.html">Context</a> and <a name="sindi.Component" class="extype" href="Component.html">Component</a>.
+</p></div></div>
+        
+
+      <div id="template">
+
+        <div id="mbrsel">
+          <div id="textfilter"><span class="pre"></span><span class="input"><input accesskey="/" type="text" /></span><span class="post"></span></div>
+          
+          
+          <div id="visbl">
+              <span class="filtertype">Visibility</span>
+              <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+            </div>
+        </div>
+
+        
+
+        <div class="types members" id="types">
+              <h3>Type Members</h3>
+              <ol><li visbl="pub" name="sindi.package#Bindings" data-isabs="false">
+      <a id="Bindings:Bindings"></a>
+      <h4 class="signature">
+      <span class="kind">type</span>
+      <span class="symbol"> 
+        <span class="name">Bindings</span>
+        
+        <span class="result"> = <span name="scala.collection.Seq" class="extype">Seq</span>[<a name="sindi.binder.binding.Binding" class="extype" href="binder/binding/Binding.html">Binding</a>[AnyRef]]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">A sequence of bindings.</p><div class="fullcomment"><div class="comment cmt"><p>A sequence of bindings.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a name="sindi.package" class="extype" href="package$.html">package</a></dd></dl></div>
+    </li><li visbl="pub" name="sindi.Component" data-isabs="true">
+      <a id="Component:Component"></a>
+      <h4 class="signature">
+      <span class="kind">trait</span>
+      <span class="symbol"> 
+        <a href="Component.html"><span class="name">Component</span></a>
+        
+        <span class="result"> extends Composable</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A component is a set of features based on module's services.</p>
+    </li><li visbl="pub" name="sindi.ComponentContext" data-isabs="true">
+      <a id="ComponentContext:ComponentContext"></a>
+      <h4 class="signature">
+      <span class="kind">class</span>
+      <span class="symbol"> 
+        <a href="ComponentContext.html"><span class="name">ComponentContext</span></a>
+        
+        <span class="result"> extends Composable</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A component context is an abstract class that ease the composition of components into context/module.</p>
+    </li><li visbl="pub" name="sindi.ComponentWith" data-isabs="true">
+      <a id="ComponentWith:ComponentWith[C]"></a>
+      <h4 class="signature">
+      <span class="kind">trait</span>
+      <span class="symbol"> 
+        <a href="ComponentWith.html"><span class="name">ComponentWith</span></a>
+        <span class="tparams">[<span name="C">C &lt;: Context</span>]</span>
+        <span class="result"> extends Composable</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A base trait for integrating components with global contexts.</p>
+    </li><li visbl="pub" name="sindi.Composable" data-isabs="true">
+      <a id="Composable:Composable"></a>
+      <h4 class="signature">
+      <span class="kind">trait</span>
+      <span class="symbol"> 
+        <a href="Composable.html"><span class="name">Composable</span></a>
+        
+        <span class="result"> extends AnyRef</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A marker trait for type importing modules.</p>
+    </li><li visbl="pub" name="sindi.Context" data-isabs="true">
+      <a id="Context:Context"></a>
+      <h4 class="signature">
+      <span class="kind">trait</span>
+      <span class="symbol"> 
+        <a href="Context.html"><span class="name">Context</span></a>
+        
+        <span class="result"> extends Context with Wirable with DSL with Composable</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A context is a collection of bindings and modules, it contains operations to wire compounds together.</p>
+    </li><li visbl="pub" name="sindi.Module" data-isabs="true">
+      <a id="Module:Module"></a>
+      <h4 class="signature">
+      <span class="kind">class</span>
+      <span class="symbol"> 
+        <a href="Module.html"><span class="name">Module</span></a>
+        
+        <span class="result"> extends Context with Childable</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A module is a collection of services which are configured using bindings.</p>
+    </li><li visbl="pub" name="sindi.package.ModuleManifest" data-isabs="false">
+      <a id="ModuleManifest:ModuleManifest[M]"></a>
+      <h4 class="signature">
+      <span class="kind">class</span>
+      <span class="symbol"> 
+        <a href="package$$ModuleManifest.html"><span class="name">ModuleManifest</span></a>
+        <span class="tparams">[<span name="M">M &lt;: Module</span>]</span>
+        <span class="result"> extends AnyRef</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A module manifest store safely a module type reference.</p>
+    </li><li visbl="pub" name="sindi.ModuleT" data-isabs="true">
+      <a id="ModuleT:ModuleT[T]"></a>
+      <h4 class="signature">
+      <span class="kind">class</span>
+      <span class="symbol"> 
+        <a href="ModuleT.html"><span class="name">ModuleT</span></a>
+        <span class="tparams">[<span name="T">T</span>]</span>
+        <span class="result"> extends Module</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A class to declare type parameterized module that can be consumed safely.</p>
+    </li><li visbl="pub" name="sindi.package#Modules" data-isabs="false">
+      <a id="Modules:Modules"></a>
+      <h4 class="signature">
+      <span class="kind">type</span>
+      <span class="symbol"> 
+        <span class="name">Modules</span>
+        
+        <span class="result"> = <span name="scala.collection.Seq" class="extype">Seq</span>[<a name="sindi.Module" class="extype" href="Module.html">Module</a>]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">A sequence of <a name="sindi.Module" class="extype" href="Module.html">Module</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A sequence of <a name="sindi.Module" class="extype" href="Module.html">Module</a>.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a name="sindi.package" class="extype" href="package$.html">package</a></dd></dl></div>
+    </li><li visbl="pub" name="sindi.package#Processors" data-isabs="false">
+      <a id="Processors:Processors[T]"></a>
+      <h4 class="signature">
+      <span class="kind">type</span>
+      <span class="symbol"> 
+        <span class="name">Processors</span>
+        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="result"> = <span name="scala.collection.Seq" class="extype">Seq</span>[<a name="sindi.processor.Processor" class="extype" href="processor/Processor.html">Processor</a>[T]]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">A sequence of <a name="sindi.processor.Processor" class="extype" href="processor/Processor.html">Processor</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A sequence of <a name="sindi.processor.Processor" class="extype" href="processor/Processor.html">Processor</a>.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a name="sindi.package" class="extype" href="package$.html">package</a></dd></dl></div>
+    </li><li visbl="pub" name="sindi.Provider" data-isabs="true">
+      <a id="Provider:Provider[T]"></a>
+      <h4 class="signature">
+      <span class="kind">class</span>
+      <span class="symbol"> 
+        <a href="Provider.html"><span class="name">Provider</span></a>
+        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="result"> extends Provider[T]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">An injection provider with signature configured using parameterized type.</p>
+    </li></ol>
+            </div>
+        
+        
+
+        <div class="values members" id="values">
+              <h3>Value Members</h3>
+              <ol><li visbl="pub" name="sindi.Bindings" data-isabs="false">
+      <a id="Bindings:Bindings"></a>
+      <h4 class="signature">
+      <span class="kind">object</span>
+      <span class="symbol"> 
+        <a href="Bindings$.html"><span class="name">Bindings</span></a>
+        
+        <span class="result"> extends AnyRef</span>
+      </span>
+      </h4>
+      <p class="comment cmt">Bindings companion.</p>
+    </li><li visbl="pub" name="sindi.package.Modules" data-isabs="false">
+      <a id="Modules:Modules"></a>
+      <h4 class="signature">
+      <span class="kind">object</span>
+      <span class="symbol"> 
+        <a href="package$$Modules$.html"><span class="name">Modules</span></a>
+        
+        <span class="result"> extends AnyRef</span>
+      </span>
+      </h4>
+      <p class="comment cmt">A companion object for <a name="sindi.Module" class="extype" href="Module.html">Module</a> list construction.</p>
+    </li><li visbl="pub" name="sindi.package#any2qualifiers" data-isabs="false">
+      <a id="any2qualifiers(AnyRef):Qualifiers"></a>
+      <h4 class="signature">
+      <span class="kind">implicit def</span>
+      <span class="symbol"> 
+        <span class="name">any2qualifiers</span>
+        
+        <span class="params">(<span name="q">q: AnyRef</span>)</span><span class="result">: <a name="sindi.injector.Qualifiers" class="extype" href="injector/Qualifiers.html">Qualifiers</a></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Implicit conversion to construct qualifiers from any reference.</p><div class="fullcomment"><div class="comment cmt"><p>Implicit conversion to construct qualifiers from any reference.</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>implicit </dd><dt>Definition Classes</dt><dd><a name="sindi.package" class="extype" href="package$.html">package</a></dd></dl></div>
+    </li><li visbl="pub" name="sindi.binder" data-isabs="false">
+      <a id="binder:binder"></a>
+      <h4 class="signature">
+      <span class="kind">package</span>
+      <span class="symbol"> 
+        <a href="binder/package.html"><span class="name">binder</span></a>
+        
+        
+      </span>
+      </h4>
+      
+    </li><li visbl="pub" name="sindi.context" data-isabs="false">
+      <a id="context:context"></a>
+      <h4 class="signature">
+      <span class="kind">package</span>
+      <span class="symbol"> 
+        <a href="context/package.html"><span class="name">context</span></a>
+        
+        
+      </span>
+      </h4>
+      
+    </li><li visbl="pub" name="sindi.exception" data-isabs="false">
+      <a id="exception:exception"></a>
+      <h4 class="signature">
+      <span class="kind">package</span>
+      <span class="symbol"> 
+        <a href="exception/package.html"><span class="name">exception</span></a>
+        
+        
+      </span>
+      </h4>
+      
+    </li><li visbl="pub" name="sindi.injector" data-isabs="false">
+      <a id="injector:injector"></a>
+      <h4 class="signature">
+      <span class="kind">package</span>
+      <span class="symbol"> 
+        <a href="injector/package.html"><span class="name">injector</span></a>
+        
+        
+      </span>
+      </h4>
+      
+    </li><li visbl="pub" name="sindi.package#module" data-isabs="false">
+      <a id="module(Bindings)(Context):Module"></a>
+      <h4 class="signature">
+      <span class="kind">def</span>
+      <span class="symbol"> 
+        <span class="name">module</span>
+        
+        <span class="params">(<span name="_bindings">_bindings: Bindings</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="context">context: <a name="sindi.Context" class="extype" href="Context.html">Context</a></span>)</span><span class="result">: <a name="sindi.Module" class="extype" href="Module.html">Module</a></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Return a new module with given bindings (implicit context is defined as new module's parent).</p><div class="fullcomment"><div class="comment cmt"><p>Return a new module with given bindings (implicit context is defined as new module's parent).</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a name="sindi.package" class="extype" href="package$.html">package</a></dd></dl></div>
+    </li><li visbl="pub" name="sindi.processor" data-isabs="false">
+      <a id="processor:processor"></a>
+      <h4 class="signature">
+      <span class="kind">package</span>
+      <span class="symbol"> 
+        <a href="processor/package.html"><span class="name">processor</span></a>
+        
+        
+      </span>
+      </h4>
+      
+    </li><li visbl="pub" name="sindi.provider" data-isabs="false">
+      <a id="provider:provider"></a>
+      <h4 class="signature">
+      <span class="kind">package</span>
+      <span class="symbol"> 
+        <a href="provider/package.html"><span class="name">provider</span></a>
+        
+        
+      </span>
+      </h4>
+      
+    </li><li visbl="pub" name="sindi.package#qualifier" data-isabs="false">
+      <a id="qualifier[T](Manifest[T]):Manifest[T]"></a>
+      <h4 class="signature">
+      <span class="kind">def</span>
+      <span class="symbol"> 
+        <span class="name">qualifier</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
+        <span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: Manifest[T]</span>)</span><span class="result">: Manifest[T]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Return a qualifier for the given type.</p><div class="fullcomment"><div class="comment cmt"><p>Return a qualifier for the given type.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a name="sindi.package" class="extype" href="package$.html">package</a></dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+
+      </div>
+      
+      <div id="tooltip"></div>
+      
+    </body>
+      </html>

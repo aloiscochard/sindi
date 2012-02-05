@@ -1,0 +1,220 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Module &mdash; Sindi User Guide</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3-SNAPSHOT',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Sindi User Guide" href="../index.html" />
+    <link rel="up" title="Introduction" href="../basic.html" />
+    <link rel="next" title="Component" href="component.html" />
+    <link rel="prev" title="Context" href="context.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="component.html" title="Component"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="context.html" title="Context"
+             accesskey="P">previous</a> |</li>
+<li><a href="http://aloiscochard.github.com/sindi/">Sindi</a> &raquo;</li>
+
+        <li><a href="../index.html">User Guide</a> &raquo;</li>
+
+          <li><a href="../basic.html" accesskey="U">Introduction</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="context.html"
+                        title="previous chapter">Context</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="component.html"
+                        title="next chapter">Component</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/basic/module.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module">
+<h1>Module<a class="headerlink" href="#module" title="Permalink to this headline">¶</a></h1>
+<p>A <a class="reference external" href="http://aloiscochard.github.com/sindi/api/index.html#sindi.Module">module</a>
+provide services based on a configuration which can be overrided by the module container.</p>
+<p>Let&#8217;s take a look at this simple modularization use case (arrows indicate &#8220;depends on&#8221;):</p>
+<img alt="../_images/basic_module_01.png" src="../_images/basic_module_01.png" />
+<p>When designing application with an IoC container, you want to avoid coupling as much as possible.
+For instance, ModuleC could be self-contained in a jar file and he doesn&#8217;t need other modules to be used.</p>
+<p>Let&#8217;s start with simple definition for ModuleC:</p>
+<div class="highlight-python"><pre>final class ModuleC(implicit context: Context) extends Module {
+  override val bindings: Bindings =
+    bind[ServiceC] to new DefaultServiceC
+
+  val service = inject[ServiceC]
+}
+
+trait ServiceC
+class DefaultServiceC extends ServiceC
+class AdvancedServiceC extends ServiceC</pre>
+</div>
+<p>As you can see, defining a module is basically creating a <em>class</em> extending <tt class="docutils literal"><span class="pre">Module</span></tt>.
+You must add an implicit class contructror of type <tt class="docutils literal"><span class="pre">Context</span></tt> in order to allow correct embedding of your module in other contexts.</p>
+<p>You can then define your binding(s) and expose your service(s) using <em>val</em>/<em>def</em>,
+depending if you want to expose your service as a <em>singleton</em> or not.</p>
+<p>It&#8217;s not mandatory but <strong>highly recommended</strong> to define your module as <em>final</em>.
+You should always prefer <strong>composition over inheritance</strong> when designing modules.</p>
+<p>That&#8217;s it! You created your first module, and low let&#8217;s see how we can consume it in ModuleB:</p>
+<div class="highlight-python"><pre>final class ModuleB(implicit context: Context) extends Module {
+  override lazy val modules = new ModuleC :: Nil
+
+  override val bindings: Bindings =
+    bind[ServiceB] to autowire[DefaultServiceB]
+
+    // Without autowiring:
+    //bind[ServiceB] to new DefaultServiceB(from[ModuleC].service)
+
+  val service = inject[ServiceB]
+}
+
+trait ServiceB { val c: ServiceC }
+class DefaultServiceB(override val c: ServiceC) extends ServiceB</pre>
+</div>
+<p>To import a module into an existant module/context,
+you just have to override the value <tt class="docutils literal"><span class="pre">modules</span></tt> and initalize it with a list containing the required modules.</p>
+<p>It&#8217;s <strong>highly recommended</strong> to declare modules as <tt class="docutils literal"><span class="pre">lazy</span> <span class="pre">val</span></tt> to unsure a correct initialization.</p>
+<p>Before putting alltogether in our application, let&#8217;s create ModuleA which consume ModuleB and override his bindings:</p>
+<div class="highlight-python"><pre>final class ModuleA(implicit context: Context) extends Module {
+  override lazy val modules = new ModuleC :: Nil
+
+  override val bindings = Bindings(
+    bind[ServiceA] to autowire[DefaultServiceA],
+    bind[ServiceC] to new AdvancedServiceC
+  )
+
+  val service = inject[ServiceA]
+}
+
+trait ServiceA { val c: ServiceC }
+class DefaultServiceA(override val c: ServiceC) extends ServiceA</pre>
+</div>
+<p>Simply defining a new binding for ServiceC will <strong>override</strong> the binding defined in ModuleC,
+let see that in action by creating a simple AppContext:</p>
+<div class="highlight-python"><pre>object AppContext extends Context {
+  override lazy val modules = new ModuleA :: new ModuleB :: Nil
+
+  val serviceA = from[ModuleA].service
+  val serviceB = from[ModuleB].service
+}</pre>
+</div>
+<p>And doing some inspection with REPL:</p>
+<div class="highlight-python"><pre>scala&gt; AppContext.serviceA.c
+res3: ServiceC = AdvancedServiceC@326dff70
+
+scala&gt; AppContext.serviceB.c
+res4: ServiceC = DefaultServiceC@2c9557e1</pre>
+</div>
+<p>Great! Now let&#8217;s say you want to override the <tt class="docutils literal"><span class="pre">ServiceC</span></tt> binding
+for all modules used by your application using a custom implementation,
+you can add your custom implementation anywhere but to keeping things simple let&#8217;s add it in our
+AppContext and define the new binding too:</p>
+<div class="highlight-python"><pre>object AppContext extends Context {
+  override lazy val modules = new ModuleA :: new ModuleB :: Nil
+
+  override val bindings: Bindings =
+    bind[ServiceC] to autowire[CustomServiceC]
+
+  class CustomServiceC extends ServiceC
+
+  val serviceA = from[ModuleA].service
+  val serviceB = from[ModuleB].service
+}</pre>
+</div>
+<p>Doing same inspection as before will prove both modules are now using our custom implementation:</p>
+<div class="highlight-python"><pre>scala&gt; AppContext.serviceA.c
+res0: ServiceC = AppContext$CustomServiceC@646282c1
+
+scala&gt; AppContext.serviceB.c
+res1: ServiceC = AppContext$CustomServiceC@646282c1</pre>
+</div>
+<p><em>It should be noted that both modules use the same service instance,
+this is because binding use by default a cached provider,
+to understand how to define uncached binding see</em> <a class="reference internal" href="../advanced/provider.html"><em>Provider</em></a> <em>documentation</em></p>
+<p>By the creation of modules you should now be comfortable designing with keeping a good separation of concerns,
+it&#8217;s now time to move to the last step in your journay to Sindi basics by looking at <a class="reference internal" href="component.html"><em>Component</em></a>.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="component.html" title="Component"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="context.html" title="Context"
+             >previous</a> |</li>
+<li><a href="http://aloiscochard.github.com/sindi/">Sindi</a> &raquo;</li>
+
+        <li><a href="../index.html">User Guide</a> &raquo;</li>
+
+          <li><a href="../basic.html" >Introduction</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Alois Cochard.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

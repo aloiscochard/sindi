@@ -1,0 +1,214 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Component &mdash; Sindi User Guide</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3-SNAPSHOT',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Sindi User Guide" href="../index.html" />
+    <link rel="up" title="Introduction" href="../basic.html" />
+    <link rel="next" title="Advanced" href="../advanced.html" />
+    <link rel="prev" title="Module" href="module.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../advanced.html" title="Advanced"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="module.html" title="Module"
+             accesskey="P">previous</a> |</li>
+<li><a href="http://aloiscochard.github.com/sindi/">Sindi</a> &raquo;</li>
+
+        <li><a href="../index.html">User Guide</a> &raquo;</li>
+
+          <li><a href="../basic.html" accesskey="U">Introduction</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="module.html"
+                        title="previous chapter">Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../advanced.html"
+                        title="next chapter">Advanced</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/basic/component.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="component">
+<h1>Component<a class="headerlink" href="#component" title="Permalink to this headline">¶</a></h1>
+<p>A <a class="reference external" href="http://aloiscochard.github.com/sindi/api/index.html#sindi.Component">component</a>
+is basically a set of features based on module(s) service(s).</p>
+<p>It provide a flexible alternative to the
+<a class="reference external" href="http://jboner.github.com/2008/10/06/real-world-scala-dependency-injection-di.html">cake-pattern</a>
+popular in the Scala universe,
+using components you can organize features from one or multiple modules,
+or use it as alternative to construtor parameters injection.</p>
+<p>To see all possibilites offered by components, let&#8217;s first define two simple services:</p>
+<div class="highlight-python"><pre>trait UserRepository
+class DefaultUserRepository extends UserRepository
+class AdvancedUserRepository extends UserRepository
+
+trait UserService {
+  def repository: UserRepository
+  def name: String
+}
+trait DefaultUserService extends UserService  { def name = "default" }
+trait AdvancedUserService extends UserService  { def name = "advanced" }</pre>
+</div>
+<p>The first is <tt class="docutils literal"><span class="pre">UserRepository</span></tt> which is used by the second one <tt class="docutils literal"><span class="pre">UserService</span></tt>.
+We can now create a module for <tt class="docutils literal"><span class="pre">UserRepository</span></tt>:</p>
+<div class="highlight-python"><pre>final class UserRepositoryModule(implicit context: Context) extends Module {
+  override val bindings: Bindings =
+    bind[UserRepository] to new DefaultUserRepository
+
+  def repository = inject[UserRepository]
+}</pre>
+</div>
+<p>To ease the integration of <tt class="docutils literal"><span class="pre">UserRepository</span></tt> we can now create our first component:</p>
+<div class="highlight-python"><pre>trait UserRepositoryComponent extends Component {
+  def repository = from[UserRepositoryModule].repository
+}</pre>
+</div>
+<p>As you can see, to define a new Component, you simply create a <em>trait</em> extending the trait <tt class="docutils literal"><span class="pre">Component</span></tt>,
+you can now expose any modules feature by using the <tt class="docutils literal"><span class="pre">from[Module].feature</span></tt> syntax.</p>
+<p>It&#8217;s one more time <strong>highly recommend</strong> to use the compiler plugin:
+a component is an abstract set of features and the compiler plugin need to know which modules
+are used for a given components,
+this is done automatically if you are using the compiler plugin,
+otherwise you shoud define constrains manually using <tt class="docutils literal"><span class="pre">ModuleManifest</span></tt>:</p>
+<div class="highlight-python"><pre>trait UserRepositoryComponent extends Component {
+  private def userRepositoryManifest = new ModuleManifest[UserRepositoryModule]
+  def repository = from[UserRepositoryModule].repository
+}</pre>
+</div>
+<p>Let&#8217;s move forward and see how we can consume the <tt class="docutils literal"><span class="pre">UserRepositoryComponent</span></tt> by creating a module for <tt class="docutils literal"><span class="pre">UserService</span></tt>:</p>
+<div class="highlight-python"><pre>final class UserServiceModule(implicit context: Context) extends Module {
+  override lazy val modules = new UserRepositoryModule :: Nil
+
+  override val bindings: Bindings =
+    bind[UserService] to
+      new ComponentContext with UserRepositoryComponent with DefaultUserService
+
+  def service = inject[UserService]
+}</pre>
+</div>
+<p>First we import the <tt class="docutils literal"><span class="pre">UserRepositoryModule</span></tt>, and then we bind <tt class="docutils literal"><span class="pre">UserService</span></tt> to a new
+<a class="reference external" href="http://aloiscochard.github.com/sindi/api/index.html#sindi.ComponentContext">ComponentContext</a>
+which enable us to mixin component(s) on it and get them automatically linked within the current context!</p>
+<p>In case your mixin component that requiere modules which are <strong>not imported</strong> in the current context,
+the <strong>compiler plugin will generate an error</strong> preventing experiencing unbound dependencies at runtime.</p>
+<p>This can give the feeling of lot of boilerplate for little advantage, in fact components start really to shine
+when you want to combine features from a complex module or aggregate feature from different modules.</p>
+<p>Component have an other very useful role when you start integrating Sindi into your application container,
+if your container (specially some webframeworks) requiere you to create global <tt class="docutils literal"><span class="pre">object</span></tt> you can use
+<a class="reference external" href="http://aloiscochard.github.com/sindi/api/index.html#sindi.ComponentWith">ComponentWith</a>.</p>
+<p>Let&#8217;s see a concrete use case by first adding a component for <tt class="docutils literal"><span class="pre">UserService</span></tt>:</p>
+<div class="highlight-python"><pre>trait UserServiceComponent extends Component {
+  def userService = from[UserServiceModule].service
+}</pre>
+</div>
+<p>And now create the application context:</p>
+<div class="highlight-python"><pre>object AppContext extends Context {
+  override lazy val modules = new UserServiceModule :: Nil
+}</pre>
+</div>
+<p>Finally we create a component who is statically linked to our application context:</p>
+<div class="highlight-python"><pre>trait AppComponent extends ComponentWith[AppContext.type] with UserServiceComponent {
+  override val context = AppContext
+}</pre>
+</div>
+<p>By defining our component with <tt class="docutils literal"><span class="pre">ComponentWith</span></tt> we specify to which context he&#8217;s linked using the type parameter
+(enabling compiler plugin to check if dependencies are bound) and then pass the concrete <tt class="docutils literal"><span class="pre">AppContext</span></tt>
+by overriding the <tt class="docutils literal"><span class="pre">context</span></tt> value.</p>
+<p>We can now use this component on any <tt class="docutils literal"><span class="pre">object</span></tt> and get dependency injected from the <tt class="docutils literal"><span class="pre">AppContext</span></tt>:</p>
+<div class="highlight-python"><pre>scala&gt; object Test extends AppComponent
+defined module Test
+
+scala&gt; Test.userService.name
+res0: String = default</pre>
+</div>
+<p><em>There is actually a limitation you should be aware, when you mixin Component on Context/Module/ComponentWith
+this isn&#8217;t acutally checked by the compiler plugin.</em></p>
+<p><strong>These are under development and will be integrated in next version (0.5).</strong></p>
+<p>Here finish your journay into Sindi&#8217;s basics features, if you feel brave enough you can continue
+to the <a class="reference internal" href="../advanced.html"><em>Advanced</em></a> documentation!</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../advanced.html" title="Advanced"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="module.html" title="Module"
+             >previous</a> |</li>
+<li><a href="http://aloiscochard.github.com/sindi/">Sindi</a> &raquo;</li>
+
+        <li><a href="../index.html">User Guide</a> &raquo;</li>
+
+          <li><a href="../basic.html" >Introduction</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Alois Cochard.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
