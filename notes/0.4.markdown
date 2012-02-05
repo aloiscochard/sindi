@@ -1,3 +1,10 @@
+ * Added User Guide (http://aloiscochard.github.com/sindi/guide/)
+ * Added ScalaDoc (http://aloiscochard.github.com/sindi/api/)
+ * Moved to Sonatype and changed organization
+ * Updated to SBT 11.2
+ * Implemented covariance on Provider
+ * Implemented qualifiers validation
+ * Implemented JSON support on compiler data model
  * Implemented parameterized qualifier
  * Implemented qualifier combinator ('or', '||')
  * Implemented automatic ModuleManifest import into Component during compilation
