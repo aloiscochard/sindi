@@ -32,6 +32,8 @@ It can be handy to have a small project to experiment with Sindi while reading t
 "`Download <http://github.com/aloiscochard/sindi/wiki/Download>`_"
 to integrate Sindi in a SBT or Maven project.
 
+EXAMPLE
+
 And now let's familiarize with Sindi's core concepts!
 
 .. toctree::
