@@ -13,9 +13,10 @@ object BuildSettings {
 
   val publishSettings = Seq(
     publishTo <<= (version) { version: String =>
-      val nexus = "http://oss.sonatype.org/content/repositories/"
-      if (version.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "snapshots/") 
-      else                                   Some("releases"  at nexus + "releases/")
+      if (version.trim.endsWith("SNAPSHOT"))
+        Some("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots")
+      else
+        Some("staging" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/")
     },
     credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
   )
