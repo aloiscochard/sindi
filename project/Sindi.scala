@@ -10,16 +10,6 @@ object BuildSettings {
     scalacOptions       := Seq("-unchecked", "-deprecation"),
     crossScalaVersions  := Seq("2.9.0-1", "2.9.1")
   )
-
-  val publishSettings = Seq(
-    publishTo <<= (version) { version: String =>
-      if (version.trim.endsWith("SNAPSHOT"))
-        Some("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots")
-      else
-        Some("staging" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-    },
-    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
-  )
 }
 
 object Resolvers {
@@ -45,6 +35,7 @@ object SindiBuild extends Build {
   import Dependencies._
   import BuildSettings._
 
+
   lazy val sindi = Project (
     "sindi",
     file ("."),
@@ -57,7 +48,7 @@ object SindiBuild extends Build {
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
-    settings = buildSettings ++ publishSettings ++ testDependencies ++
+    settings = buildSettings ++ Sonatype.settings ++ testDependencies ++
                 // WORKAROUND for https://github.com/harrah/xsbt/issues/85
                 // Remove when updated to SBT 0.11
                 Seq(unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist")))
@@ -66,7 +57,7 @@ object SindiBuild extends Build {
   lazy val compiler = Project(
     "sindi-compiler",
     file("sindi-compiler"),
-    settings = buildSettings ++ publishSettings ++ testDependencies ++
+    settings = buildSettings ++ Sonatype.settings ++ testDependencies ++
                   Seq(
                     libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided")
                   ) ++
@@ -80,4 +71,63 @@ object SindiBuild extends Build {
                     ):_*)
                 ) 
   ) dependsOn (core)
+}
+
+object Sonatype extends PublishToSonatype(SindiBuild) {
+  def projectUrl    = "https://github.com/aloiscochard/sindi"
+  def developerId   = "alois.cochard"
+  def developerName = "Alois Cochard"
+  def licenseName   = "Apache 2 License"
+  def licenseUrl    = "http://www.apache.org/licenses/LICENSE-2.0.html"
+}
+
+/***********************
+ * Sonatype Publishing *
+ ***********************/
+
+abstract class PublishToSonatype(build: Build) {
+  import build._
+
+  val ossSnapshots = "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
+  val ossStaging   = "Sonatype OSS Staging" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+  
+  def projectUrl: String
+  def developerId: String
+  def developerName: String
+  
+  def licenseName: String
+  def licenseUrl: String
+  def licenseDistribution = "repo"
+  def scmUrl              = projectUrl
+  def scmConnection       = "scm:git:" + scmUrl
+
+  def generatePomExtra(scalaVersion: String): xml.NodeSeq = {
+    <url>{ projectUrl }</url>
+      <licenses>
+        <license>
+          <name>{ licenseName }</name>
+          <url>{ licenseUrl }</url>
+          <distribution>{ licenseDistribution }</distribution>
+        </license>
+      </licenses>
+    <scm>
+      <url>{ scmUrl }</url>
+      <connection>{ scmConnection }</connection>
+    </scm>
+    <developers>
+      <developer>
+        <id>{ developerId }</id>
+        <name>{ developerName }</name>
+      </developer>
+    </developers>
+  }
+
+  def settings: Seq[Setting[_]] = Seq(
+    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
+    publishMavenStyle := true,
+    publishTo <<= version((v: String) => Some( if (v.trim endsWith "SNAPSHOT") ossSnapshots else ossStaging)),
+    publishArtifact in Test := false,
+    pomIncludeRepository := (_ => false),
+    pomExtra <<= (scalaVersion)(generatePomExtra)
+  )
 }
