@@ -4,7 +4,7 @@ import ProguardPlugin._
 
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Seq (
-    organization        := "org.scala-tools.sindi",
+    organization        := "com.github.aloiscochard.sindi",
     version             := "0.4-SNAPSHOT",
     scalaVersion        := "2.9.1",
     scalacOptions       := Seq("-unchecked", "-deprecation"),
@@ -13,7 +13,7 @@ object BuildSettings {
 
   val publishSettings = Seq(
     publishTo <<= (version) { version: String =>
-      val nexus = "http://nexus.scala-tools.org/content/repositories/"
+      val nexus = "http://oss.sonatype.org/content/repositories/"
       if (version.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "snapshots/") 
       else                                   Some("releases"  at nexus + "releases/")
     },
@@ -22,6 +22,8 @@ object BuildSettings {
 }
 
 object Resolvers {
+  val sonatypeOssReleases = "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/"
+  val sontaypeOssSnapshots = "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
   val scalaToolsReleases = "Scala-Tools Maven2 Releases Repository" at "http://scala-tools.org/repo-releases"
   val scalaToolsSnapshots = "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.org/repo-snapshots"
 }
