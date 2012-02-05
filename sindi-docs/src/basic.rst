@@ -11,7 +11,7 @@ If your looking for an introduction to IoC, here is some resources that might be
  * `IoC and the DI pattern <http://martinfowler.com/articles/injection.html>`_
 
 If you already know an other IoC/DI framework,
-you should keep in mind that Sindi take a different approach than other traditional frameworks.
+you should keep in mind that Sindi take a different approach than others traditionals frameworks.
 
 In this regards please take a look at the wiki page
 "`How does Sindi compare with X? <http://github.com/aloiscochard/sindi/wiki/Comparison>`_"
@@ -32,7 +32,8 @@ It can be handy to have a small project to experiment with Sindi while reading t
 "`Download <http://github.com/aloiscochard/sindi/wiki/Download>`_"
 to integrate Sindi in a SBT or Maven project.
 
-EXAMPLE
+You can find a ready to use project with all examples used in this guide
+`here <http://github.com/aloiscochard/sindi/blob/0.4/sindi-examples/userguide/>`_.
 
 And now let's familiarize with Sindi's core concepts!
 
