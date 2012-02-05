@@ -5,7 +5,7 @@ import ProguardPlugin._
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Seq (
     organization        := "com.github.aloiscochard.sindi",
-    version             := "0.4-SNAPSHOT",
+    version             := "0.5-SNAPSHOT",
     scalaVersion        := "2.9.1",
     scalacOptions       := Seq("-unchecked", "-deprecation"),
     crossScalaVersions  := Seq("2.9.0-1", "2.9.1")

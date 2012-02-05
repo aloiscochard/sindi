@@ -33,7 +33,7 @@ It can be handy to have a small project to experiment with Sindi while reading t
 to integrate Sindi in a SBT or Maven project.
 
 You can find a ready to use project with all examples used in this guide
-`here <http://github.com/aloiscochard/sindi/blob/0.4/sindi-examples/userguide/>`_.
+`here <http://github.com/aloiscochard/sindi/wiki/Examples>`_.
 
 And now let's familiarize with Sindi's core concepts!
 

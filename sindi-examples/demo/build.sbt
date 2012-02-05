@@ -1,6 +1,6 @@
 name := "sindi-examples-demo"
 
-version := "0.4-SNAPSHOT"
+version := "0.5-SNAPSHOT"
 
 organization := "com.github.aloiscochard.sindi"
 
