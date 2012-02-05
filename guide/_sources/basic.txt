@@ -23,7 +23,7 @@ The framework is composed of two main artifacts:
 
 The compiler plugin is totally **optional**,
 you can use Sindi without it but you'll miss some very helpful feature and unfortunatly,
-you take the risk of having your **application crashing at runtime due to missing dependecies**.
+you take the risk of having your **application crashing at runtime due to missing dependencies**.
 
 *Every features who are specific to the usage of the compiler plugin
 are clearly mentioned as such in this guide.*
