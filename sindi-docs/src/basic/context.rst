@@ -2,8 +2,8 @@ Context
 =======
 
 Generally a `context <http://aloiscochard.github.com/sindi/api/index.html#sindi.Context>`_
-describe how a set of compounds should be wired together,
-once instantiated during runtime it provide facilities to inject theses compounds.
+describe how a set of objects should be wired together,
+once instantiated during runtime it provide facilities to inject theses objects.
 
 There is multiple way to describe a context and his bindings,
 but it's **highly recommended** to use the provided DSL.

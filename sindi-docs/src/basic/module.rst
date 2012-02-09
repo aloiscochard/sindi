@@ -55,7 +55,7 @@ you just have to override the value ``modules`` and initalize it with a list con
 
 It's **highly recommended** to declare modules as ``lazy val`` to unsure a correct initialization.
 
-Before putting alltogether in our application, let's create ModuleA which consume ModuleB and override his bindings::
+Before putting alltogether in our application, let's create ModuleA which consume ModuleC and override his bindings::
 
   final class ModuleA(implicit context: Context) extends Module {
     override lazy val modules = new ModuleC :: Nil

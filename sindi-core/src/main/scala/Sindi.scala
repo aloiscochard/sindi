@@ -46,7 +46,7 @@ package sindi {
       bindings.toList.asInstanceOf[List[binder.binding.Binding[AnyRef]]]
   }
 
- /** A context is a collection of bindings and modules, it contains operations to wire compounds together.
+ /** A context is a collection of bindings and modules, it contains operations to wire objects together.
   * 
   * When integrating modules into a host application, 
   * it's recommend to us this trait as a seemless integration layer with the container.
