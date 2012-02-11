@@ -17,12 +17,13 @@ import nsc.ast.TreeDSL
 import nsc.transform.TypingTransformers 
 import nsc.symtab.Flags._
 
-import analyzer.AnalyzerPlugin
+import analyzer.Analyzer
 
-abstract class TransformerPlugin(override val global: Global) extends AnalyzerPlugin(global)
-                                                                with TypingTransformers 
-                                                                with TreeDSL {
+trait Transformer extends SindiPlugin 
+    with TypingTransformers 
+    with TreeDSL { self: Analyzer =>
   import global._
+  import self._
 
   def transform(unit: CompilationUnit): Unit = {
     // TODO Get only inferred dependencies

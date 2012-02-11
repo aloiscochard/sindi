@@ -14,7 +14,7 @@ package analyzer
 import scala.tools.nsc
 import nsc.Global 
 
-abstract class ComponentPlugin (override val global: Global) extends ContextPlugin(global) {
+trait ComponentAnalyzis extends Analyzis {
   import global._
 
   protected def createComponent(tree: ClassDef) = {

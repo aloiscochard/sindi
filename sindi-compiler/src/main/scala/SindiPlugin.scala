@@ -9,9 +9,9 @@
 //
 
 package sindi.compiler
-package model 
 
 import scala.actors.Actor
+import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
 import scala.util.parsing.json._
 
@@ -24,7 +24,8 @@ import utils.JSON._
 
 // TODO [aloiscochard] Improve JSON support: Show bindings with full qualified names
 
-abstract class ModelPlugin(val global: Global) extends Plugin {
+trait SindiPlugin extends Plugin {
+  val global: Global
   import global._
 
   var options: Options
@@ -38,6 +39,7 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
   protected final val symModule = global.definitions.getClass(manifest[sindi.Module].erasure.getName)
   protected final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
   protected final val symModuleManifest = global.definitions.getClass(manifest[sindi.ModuleManifest[_]].erasure.getName)
+  protected final val symNone = global.definitions.getClass(manifest[scala.None.type].erasure.getName)
   protected final val symQualifiers = global.definitions.getClass(manifest[sindi.injector.Qualifiers].erasure.getName)
 
   case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Entity]) {
@@ -151,5 +153,43 @@ abstract class ModelPlugin(val global: Global) extends Plugin {
     }
 
     private def get(s: Symbol): Option[Entity] = entities.get(s)
+  }
+
+  ///////////////////
+  // AST Utilities //
+  ///////////////////
+
+  // TODO Move that in utils and use it to refactor
+  import Stream._
+  def traverse(trees: Tree*): Stream[Tree] = traversal(trees.toList) { _ => false }
+  def traversal(trees: List[Tree])(implicit b: (Tree) => Boolean): Stream[Tree] = trees match {
+    case tree :: trees if b(tree) => tree #:: traversal(trees)
+    case tree :: trees => tree #:: traversal(tree.children ::: trees)
+    case Nil => empty
+  }
+
+  /** Find first matching tree using Depth First Search **/
+  protected def find[T <: AnyRef](lookup: List[Tree])(filter: (Tree) => Option[T]): Option[T] = {
+    for(tree <- lookup) {
+      filter(tree) match {
+        case Some(tree) => return Some(tree)
+        case _ =>
+      }
+      find[T](tree.children)(filter) match {
+        case Some(tree) => return Some(tree)
+        case _ =>
+      }
+    }
+    return None
+  }
+
+  /** Collect all matchings trees **/
+  @tailrec
+  protected final def collect[T <: AnyRef](lookup: List[Tree], accumulator: List[T] = Nil)
+      (filter: (Tree) => Option[T]): List[T] = {
+    var children = List[Tree]()
+    val found = for(tree <- lookup) yield { children = children ++ tree.children; filter(tree) }
+    if (children.isEmpty) { found.flatten ++ accumulator }
+    else { collect(children, found.flatten ++ accumulator)(filter) }
   }
 }

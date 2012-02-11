@@ -20,7 +20,8 @@ import nsc.ast.TreeBrowsers
 import nsc.plugins.Plugin
 import nsc.plugins.PluginComponent
 
-final class CompilerPlugin(override val global: Global) extends validator.ValidatorPlugin(global) {
+final class CompilerPlugin(override val global: Global) extends SindiPlugin
+    with analyzer.Analyzer with transformer.Transformer with validator.Validator {
   import global._
 
   val name = "sindi"

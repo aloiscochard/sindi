@@ -15,9 +15,7 @@ import scala.tools.nsc
 import nsc.Global 
 import nsc.plugins.Plugin
 
-import transformer.TransformerPlugin
-
-abstract class ValidatorPlugin(override val global: Global) extends TransformerPlugin(global) {
+trait Validator extends SindiPlugin {
   import global._
 
   private final val symOption = global.definitions.getClass(manifest[Option[_]].erasure.getName)
