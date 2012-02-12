@@ -67,27 +67,44 @@ trait Wirable extends Context {
 
   // TODO [aloiscochard] Improve exception message details
 
-  /** Autowire given type. */
-  final def autowire[T <: AnyRef : Manifest]: T = {
-    // TODO [aloiscochard] support companion methods + inner class + java statics + filter tuple and others jewel
-    val create = (constructor: Constructor[_]) => (values: List[AnyRef]) => constructor.newInstance(values:_*).asInstanceOf[T]
-    val constructors = manifest[T].erasure.getConstructors.toList.map((c) => 
-        (c.getParameterTypes.toList.map(clazz => Manifest.classType[AnyRef](clazz)), create(c)))
-      wireFirst[T](manifest[T], constructors)
+  /** Autowire given function. */
+  final def autowire[T <: AnyRef : Manifest, R](f: Function1[T, R]): Function0[R] = {
+    val newFunction = (values: List[AnyRef]) => () => f(values(0).asInstanceOf[T]).asInstanceOf[R]
+    wireFirst(manifest[T], List(List(manifest[T]) -> newFunction))
   }
 
-  /** Autowire given function. */
-  final def autowire[T <: AnyRef : Manifest, R](f: Function[T, R]): Function0[R] = {
-    val newFunction = (values: List[AnyRef]) => () => f(values(0).asInstanceOf[T]).asInstanceOf[R]
-    wireFirst[Function0[R]](manifest[T], List(List(manifest[T]) -> newFunction))
-  }
 
   // TODO [aloiscochard] Use templating or scalamacros to support all TupleX / FunctionX
   /** Autowire given tuple type. */
-  final def autowireT[T <: Tuple2[_, _] : Manifest]: T = {
-    val newTuple = (values: List[AnyRef]) => (values(0), values(1)).asInstanceOf[T]
-    wireFirst[T](manifest[T], (List(manifest[T].typeArguments -> newTuple)))
+  final def autowireT[T <: AnyRef : Manifest]: Tuple1[T] = {
+    val newTuple = (values: List[AnyRef]) => new Tuple1[T](values(0).asInstanceOf[T])
+    wireFirst(manifest[T], (List(List(manifest[T]) -> newTuple)))
   }
+
+  final def autowire[T0 <: AnyRef, T1 <: AnyRef, R]
+      (f: Function2[T0, T1, R])
+      (implicit m0: Manifest[T0], m1: Manifest[T1]): Function0[R] = {
+
+    val newFunction = (values: List[AnyRef]) => () => f(
+      values(0).asInstanceOf[T0], values(1).asInstanceOf[T1]
+    ).asInstanceOf[R]
+
+    wireFirst(
+      manifest[(T0, T1)],
+      List(List(manifest[T0], manifest[T1]) -> newFunction)
+    )
+  }
+
+  final def autowireT[T0 <: AnyRef, T1 <: AnyRef]
+      (implicit m0: Manifest[T0], m1: Manifest[T1]): Tuple2[T0, T1] = {
+    val newTuple = (values: List[AnyRef]) =>
+      (values(0).asInstanceOf[T0], values(1).asInstanceOf[T1])
+    wireFirst(
+      manifest[(T0, T1)],
+      (List(List(manifest[T0], manifest[T1]) -> newTuple))
+    )
+  }
+
 
   protected def wire[T <: AnyRef : Manifest]: Option[T] = catching(classOf[TypeNotBoundException]).opt(inject(manifest[T]))
 

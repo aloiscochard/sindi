@@ -164,25 +164,38 @@ class FunctionalSpec extends Specification {
 
     "autowire class" in {
       class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
-      new Foo().autowire[TClass].name mustEqual "sindi"
-      new Context{}.autowire[TClass] must throwAn[TypeNotBoundException]
+      new Foo().autowire(TClass.apply _).apply.name mustEqual "sindi"
+      new Foo().autowire(new TClass(_: String)).apply.name mustEqual "sindi"
+      new Context{}.autowire(new TClass(_: String)).apply.name must throwAn[TypeNotBoundException]
     }
 
     "autowire case class" in {
       class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
-      new Foo().autowire[TCaseClass].name mustEqual "sindi"
-      new Context{}.autowire[TCaseClass] must throwAn[TypeNotBoundException]
+      new Foo().autowire(TCaseClass.apply _).apply.name mustEqual "sindi"
+      new Foo().autowire(TCaseClass(_: String)).apply.name mustEqual "sindi"
+      new Context{}.autowire(TCaseClass(_: String)) must throwAn[TypeNotBoundException]
     }
     "autowire tuple" in {
-      class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
+      class Foo extends Context {
+        override val bindings = Bindings(
+          bind[String] to "sindi",
+          bind[PClass[String]] to new PClass("ioc"),
+          bind[PClass[Int]] to new PClass[Int](42)
+        )
+      }
       val foo = new Foo
-      foo.autowireT[(String, String)] mustEqual ("sindi", "sindi")
-      foo.autowireT[(String, Int)] must throwAn[TypeNotBoundException]
+      foo.autowireT[String, String] mustEqual ("sindi", "sindi")
+      foo.autowireT[String, TClass] must throwAn[TypeNotBoundException]
+      val (p1, p2) = foo.autowireT[PClass[String], PClass[Int]]
+      p1.x mustEqual "ioc"
+      p2.x mustEqual 42
+      foo.autowireT[PClass[String], PClass[Float]] must throwAn[TypeNotBoundException]
     }
 
     "autowire function" in {
       class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
       val f = (s: String) => "hello " + s
+
       new Foo().autowire(f).apply mustEqual "hello sindi"
     }
   }
@@ -195,7 +208,7 @@ class FunctionalSpec extends Specification {
         def x = inject[String]
       }
       class Foo extends Context { override lazy val modules: Modules = new Bar :: Nil}
-      new Foo().autowire[TClass].name mustEqual "sindi" 
+      new Foo().autowire[String, TClass](new TClass(_)).apply.name mustEqual "sindi"
     }
 
     "autowire imported modules definitions by injecting arguments" in {
@@ -210,11 +223,15 @@ class FunctionalSpec extends Specification {
         override lazy val modules: Modules = new Bar :: Nil
         override val bindings: Bindings = bind[Helper] to new Helper
       }
-
-      new Foo().autowire[TClass].name mustEqual "hello sindi" 
+      new Foo().autowire(new TClass(_: String)).apply.name mustEqual "hello sindi"
     }
   }
 }
 
+object TClass {
+  def apply(name: String) = new TClass(name)
+}
 class TClass(val name: String = "scala")
 case class TCaseClass(name: String = "scala")
+
+class PClass[T](val x: T)
