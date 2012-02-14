@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
 import ProguardPlugin._
+import fmpp.FmppPlugin._
 
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Seq (
@@ -48,11 +49,11 @@ object SindiBuild extends Build {
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
-    settings = buildSettings ++ Sonatype.settings ++ testDependencies ++
+    settings = buildSettings ++ fmppSettings ++ Sonatype.settings ++ testDependencies ++
                 // WORKAROUND for https://github.com/harrah/xsbt/issues/85
                 // Remove when updated to SBT 0.11
                 Seq(unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist")))
-  ) 
+  ) configs (Fmpp)
 
   lazy val compiler = Project(
     "sindi-compiler",

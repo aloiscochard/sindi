@@ -185,6 +185,7 @@ class FunctionalSpec extends Specification {
       }
       val foo = new Foo
       foo.autowireT[String, String] mustEqual ("sindi", "sindi")
+      foo.autowireT[String, String, String] mustEqual ("sindi", "sindi", "sindi")
       foo.autowireT[String, TClass] must throwAn[TypeNotBoundException]
       val (p1, p2) = foo.autowireT[PClass[String], PClass[Int]]
       p1.x mustEqual "ioc"
@@ -195,8 +196,10 @@ class FunctionalSpec extends Specification {
     "autowire function" in {
       class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
       val f = (s: String) => "hello " + s
+      val f3 = (a: String, b: String, c: String) => (a, b, c)
 
       new Foo().autowire(f).apply mustEqual "hello sindi"
+      new Foo().autowire(f3).apply mustEqual ("sindi", "sindi", "sindi")
     }
   }
 

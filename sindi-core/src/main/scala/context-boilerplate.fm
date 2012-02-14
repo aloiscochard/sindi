@@ -1,0 +1,122 @@
+//      _____         ___  
+//     / __(_)__  ___/ (_)
+//    _\ \/ / _ \/ _  / /
+//   /___/_/_//_/\_,_/_/
+//
+//  (c) 2011, Alois Cochard
+//
+//  http://aloiscochard.github.com/sindi
+//
+
+package sindi
+package context
+
+trait WirableBoilerplate { self: Wirable =>
+
+  /*
+  final def autowire[T0 <: AnyRef, T1 <: AnyRef, R]
+      (f: Function2[T0, T1, R])
+      (implicit m0: Manifest[T0], m1: Manifest[T1]): Function0[R] = {
+
+    val newFunction = (values: List[AnyRef]) => () => f(
+      values(0).asInstanceOf[T0], values(1).asInstanceOf[T1]
+    ).asInstanceOf[R]
+
+    self.wireFirst(
+      manifest[(T0, T1)],
+      List(List(manifest[T0], manifest[T1]) -> newFunction)
+    )
+  }
+  */
+
+  /*
+  final def autowireT[T0 <: AnyRef, T1 <: AnyRef]
+      (implicit m0: Manifest[T0], m1: Manifest[T1]): Tuple2[T0, T1] = {
+
+    val newTuple = (values: List[AnyRef]) =>
+      (values(0).asInstanceOf[T0], values(1).asInstanceOf[T1])
+
+    self.wireFirst(
+      manifest[(T0, T1)],
+      (List(List(manifest[T0], manifest[T1]) -> newTuple))
+    )
+  }
+  */
+
+<#list 2..22 as i>
+  final def autowire[
+<#list 1..i as j>
+        T${j} <: AnyRef,
+</#list>
+        R
+      ]
+      (f: Function${i}[
+<#list 1..i as j>
+        T${j},
+</#list>
+        R
+      ])
+      (implicit
+<#list 1..i as j>
+        m${j}: Manifest[T${j}]<#if i !=j>,</#if>
+</#list>
+      ): Function0[R] = {
+
+    val newFunction = (values: List[AnyRef]) => () => f(
+<#list 1..i as j>
+      values(${j - 1}).asInstanceOf[T${j}]<#if i !=j>,</#if>
+</#list>
+    ).asInstanceOf[R]
+
+    self.wireFirst(
+      manifest[(
+<#list 1..i as j>
+        T${j}<#if i !=j>,</#if>
+</#list>
+      )],
+      List(List(
+<#list 1..i as j>
+        manifest[T${j}]<#if i !=j>,</#if>
+</#list>
+      ) -> newFunction)
+    )
+  }
+
+  final def autowireT[
+<#list 1..i as j>
+        T${j} <: AnyRef<#if i !=j>,</#if>
+</#list>
+      ]
+      (implicit
+<#list 1..i as j>
+        m${j}: Manifest[T${j}]<#if i !=j>,</#if>
+</#list>
+      ): Tuple${i}[
+<#list 1..i as j>
+        T${j}<#if i !=j>,</#if>
+</#list>
+      ] = {
+
+    val newTuple = (values: List[AnyRef]) => (
+<#list 1..i as j>
+      values(${j - 1}).asInstanceOf[T${j}]<#if i !=j>,</#if>
+</#list>
+    )
+
+    self.wireFirst(
+      manifest[(
+<#list 1..i as j>
+        T${j}<#if i !=j>,</#if>
+</#list>
+      )],
+      (List(List(
+<#list 1..i as j>
+        manifest[T${j}]<#if i !=j>,</#if>
+</#list>
+      ) -> newTuple))
+    )
+  }
+
+</#list>
+
+}
