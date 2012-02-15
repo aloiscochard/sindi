@@ -49,10 +49,7 @@ object SindiBuild extends Build {
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
-    settings = buildSettings ++ fmppSettings ++ Sonatype.settings ++ testDependencies ++
-                // WORKAROUND for https://github.com/harrah/xsbt/issues/85
-                // Remove when updated to SBT 0.11
-                Seq(unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist")))
+    settings = buildSettings ++ fmppSettings ++ Sonatype.settings ++ testDependencies
   ) configs (Fmpp)
 
   lazy val compiler = Project(
@@ -60,7 +57,19 @@ object SindiBuild extends Build {
     file("sindi-compiler"),
     settings = buildSettings ++ Sonatype.settings ++ testDependencies ++
                   Seq(
-                    libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided")
+                    libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided"),
+                    assembly <<= (clean, proguard, minJarPath, artifactPath in (Compile, packageBin), streams) map {
+                      (_, _, min, artifact, streams) => {
+                        streams.log("assembly").info("copy %s --> %s".format(min, artifact))
+                        IO.copyFile(min, artifact)
+                      }
+                    },
+                    publish <<= (assembly, deliver, ivyModule, publishConfiguration, streams) map { 
+                      (_, _, module, config, s) => IvyActions.publish(module, config, s.log)
+                    },
+                    publishLocal <<= (assembly, deliverLocal, ivyModule, publishLocalConfiguration, streams) map { 
+                      (_, _, module, config, s) => IvyActions.publish(module, config, s.log)
+                    }
                   ) ++
                   seq(
                     (proguardSettings ++ seq(
@@ -72,6 +81,8 @@ object SindiBuild extends Build {
                     ):_*)
                 ) 
   ) dependsOn (core)
+
+  val assembly = TaskKey[Unit]("assembly")
 }
 
 object Sonatype extends PublishToSonatype(SindiBuild) {
