@@ -49,7 +49,9 @@ object SindiBuild extends Build {
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
-    settings = buildSettings ++ fmppSettings ++ Sonatype.settings ++ testDependencies
+    settings = buildSettings ++ fmppSettings ++ Sonatype.settings ++ testDependencies ++
+      // WORKAROUND for https://github.com/harrah/xsbt/issues/85
+      Seq(unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist")))
   ) configs (Fmpp)
 
   lazy val compiler = Project(
