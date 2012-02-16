@@ -82,6 +82,17 @@ class FunctionalSpec extends Specification {
       bar1 mustNotEqual foo.inject[Bar].hashCode
     }
 
+    "bind primitive type" in {
+      class Foo extends Context { override val bindings: Bindings = bind[Int] to 42 }
+      new Foo().inject[Int] mustEqual 42
+    }
+
+    "bind primitive type with qualifier" in {
+      class Foo extends Context { override val bindings = Bindings(bind[Int] to 42 as "h2g2", bind[Int] to 9000 as "hal") }
+      new Foo().injectAs[Int]("h2g2") mustEqual 42
+      new Foo().injectAs[Int]("hal") mustEqual 9000
+    }
+
     "bind abstract type" in {
       class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
       new Foo().inject[AnyRef] mustEqual "sindi"
@@ -194,12 +205,12 @@ class FunctionalSpec extends Specification {
     }
 
     "autowire function" in {
-      class Foo extends Context { override val bindings: Bindings = bind[String] to "sindi" }
+      class Foo extends Context { override val bindings = Bindings(bind[String] to "sindi", bind[Int] to 42) }
       val f = (s: String) => "hello " + s
-      val f3 = (a: String, b: String, c: String) => (a, b, c)
+      val f3 = (a: String, b: Int, c: String) => (a, b, c)
 
       new Foo().autowire(f).apply mustEqual "hello sindi"
-      new Foo().autowire(f3).apply mustEqual ("sindi", "sindi", "sindi")
+      new Foo().autowire(f3).apply mustEqual ("sindi", 42, "sindi")
     }
   }
 

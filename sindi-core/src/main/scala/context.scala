@@ -29,9 +29,9 @@ trait Context extends Injector {
   /** Return the bindings associated with this context. */
   protected val bindings: Bindings = Nil
 
-  override def injectionAs[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
+  override def injectionAs[T : Manifest](qualifiers: Qualifiers) =
     process[T](qualifiers)(injector.injectionAs[T](qualifiers))
-  override def injectionAll[T <: AnyRef : Manifest](qualifiers: Qualifiers) =
+  override def injectionAll[T : Manifest](qualifiers: Qualifiers) =
     injector.injectionAll(qualifiers).map(process[T](qualifiers) _)
 
   /** Return the processors associated with this context. */
@@ -40,7 +40,7 @@ trait Context extends Injector {
   protected def processing: List[Processor[_]] = processors
   protected def bounds = bindings.map(_.build.asInstanceOf[Binding])
 
-  private def process[T <: AnyRef : Manifest](qualifiers: Qualifiers)(injection: Injection[T]) = 
+  private def process[T : Manifest](qualifiers: Qualifiers)(injection: Injection[T]) = 
     Processor.process[T](processing, this, qualifiers, injection)(manifest[T])
 }
 
@@ -68,32 +68,32 @@ trait Wirable extends Context with WirableBoilerplate {
   // TODO [aloiscochard] Improve exception message details
 
   /** Autowire given function. */
-  final def autowire[T <: AnyRef : Manifest, R](f: Function1[T, R]): Function0[R] = {
-    val newFunction = (values: List[AnyRef]) => () => f(values(0).asInstanceOf[T]).asInstanceOf[R]
+  final def autowire[T : Manifest, R](f: Function1[T, R]): Function0[R] = {
+    val newFunction = (values: List[Any]) => () => f(values(0).asInstanceOf[T]).asInstanceOf[R]
     wireFirst(manifest[T], List(List(manifest[T]) -> newFunction))
   }
 
 
   /** Autowire given tuple type. */
-  final def autowireT[T <: AnyRef : Manifest]: Tuple1[T] = {
-    val newTuple = (values: List[AnyRef]) => new Tuple1[T](values(0).asInstanceOf[T])
+  final def autowireT[T : Manifest]: Tuple1[T] = {
+    val newTuple = (values: List[Any]) => new Tuple1[T](values(0).asInstanceOf[T])
     wireFirst(manifest[T], (List(List(manifest[T]) -> newTuple)))
   }
 
-  protected def wire[T <: AnyRef : Manifest]: Option[T] = catching(classOf[TypeNotBoundException]).opt(inject(manifest[T]))
+  protected def wire[T : Manifest]: Option[T] = catching(classOf[TypeNotBoundException]).opt(inject(manifest[T]))
 
-  private[context] def wireFirst[T <: AnyRef]
-      (tpe: Manifest[_], signatures: Seq[Tuple2[List[Manifest[_]], (List[AnyRef]) => T]]): T =
+  private[context] def wireFirst[T]
+      (tpe: Manifest[_], signatures: Seq[Tuple2[List[Manifest[_]], (List[Any]) => T]]): T =
     wireAll[T](signatures).headOption.getOrElse {
       throw new TypeNotBoundException(tpe, " during autowiring")
     }
 
   private[context] def wireAll[T]
-      (signatures: Seq[Tuple2[List[Manifest[_]], (List[AnyRef]) => T]]): Seq[T] = {
+      (signatures: Seq[Tuple2[List[Manifest[_]], (List[Any]) => T]]): Seq[T] = {
     signatures.view.flatMap {
       case (parameters, constructor) => {
         // TODO [aloiscochard] Cache wire calls
-        val values = parameters.toList.flatMap((m) => wire(m.asInstanceOf[Manifest[AnyRef]]))
+        val values = parameters.toList.flatMap((m) => wire(m.asInstanceOf[Manifest[Any]]))
         if (values.size == parameters.size) Some(constructor(values)) else None
       }
     }

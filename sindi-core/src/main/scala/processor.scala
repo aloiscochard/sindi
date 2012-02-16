@@ -39,7 +39,7 @@ private[processor] class OptionProcessor extends Processor[Option[Any]] {
   def process[T <: Option[_] : Manifest](injector: Injector, qualifiers: Qualifiers, injection: Injection[T]) =
     manifest[T].typeArguments.headOption match {
       case Some(manifest) => catching(classOf[TypeNotBoundException]).opt {
-          Some(injector.injectAs(qualifiers)(manifest.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
+          Some(injector.injectAs(qualifiers)(manifest.asInstanceOf[Manifest[_ <: Any]])).asInstanceOf[T]
         } getOrElse None.asInstanceOf[T]
       case None => injection()
     }
@@ -49,9 +49,9 @@ private[processor] class EitherProcessor extends Processor[Either[Any, Any]] {
   def process[T <: Either[_, _] : Manifest](injector: Injector, qualifiers: Qualifiers, injection: Injection[T]) =
     manifest[T].typeArguments match {
       case left :: right :: Nil => catching(classOf[TypeNotBoundException]).opt {
-          Right(injector.injectAs(qualifiers)(right.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
+          Right(injector.injectAs(qualifiers)(right.asInstanceOf[Manifest[_ <: Any]])).asInstanceOf[T]
         } getOrElse(catching(classOf[TypeNotBoundException]).opt {
-          Left(injector.injectAs(qualifiers)(left.asInstanceOf[Manifest[_ <: AnyRef]])).asInstanceOf[T]
+          Left(injector.injectAs(qualifiers)(left.asInstanceOf[Manifest[_ <: Any]])).asInstanceOf[T]
         } getOrElse injection())
       case _ => injection()
     }

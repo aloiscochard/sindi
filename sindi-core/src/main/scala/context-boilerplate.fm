@@ -14,11 +14,11 @@ package context
 trait WirableBoilerplate { self: Wirable =>
 
   /*
-  final def autowire[T0 <: AnyRef, T1 <: AnyRef, R]
+  final def autowire[T0, T1, R]
       (f: Function2[T0, T1, R])
       (implicit m0: Manifest[T0], m1: Manifest[T1]): Function0[R] = {
 
-    val newFunction = (values: List[AnyRef]) => () => f(
+    val newFunction = (values: List[Any]) => () => f(
       values(0).asInstanceOf[T0], values(1).asInstanceOf[T1]
     ).asInstanceOf[R]
 
@@ -30,10 +30,10 @@ trait WirableBoilerplate { self: Wirable =>
   */
 
   /*
-  final def autowireT[T0 <: AnyRef, T1 <: AnyRef]
+  final def autowireT[T0, T1]
       (implicit m0: Manifest[T0], m1: Manifest[T1]): Tuple2[T0, T1] = {
 
-    val newTuple = (values: List[AnyRef]) =>
+    val newTuple = (values: List[Any]) =>
       (values(0).asInstanceOf[T0], values(1).asInstanceOf[T1])
 
     self.wireFirst(
@@ -46,7 +46,7 @@ trait WirableBoilerplate { self: Wirable =>
 <#list 2..22 as i>
   final def autowire[
 <#list 1..i as j>
-        T${j} <: AnyRef,
+        T${j},
 </#list>
         R
       ]
@@ -62,7 +62,7 @@ trait WirableBoilerplate { self: Wirable =>
 </#list>
       ): Function0[R] = {
 
-    val newFunction = (values: List[AnyRef]) => () => f(
+    val newFunction = (values: List[Any]) => () => f(
 <#list 1..i as j>
       values(${j - 1}).asInstanceOf[T${j}]<#if i !=j>,</#if>
 </#list>
@@ -84,7 +84,7 @@ trait WirableBoilerplate { self: Wirable =>
 
   final def autowireT[
 <#list 1..i as j>
-        T${j} <: AnyRef<#if i !=j>,</#if>
+        T${j}<#if i !=j>,</#if>
 </#list>
       ]
       (implicit
@@ -97,7 +97,7 @@ trait WirableBoilerplate { self: Wirable =>
 </#list>
       ] = {
 
-    val newTuple = (values: List[AnyRef]) => (
+    val newTuple = (values: List[Any]) => (
 <#list 1..i as j>
       values(${j - 1}).asInstanceOf[T${j}]<#if i !=j>,</#if>
 </#list>

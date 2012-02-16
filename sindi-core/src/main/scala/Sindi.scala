@@ -21,9 +21,9 @@
  */
 package object sindi {
   /** A sequence of bindings. */
-  type Bindings = Seq[binder.binding.Binding[AnyRef]]
+  type Bindings = Seq[binder.binding.Binding[Any]]
   /** A sequence of [[sindi.processor.Processor]]. */
-  type Processors[T <: AnyRef] = Seq[processor.Processor[T]]
+  type Processors[T] = Seq[processor.Processor[T]]
   /** A sequence of [[sindi.Module]]. */
   type Modules = Seq[Module]
   /** A companion object for [[sindi.Module]] list construction. */
@@ -33,17 +33,17 @@ package object sindi {
   /** Return a new module with given bindings (implicit context is defined as new module's parent). */
   def module(_bindings: Bindings)(implicit context: Context) = new Module { override val bindings = _bindings }
   /** Return a qualifier for the given type. */
-  def qualifier[T <: Any : Manifest] = manifest[T]                            
+  def qualifier[T : Manifest] = manifest[T]                            
   /** Implicit conversion to construct qualifiers from any reference. */
-  implicit def any2qualifiers(q: AnyRef): injector.Qualifiers = injector.Qualifiers(q)
+  implicit def any2qualifiers(q: Any): injector.Qualifiers = injector.Qualifiers(q)
 }
 
 package sindi {
   /** Bindings companion. */
   object Bindings {
     /** Create a new list of bindings. */
-    def apply(bindings: binder.binding.Binding[_ <: AnyRef]*): List[binder.binding.Binding[AnyRef]] =
-      bindings.toList.asInstanceOf[List[binder.binding.Binding[AnyRef]]]
+    def apply(bindings: binder.binding.Binding[_]*): List[binder.binding.Binding[Any]] =
+      bindings.toList.asInstanceOf[List[binder.binding.Binding[Any]]]
   }
 
  /** A context is a collection of bindings and modules, it contains operations to wire objects together.
@@ -101,11 +101,11 @@ package sindi {
 
     override def processors: List[processor.Processor[_]] = processor.option :: processor.either :: Nil
 
-    abstract override protected def wire[T <: AnyRef : Manifest]: Option[T] = super.wire[T].orElse {
+    abstract override protected def wire[T : Manifest]: Option[T] = super.wire[T].orElse {
       import scala.util.control.Exception._
 
       modules.view.flatMap((module) => {
-        module.getClass.getDeclaredMethods.filter((m) => Manifest.classType[AnyRef](m.getReturnType) <:< manifest[T])
+        module.getClass.getDeclaredMethods.filter((m) => Manifest.classType[Any](m.getReturnType) <:< manifest[T])
           .flatMap {
             case method if method.getParameterTypes.size == 0 => Some(method.invoke(module).asInstanceOf[T])
             case method => {
@@ -121,7 +121,7 @@ package sindi {
   }
 
   /** An injection provider with signature configured using parameterized type. */
-  abstract class Provider[T <: AnyRef : Manifest] extends provider.Provider[T] {
+  abstract class Provider[T : Manifest] extends provider.Provider[T] {
     override val signature = manifest[T]
   }
 
@@ -159,7 +159,7 @@ package sindi {
    * by using an implicit [[scala.reflect.Manifest]].
    *
    * {{{
-   * final class StoreModule[T <: AnyRef](implicit manifest: Manifest[T], context: Context) extends ModuleT[T] {
+   * final class StoreModule[T](implicit manifest: Manifest[T], context: Context) extends ModuleT[T] {
    *   override val bindings: Bindings =
    *     bind[Store[T]] to new DefaultStore[T]
    *
@@ -168,7 +168,7 @@ package sindi {
    * }}}
    *
    */
-  abstract class ModuleT[T <: Any](implicit manifest: Manifest[T], context: Context) extends Module()(context) {
+  abstract class ModuleT[T](implicit manifest: Manifest[T], context: Context) extends Module()(context) {
     private[sindi] val _manifest = manifest
   }
 
