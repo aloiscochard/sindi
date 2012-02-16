@@ -72,12 +72,8 @@ object SindiBuild extends Build {
                         IO.copyFile(min, artifact)
                       }
                     },
-                    publish <<= (assembly, deliver, ivyModule, publishConfiguration, streams) map { 
-                      (_, _, module, config, s) => IvyActions.publish(module, config, s.log)
-                    },
-                    publishLocal <<= (assembly, deliverLocal, ivyModule, publishLocalConfiguration, streams) map { 
-                      (_, _, module, config, s) => IvyActions.publish(module, config, s.log)
-                    }
+                    publish <<= publish.dependsOn(assembly),
+                    publishLocal <<= publishLocal.dependsOn(assembly)
                   )
   ) dependsOn (core)
 
