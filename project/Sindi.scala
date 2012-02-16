@@ -4,7 +4,7 @@ import ProguardPlugin._
 import fmpp.FmppPlugin._
 
 object BuildSettings {
-  val buildSettings = Defaults.defaultSettings ++ Seq (
+  val buildSettings = Defaults.defaultSettings ++ Sonatype.settings ++ Seq(
     organization        := "com.github.aloiscochard.sindi",
     version             := "0.5-SNAPSHOT",
     scalaVersion        := "2.9.1",
@@ -40,16 +40,13 @@ object SindiBuild extends Build {
   lazy val sindi = Project (
     "sindi",
     file ("."),
-    settings = buildSettings ++
-                Seq(publishArtifact in (Compile, packageBin) := false) ++
-                Seq(publishArtifact in (Compile, packageDoc) := false) ++
-                Seq(publishArtifact in (Compile, packageSrc) := false) 
+    settings = buildSettings
   ) aggregate (core, compiler)
 
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
-    settings = buildSettings ++ fmppSettings ++ Sonatype.settings ++ testDependencies ++
+    settings = buildSettings ++ testDependencies ++ fmppSettings ++ 
       // WORKAROUND for https://github.com/harrah/xsbt/issues/85
       Seq(unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist")))
   ) configs (Fmpp)
@@ -57,9 +54,18 @@ object SindiBuild extends Build {
   lazy val compiler = Project(
     "sindi-compiler",
     file("sindi-compiler"),
-    settings = buildSettings ++ Sonatype.settings ++ testDependencies ++
+    settings = buildSettings ++ testDependencies ++
                   Seq(
-                    libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided"),
+                    libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided")
+                  ) ++ seq(
+                    (proguardSettings ++ seq(
+                      proguardInJars := Seq(),
+                      proguardLibraryJars <++=
+                        (update) map (_.select(module =
+                          moduleFilter(name = "scala-compiler") | moduleFilter(name = "scala-library"))),
+                      proguardOptions ++= Seq("-keep class sindi.** { *; }")
+                    ):_*) 
+                  ) ++ Seq(
                     assembly <<= (clean, proguard, minJarPath, artifactPath in (Compile, packageBin), streams) map {
                       (_, _, min, artifact, streams) => {
                         streams.log("assembly").info("copy %s --> %s".format(min, artifact))
@@ -72,16 +78,7 @@ object SindiBuild extends Build {
                     publishLocal <<= (assembly, deliverLocal, ivyModule, publishLocalConfiguration, streams) map { 
                       (_, _, module, config, s) => IvyActions.publish(module, config, s.log)
                     }
-                  ) ++
-                  seq(
-                    (proguardSettings ++ seq(
-                      proguardInJars := Seq(),
-                      proguardLibraryJars <++=
-                        (update) map (_.select(module =
-                          moduleFilter(name = "scala-compiler") | moduleFilter(name = "scala-library"))),
-                      proguardOptions ++= Seq("-keep class sindi.** { *; }")
-                    ):_*)
-                ) 
+                  )
   ) dependsOn (core)
 
   val assembly = TaskKey[Unit]("assembly")
