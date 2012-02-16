@@ -68,9 +68,9 @@ trait Wirable extends Context with WirableBoilerplate {
   // TODO [aloiscochard] Improve exception message details
 
   /** Autowire given function. */
-  final def autowire[T : Manifest, R](f: Function1[T, R]): Function0[R] = {
+  final def autowire[T : Manifest, R](f: Function1[T, R]): R = {
     val newFunction = (values: List[Any]) => () => f(values(0).asInstanceOf[T]).asInstanceOf[R]
-    wireFirst(manifest[T], List(List(manifest[T]) -> newFunction))
+    wireFirst(manifest[T], List(List(manifest[T]) -> newFunction)).apply
   }
 
 
