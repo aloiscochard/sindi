@@ -36,48 +36,49 @@ object SindiBuild extends Build {
   import Dependencies._
   import BuildSettings._
 
-
   lazy val sindi = Project (
     "sindi",
     file ("."),
     settings = buildSettings
   ) aggregate (core, compiler)
 
+  // SINDI-CORE //
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
-    settings = buildSettings ++ testDependencies ++ fmppSettings ++ 
+    settings = buildSettings ++ testDependencies ++ fmppSettings ++ Seq(
       // WORKAROUND for https://github.com/harrah/xsbt/issues/85
-      Seq(unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist")))
+      unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist"))
+    )
   ) configs (Fmpp)
+
+  // SINDI-COMPILER //
+  val assembly = TaskKey[Unit]("assembly")
 
   lazy val compiler = Project(
     "sindi-compiler",
     file("sindi-compiler"),
-    settings = buildSettings ++ testDependencies ++
-                  Seq(
-                    libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided")
-                  ) ++ seq(
-                    (proguardSettings ++ seq(
-                      proguardInJars := Seq(),
-                      proguardLibraryJars <++=
-                        (update) map (_.select(module =
-                          moduleFilter(name = "scala-compiler") | moduleFilter(name = "scala-library"))),
-                      proguardOptions ++= Seq("-keep class sindi.** { *; }")
-                    ):_*) 
-                  ) ++ Seq(
-                    assembly <<= (clean, proguard, minJarPath, artifactPath in (Compile, packageBin), streams) map {
-                      (_, _, min, artifact, streams) => {
-                        streams.log("assembly").info("copy %s --> %s".format(min, artifact))
-                        IO.copyFile(min, artifact)
-                      }
-                    },
-                    publish <<= publish.dependsOn(assembly),
-                    publishLocal <<= publishLocal.dependsOn(assembly)
-                  )
+    settings = buildSettings ++ testDependencies ++ Seq(
+                  libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided")
+                ) ++ seq(
+                  (proguardSettings ++ seq(
+                    proguardInJars := Seq(),
+                    proguardLibraryJars <++=
+                      (update) map (_.select(module =
+                        moduleFilter(name = "scala-compiler") | moduleFilter(name = "scala-library"))),
+                    proguardOptions ++= Seq("-keep class sindi.** { *; }")
+                  ):_*) 
+                ) ++ Seq(
+                  assembly <<= (clean, proguard, minJarPath, artifactPath in (Compile, packageBin), streams) map {
+                    (_, _, min, artifact, streams) => {
+                      streams.log("assembly").info("copy %s --> %s".format(min, artifact))
+                      IO.copyFile(min, artifact)
+                    }
+                  },
+                  publish <<= publish.dependsOn(assembly),
+                  publishLocal <<= publishLocal.dependsOn(assembly)
+                )
   ) dependsOn (core)
-
-  val assembly = TaskKey[Unit]("assembly")
 }
 
 object Sonatype extends PublishToSonatype(SindiBuild) {
@@ -86,55 +87,4 @@ object Sonatype extends PublishToSonatype(SindiBuild) {
   def developerName = "Alois Cochard"
   def licenseName   = "Apache 2 License"
   def licenseUrl    = "http://www.apache.org/licenses/LICENSE-2.0.html"
-}
-
-/***********************
- * Sonatype Publishing *
- ***********************/
-
-abstract class PublishToSonatype(build: Build) {
-  import build._
-
-  val ossSnapshots = "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-  val ossStaging   = "Sonatype OSS Staging" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-  
-  def projectUrl: String
-  def developerId: String
-  def developerName: String
-  
-  def licenseName: String
-  def licenseUrl: String
-  def licenseDistribution = "repo"
-  def scmUrl              = projectUrl
-  def scmConnection       = "scm:git:" + scmUrl
-
-  def generatePomExtra(scalaVersion: String): xml.NodeSeq = {
-    <url>{ projectUrl }</url>
-      <licenses>
-        <license>
-          <name>{ licenseName }</name>
-          <url>{ licenseUrl }</url>
-          <distribution>{ licenseDistribution }</distribution>
-        </license>
-      </licenses>
-    <scm>
-      <url>{ scmUrl }</url>
-      <connection>{ scmConnection }</connection>
-    </scm>
-    <developers>
-      <developer>
-        <id>{ developerId }</id>
-        <name>{ developerName }</name>
-      </developer>
-    </developers>
-  }
-
-  def settings: Seq[Setting[_]] = Seq(
-    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
-    publishMavenStyle := true,
-    publishTo <<= version((v: String) => Some( if (v.trim endsWith "SNAPSHOT") ossSnapshots else ossStaging)),
-    publishArtifact in Test := false,
-    pomIncludeRepository := (_ => false),
-    pomExtra <<= (scalaVersion)(generatePomExtra)
-  )
 }
