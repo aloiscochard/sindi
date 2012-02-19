@@ -11,7 +11,13 @@
 package sindi
 package context
 
-trait WirableBoilerplate { self: Wirable =>
+trait WirableTemplate { self: Wirable =>
+
+  /** Autowire given function. */
+  final def autowire[T : Manifest, R](f: Function1[T, R]): R = {
+    val newFunction = (values: List[Any]) => () => f(values(0).asInstanceOf[T]).asInstanceOf[R]
+    wireFirst(manifest[T], List(List(manifest[T]) -> newFunction)).apply
+  }
 
   /*
   final def autowire[T0, T1, R]

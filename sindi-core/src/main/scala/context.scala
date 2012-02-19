@@ -60,18 +60,12 @@ trait Childable extends Context {
 }
 
 /** A trait adding wiring capability to a [[sindi.context.Context]]. */
-trait Wirable extends Context with WirableBoilerplate {
+trait Wirable extends Context with WirableTemplate {
   import java.lang.reflect.Constructor
   import scala.util.control.Exception._
   import exception._
 
   // TODO [aloiscochard] Improve exception message details
-
-  /** Autowire given function. */
-  final def autowire[T : Manifest, R](f: Function1[T, R]): R = {
-    val newFunction = (values: List[Any]) => () => f(values(0).asInstanceOf[T]).asInstanceOf[R]
-    wireFirst(manifest[T], List(List(manifest[T]) -> newFunction)).apply
-  }
 
   protected def wire[T : Manifest]: Option[T] = catching(classOf[TypeNotBoundException]).opt(inject(manifest[T]))
 
