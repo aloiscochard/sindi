@@ -24,7 +24,8 @@ trait Validator extends SindiPlugin {
   // TODO [aloiscochard] more detailed error message ?
   private case class DependencyNotBound(dependency: Dependency) extends Failure {
     override def tree = dependency.tree
-    override def message = "type not bound: '%s'".format(dependency.name)
+    override def message = "type not bound: '%s'".format(dependency.name) + (if (dependency.qualifiers.isEmpty) "" else
+      " (as " + dependency.qualifiers.map(x => "'" + x + "'").mkString(" or ") + ")")
   }
 
   private case class DependencyOutOfScope(dependency: Dependency) extends Failure {
