@@ -1,4 +1,4 @@
-name := "sindi-compiler-integration"
+name := "sindi-compiler-check"
 
 version := "0.5-SNAPSHOT"
 
