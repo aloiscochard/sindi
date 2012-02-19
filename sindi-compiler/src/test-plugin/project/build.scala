@@ -7,6 +7,7 @@ import Keys._
 object build extends Build {
   val check = TaskKey[Unit]("check")
   lazy val root = Project("main", file("."), settings = Defaults.defaultSettings ++ Seq(
+      watchSources <+= baseDirectory.map(_ / "check"),
       check <<= (
         baseDirectory, 
         fullClasspath in Compile, 
