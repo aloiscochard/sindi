@@ -27,39 +27,9 @@ object build extends Build {
     streams: TaskStreams,
     cache: File): Unit = 
   {
-
-    var sources = Set[File]()
-
-    /////////////
-    // CACHING //
-    /////////////
-    val cachedScala = FileFunction.cached(cache / "check" / "scala", FilesInfo.lastModified, FilesInfo.exists) {
-      (in: Set[File]) => {
-        sources = sources ++ in
-        Set[File]()
-      }
-    }
-    cachedScala(((root / "check") ** "*.scala").get.toSet)
-
-    val cachedFail = FileFunction.cached(cache / "check" / "fail", FilesInfo.lastModified, FilesInfo.exists) {
-      (in: Set[File]) => {
-        // TODO Improve this ugly code
-        sources = sources ++ in.map(x => {
-          val path = x.getPath
-          new File(path.substring(0, path.length - ".fail".length))
-        })
-        Set[File]()
-      }
-    }
-    cachedFail(((root / "check") ** "*.fail").get.toSet)
-
-
     var success = true
 
-    //////////////
-    // CHECKING //
-    //////////////
-    sources.foreach { source =>
+    ((root / "check") ** "*.scala").get.foreach { source =>
       val name = source.getName
       val fail = new File(source.getPath + ".fail")
       val failExists = fail.exists
