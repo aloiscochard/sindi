@@ -29,20 +29,6 @@ trait WirableBoilerplate { self: Wirable =>
   }
   */
 
-  /*
-  final def autowireT[T0, T1]
-      (implicit m0: Manifest[T0], m1: Manifest[T1]): Tuple2[T0, T1] = {
-
-    val newTuple = (values: List[Any]) =>
-      (values(0).asInstanceOf[T0], values(1).asInstanceOf[T1])
-
-    self.wireFirst(
-      manifest[(T0, T1)],
-      (List(List(manifest[T0], manifest[T1]) -> newTuple))
-    )
-  }
-  */
-
 <#list 2..22 as i>
   final def autowire[
 <#list 1..i as j>
@@ -80,41 +66,6 @@ trait WirableBoilerplate { self: Wirable =>
 </#list>
       ) -> newFunction)
     ).apply
-  }
-
-  final def autowireT[
-<#list 1..i as j>
-        T${j}<#if i !=j>,</#if>
-</#list>
-      ]
-      (implicit
-<#list 1..i as j>
-        m${j}: Manifest[T${j}]<#if i !=j>,</#if>
-</#list>
-      ): Tuple${i}[
-<#list 1..i as j>
-        T${j}<#if i !=j>,</#if>
-</#list>
-      ] = {
-
-    val newTuple = (values: List[Any]) => (
-<#list 1..i as j>
-      values(${j - 1}).asInstanceOf[T${j}]<#if i !=j>,</#if>
-</#list>
-    )
-
-    self.wireFirst(
-      manifest[(
-<#list 1..i as j>
-        T${j}<#if i !=j>,</#if>
-</#list>
-      )],
-      (List(List(
-<#list 1..i as j>
-        manifest[T${j}]<#if i !=j>,</#if>
-</#list>
-      ) -> newTuple))
-    )
   }
 
 </#list>

@@ -187,6 +187,7 @@ class FunctionalSpec extends Specification {
       new Foo().autowire(TCaseClass(_: String)).name mustEqual "sindi"
       new Context{}.autowire(TCaseClass(_: String)) must throwAn[TypeNotBoundException]
     }
+
     "autowire tuple" in {
       class Foo extends Context {
         override val bindings = Bindings(
@@ -196,13 +197,12 @@ class FunctionalSpec extends Specification {
         )
       }
       val foo = new Foo
-      foo.autowireT[String, String] mustEqual ("sindi", "sindi")
-      foo.autowireT[String, String, String] mustEqual ("sindi", "sindi", "sindi")
-      foo.autowireT[String, TClass] must throwAn[TypeNotBoundException]
-      val (p1, p2) = foo.autowireT[PClass[String], PClass[Int]]
+      foo.autowire((_: String, _: String)) mustEqual ("sindi", "sindi")
+      foo.autowire((_: String, _: Int)) must throwAn[TypeNotBoundException]
+      val (p1, p2) = foo.autowire((_: PClass[String], _: PClass[Int]))
       p1.x mustEqual "ioc"
       p2.x mustEqual 42
-      foo.autowireT[PClass[String], PClass[Float]] must throwAn[TypeNotBoundException]
+      foo.autowire((_: PClass[String], _: PClass[Float])) must throwAn[TypeNotBoundException]
     }
 
     "autowire function" in {

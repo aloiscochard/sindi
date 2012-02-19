@@ -73,13 +73,6 @@ trait Wirable extends Context with WirableBoilerplate {
     wireFirst(manifest[T], List(List(manifest[T]) -> newFunction)).apply
   }
 
-
-  /** Autowire given tuple type. */
-  final def autowireT[T : Manifest]: Tuple1[T] = {
-    val newTuple = (values: List[Any]) => new Tuple1[T](values(0).asInstanceOf[T])
-    wireFirst(manifest[T], (List(List(manifest[T]) -> newTuple)))
-  }
-
   protected def wire[T : Manifest]: Option[T] = catching(classOf[TypeNotBoundException]).opt(inject(manifest[T]))
 
   private[context] def wireFirst[T]
