@@ -18,10 +18,9 @@ object AppContext extends Context {
     bind[URI] to new URI("http://aloiscochard.github.com/sindi/")
   )
 
-  val info = autowire[Info]
+  val info = autowire(Info.apply _)
 
-  val infoT = autowireT[(String, URI)]
+  val infoT = autowire((_: String, _: URI))
 
-  val description = List(autowire(name _), autowire(website _))
-                      .map(_.apply).mkString(", ")
+  val description = List(autowire(name _), autowire(website _)).mkString(", ")
 }

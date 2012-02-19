@@ -33,7 +33,7 @@ package moduleA {
     override lazy val modules = new ModuleC :: Nil
 
     override val bindings = Bindings(
-      bind[ServiceA] to autowire[DefaultServiceA],
+      bind[ServiceA] to autowire(new DefaultServiceA(_: ServiceC)),
       bind[ServiceC] to new AdvancedServiceC
     )
 
@@ -51,7 +51,7 @@ package moduleB {
     override lazy val modules = new ModuleC :: Nil
 
     override val bindings: Bindings =
-      bind[ServiceB] to autowire[DefaultServiceB]
+      bind[ServiceB] to autowire(new DefaultServiceB(_: ServiceC))
 
       // Without autowiring:
       //bind[ServiceB] to new DefaultServiceB(from[ModuleC].service)
