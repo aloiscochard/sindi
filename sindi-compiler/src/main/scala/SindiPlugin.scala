@@ -36,11 +36,13 @@ trait SindiPlugin extends Plugin {
   protected final val symComponentWith = global.definitions.getClass(manifest[sindi.ComponentWith[_]].erasure.getName)
   protected final val symComposable = global.definitions.getClass(manifest[sindi.Composable].erasure.getName)
   protected final val symInjector = global.definitions.getClass(manifest[sindi.injector.Injector].erasure.getName)
+  protected final val symManifest = global.definitions.getClass(manifest[Manifest[_]].erasure.getName)
   protected final val symModule = global.definitions.getClass(manifest[sindi.Module].erasure.getName)
   protected final val symModuleT = global.definitions.getClass(manifest[sindi.ModuleT[_]].erasure.getName)
   protected final val symModuleManifest = global.definitions.getClass(manifest[sindi.ModuleManifest[_]].erasure.getName)
   protected final val symNone = global.definitions.getClass(manifest[scala.None.type].erasure.getName)
   protected final val symQualifiers = global.definitions.getClass(manifest[sindi.injector.Qualifiers].erasure.getName)
+  protected final val symWirableTemplate = global.definitions.getClass(manifest[sindi.context.WirableTemplate].erasure.getName)
 
   case class CompilationUnitInfo(source: SourceFile, contexts: List[Context], components: List[Entity]) {
     override def toString = prettyFormatter(toJson)

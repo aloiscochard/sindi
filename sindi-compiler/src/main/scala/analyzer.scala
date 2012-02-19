@@ -89,6 +89,7 @@ trait Analyzis extends SindiPlugin {
       get(tree, injected)
     }
 
+    def isAutowire(tree: Tree) = tree.symbol.name.toString == "autowire" && tree.symbol.owner.isSubClass(symWirableTemplate)
     def isInjectorMethod(t: Tree, n: String) = t.symbol.name.toString == n && t.symbol.owner.isSubClass(symInjector)
     def isInject(tree: Apply) = isInjectorMethod(tree, "inject")
     def isInjectAs(tree: Apply) = isInjectorMethod(tree,"injectAs") && tree.tpe.boundSyms.isEmpty
@@ -116,6 +117,19 @@ trait Analyzis extends SindiPlugin {
       case tree: Apply if isInject(tree) => Some(getDependency(tree))
       case tree: Apply if isInjectAs(tree) =>
         Some(Dependency(tree, Signature(tree.tpe.typeSymbol, Some(tree.tpe)), None, tree.tpe.toString, getQualifiers(tree)))
+      case tree: Apply if isAutowire(tree) => {
+        val autowireReturn = tree.tpe
+        println("return: " + autowireReturn)
+        tree.children.collectFirst({ case t: TypeApply if isAutowire(t) => t}) match {
+          case Some(typeApply) => typeApply.children.foreach(_ match {
+            case t: TypeTree => println("type: " + t)
+            case _ =>
+          })
+          case None =>
+        }
+        //global.treeBrowsers.create().browse(tree)
+        None
+      }
       case _ => None
     })
 
