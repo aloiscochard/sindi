@@ -186,12 +186,17 @@ trait SindiPlugin extends Plugin {
   }
 
   /** Collect all matchings trees **/
-  @tailrec
   protected final def collect[T <: AnyRef](lookup: List[Tree], accumulator: List[T] = Nil)
       (filter: (Tree) => Option[T]): List[T] = {
+    collectList(lookup, accumulator)(filter(_).toList)
+  }
+
+  @tailrec
+  protected final def collectList[T <: AnyRef](lookup: List[Tree], accumulator: List[T] = Nil)
+      (filter: (Tree) => List[T]): List[T] = {
     var children = List[Tree]()
     val found = for(tree <- lookup) yield { children = children ++ tree.children; filter(tree) }
-    if (children.isEmpty) { found.flatten ++ accumulator }
-    else { collect(children, found.flatten ++ accumulator)(filter) }
+    if (children.isEmpty) { found.flatten ::: accumulator }
+    else { collectList(children, found.flatten ::: accumulator)(filter) }
   }
 }

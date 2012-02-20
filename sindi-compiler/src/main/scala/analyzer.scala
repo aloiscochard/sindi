@@ -101,7 +101,7 @@ trait Analyzis extends SindiPlugin {
 
     def getQualifiers(tree: Tree) = {
       // TODO Add support of dynamic qualifier (injectAs[Foo](qualifier[Bar] || "foo"))
-      val qualifiers = find[Apply](tree.children)((t) => t match {
+      val qualifiers = find[Apply](tree.children)(_ match {
         case t: Apply if t.tpe.typeSymbol.isSubClass(symQualifiers) => Some(t)
         case _ => None
       }).map((tree) => collect[TypeTree](tree.children)((tree) => tree match {
@@ -113,24 +113,33 @@ trait Analyzis extends SindiPlugin {
     }
 
     // Adding direct dependencies
-    val dependencies = collect[Dependency](root.children)((tree) => tree match {
-      case tree: Apply if isInject(tree) => Some(getDependency(tree))
+    val dependencies = collectList[Dependency](root.children)(_ match {
+      case tree: Apply if isInject(tree) =>
+        List(getDependency(tree))
       case tree: Apply if isInjectAs(tree) =>
-        Some(Dependency(tree, Signature(tree.tpe.typeSymbol, Some(tree.tpe)), None, tree.tpe.toString, getQualifiers(tree)))
-      case tree: Apply if isAutowire(tree) => {
-        val autowireReturn = tree.tpe
-        println("return: " + autowireReturn)
-        tree.children.collectFirst({ case t: TypeApply if isAutowire(t) => t}) match {
-          case Some(typeApply) => typeApply.children.foreach(_ match {
-            case t: TypeTree => println("type: " + t)
-            case _ =>
-          })
-          case None =>
-        }
-        //global.treeBrowsers.create().browse(tree)
-        None
-      }
-      case _ => None
+        List(
+          Dependency(
+            tree,
+            Signature(tree.tpe.typeSymbol, Some(tree.tpe)),
+            None,
+            tree.tpe.toString,
+            getQualifiers(tree)
+          )
+        )
+      case tree: Apply if isAutowire(tree) =>
+        (find[TypeApply](tree.children)(_ match {
+          case t: TypeApply if isAutowire(t) => Some(t)
+          case _ => None
+        }) match {
+          case Some(typeApply) => typeApply.children.flatMap(_ match {
+            case t: TypeTree => List(t)
+            case _ => None
+          }).init
+          case _ => Nil
+        }).map(tree => 
+          Dependency(tree, Signature(tree.tpe.typeSymbol, Some(tree.tpe)), None, tree.tpe.toString)
+        )
+      case _ => Nil
     })
 
     // Adding imported dependencies (from[T].*)
