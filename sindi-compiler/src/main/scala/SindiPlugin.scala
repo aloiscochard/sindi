@@ -84,7 +84,8 @@ trait SindiPlugin extends Plugin {
   case class Signature(symbol: Symbol, tpe: Option[Type] = None)
 
   case class Dependency(tree: Tree, signature: Signature,
-                        dependency: Option[Dependency], name: String, qualifiers: List[Type] = Nil) {
+                        dependency: Option[Dependency], name: String,
+                        qualifiers: List[Type] = Nil, wired: Boolean = false) {
     def symbol = signature.symbol
 
     def fullName = qualifiers match {

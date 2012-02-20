@@ -137,7 +137,7 @@ trait Analyzis extends SindiPlugin {
           }).init
           case _ => Nil
         }).map(tree => 
-          Dependency(tree, Signature(tree.tpe.typeSymbol, Some(tree.tpe)), None, tree.tpe.toString)
+          Dependency(tree, Signature(tree.tpe.typeSymbol, Some(tree.tpe)), None, tree.tpe.toString, Nil, true)
         )
       case _ => Nil
     })

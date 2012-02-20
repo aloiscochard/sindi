@@ -119,6 +119,14 @@ trait Validator extends SindiPlugin {
         case None => {
           entity.bindings.find(isBound(dependency) _) match {
             case Some(binding) => None
+            case None if dependency.wired => {
+              entity.modules.flatMap(
+                _.tpe.decls.toList.filter(_.isPublic).filterNot(_.isConstructor).filterNot(_.name.toString == "bindings")
+              ).find(_.isSubClass(dependency.symbol)) match {
+                case None => Some(DependencyNotBound(dependency))
+                case Some(_) => None
+              }
+            }
             case None => Some(DependencyNotBound(dependency))
           }
         }
