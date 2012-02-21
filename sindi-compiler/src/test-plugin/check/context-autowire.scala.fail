@@ -1,8 +1,7 @@
 :14: type not bound: 'Long'
   autowire(f2 _)
-           ^
+  ^
 :16: type not bound: 'Long'
   autowire((_: Int, _: Long))
-           ^
+  ^
 two errors found
-

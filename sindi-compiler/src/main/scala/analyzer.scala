@@ -145,9 +145,7 @@ trait Analyzis extends SindiPlugin {
     // Adding imported dependencies (from[T].*)
     val (imported, components) = collect[Tree](root.children)((tree) => tree match {
       case tree: Apply =>
-        if (tree.symbol.owner.isSubClass(symComposable) && 
-            // Filtering inline module definition
-            !(tree.symbol.owner.isSubClass(symContext) && tree.symbol.name.toString == "module")) 
+        if (tree.symbol.owner.isSubClass(symComposable) && tree.symbol.name.toString == "from")
           Some(tree)
         else None
       case _ => None
