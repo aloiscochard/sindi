@@ -44,8 +44,10 @@ trait Validator extends SindiPlugin {
   }
 
   def check(unit: CompilationUnit, registry: RegistryReader) = {
-    def notify(failure: Failure) = global.synchronized {
-      unit.error(failure.tree.pos, failure.message)
+    var errors = collection.SortedMap[(Int, Int), Failure]()
+
+    def notify(failure: Failure) = unit.synchronized {
+      errors += (failure.tree.pos.line, failure.tree.pos.column) -> failure
     }
 
     def validate(entity: Entity, dependencies: List[Dependency]) =
@@ -66,6 +68,10 @@ trait Validator extends SindiPlugin {
         })
       }
       case _ =>
+    }
+
+    global.synchronized {
+        errors.foreach { case (_, failure) => unit.error(failure.tree.pos, failure.message) }
     }
   }
 
