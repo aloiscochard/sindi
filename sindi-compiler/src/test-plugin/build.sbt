@@ -1,6 +1,6 @@
 name := "sindi-compiler-check"
 
-version := "0.5-SNAPSHOT"
+version := "0.5"
 
 organization := "com.github.aloiscochard.sindi"
 
