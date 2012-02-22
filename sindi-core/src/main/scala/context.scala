@@ -47,12 +47,12 @@ trait Context extends Injector {
 /** A trait adding hierarchical relationship to a [[sindi.context.Context]]. */
 trait Childable extends Context {
   /** Return the injector associated with this context. */
-  override lazy val injector = Injector(bounds, parent.injector _)
-  protected val parent: Context
+  override lazy val injector = Injector(bounds, ctx.injector _)
+  protected val ctx: Context
 
   override protected def processing = {
     @tailrec def collect(context: Context, acc: List[Processor[_]] = Nil): List[Processor[_]] = context match {
-      case context: Childable => collect(context.parent, context.processors ++ acc)
+      case context: Childable => collect(context.ctx, context.processors ++ acc)
       case _ => context.processors ++ acc
     }
     collect(this).distinct

@@ -31,7 +31,10 @@ package object sindi {
   /** A module manifest store safely a module type reference. */
   class ModuleManifest[M <: Module : Manifest]
   /** Return a new module with given bindings (implicit context is defined as new module's parent). */
-  def module(_bindings: Bindings)(implicit context: Context) = new Module { override val bindings = _bindings }
+  def module(_bindings: Bindings)(implicit context: Context) = new Module { 
+    override val ctx = context
+    override val bindings = _bindings
+  }
   /** Return a qualifier for the given type. */
   def qualifier[T : Manifest] = manifest[T]                            
   /** Implicit conversion to construct qualifiers from any reference. */
@@ -146,9 +149,7 @@ package sindi {
    *
    * @see [[sindi.ModuleT]]
    */
-  abstract class Module(implicit context: Context) extends Context with context.Childable {
-    override protected val parent = context
-  }
+  trait Module extends Context with context.Childable
 
   /** A class to declare type parameterized module that can be consumed safely.
    *
@@ -168,7 +169,7 @@ package sindi {
    * }}}
    *
    */
-  abstract class ModuleT[T](implicit manifest: Manifest[T], context: Context) extends Module()(context) {
+  abstract class ModuleT[T](implicit manifest: Manifest[T]) extends Module {
     private[sindi] val _manifest = manifest
   }
 
