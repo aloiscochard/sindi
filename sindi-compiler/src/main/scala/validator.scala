@@ -70,14 +70,20 @@ trait Validator extends SindiPlugin {
   }
 
   private def resolve(registry: RegistryReader)(entity: Entity, dependency: Dependency): Option[Failure] = {
-    // TODO: Show and point qualifier on error
-    def isBound(d: Dependency)(b: Binding): Boolean = d.symbol == b.symbol && ((d.qualifiers, b.qualifier) match {
-      case (Nil, None) => true
-      case (Nil, Some(_)) => false
-      case (qs, _) if qs.contains(symNone.tpe) => true
-      case (qs, None) => false
-      case (qs, Some(q)) => qs.contains(q)
-    })
+    def isBound(d: Dependency)(b: Binding): Boolean = global.synchronized {
+      d.symbol == b.symbol && ((d.qualifiers, b.qualifier) match {
+        case (Nil, None) => true
+        case (Nil, Some(_)) => false
+        case (qs, _) if qs.contains(symNone.tpe) => true
+        case (qs, None) => false
+        case (qs, Some(q)) => qs.contains(q)
+      })
+    }
+    def isWirable(d: Dependency): Boolean = global.synchronized {
+      entity.modules.flatMap(
+        _.tpe.decls.toList.filter(_.isPublic).filterNot(_.isConstructor).filterNot(_.name.toString == "bindings")
+      ).find(_.isSubClass(d.symbol)).isDefined 
+    }
 
     if (dependency.symbol == symOption) {
       // TODO: Configurable exclude filter
@@ -119,14 +125,7 @@ trait Validator extends SindiPlugin {
         case None => {
           entity.bindings.find(isBound(dependency) _) match {
             case Some(binding) => None
-            case None if dependency.wired => {
-              entity.modules.flatMap(
-                _.tpe.decls.toList.filter(_.isPublic).filterNot(_.isConstructor).filterNot(_.name.toString == "bindings")
-              ).find(_.isSubClass(dependency.symbol)) match {
-                case None => Some(DependencyNotBound(dependency))
-                case Some(_) => None
-              }
-            }
+            case None if dependency.wired && isWirable(dependency) => None
             case None => Some(DependencyNotBound(dependency))
           }
         }
