@@ -218,24 +218,24 @@ class FunctionalSpec extends Specification {
   "Sindi Context with Module" should {
 
     "autowire imported modules definitions" in {
-      class Bar(implicit context: Context) extends Module {
+      class Bar(override val ctx: Context) extends Module {
         override val bindings: Bindings = bind[String] to "sindi" 
         def x = inject[String]
       }
-      class Foo extends Context { override lazy val modules: Modules = new Bar :: Nil}
+      class Foo extends Context { override lazy val modules: Modules = new Bar(this) :: Nil}
       new Foo().autowire[String, TClass](new TClass(_)).name mustEqual "sindi"
     }
 
     "autowire imported modules definitions by injecting arguments" in {
       class Helper { def f(s: String) = "hello " + s }
 
-      class Bar(implicit context: Context) extends Module {
+      class Bar(override val ctx: Context) extends Module {
         override val bindings: Bindings = bind[String] to "sindi"
         def x(h: Helper) = h.f(inject[String])
       }
 
       class Foo extends Context {
-        override lazy val modules: Modules = new Bar :: Nil
+        override lazy val modules: Modules = new Bar(this) :: Nil
         override val bindings: Bindings = bind[Helper] to new Helper
       }
       new Foo().autowire(new TClass(_: String)).name mustEqual "hello sindi"
