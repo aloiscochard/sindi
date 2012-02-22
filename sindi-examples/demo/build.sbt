@@ -1,6 +1,6 @@
 name := "sindi-examples-logging"
 
-version := "0.5-SNAPSHOT"
+version := "0.6-SNAPSHOT"
 
 organization := "com.github.aloiscochard.sindi"
 
