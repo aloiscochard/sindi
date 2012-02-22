@@ -26,7 +26,7 @@ To see all possibilites offered by components, let's first define two simple ser
 The first is ``UserRepository`` which is used by the second one ``UserService``.
 We can now create a module for ``UserRepository``::
 
-  final class UserRepositoryModule(implicit context: Context) extends Module {
+  final class UserRepositoryModule(override val ctx: Context) extends Module {
     override val bindings: Bindings =
       bind[UserRepository] to new DefaultUserRepository
 
@@ -55,8 +55,8 @@ otherwise you shoud define constrains manually using ``ModuleManifest``::
  
 Let's move forward and see how we can consume the ``UserRepositoryComponent`` by creating a module for ``UserService``::
 
-  final class UserServiceModule(implicit context: Context) extends Module {
-    override lazy val modules = new UserRepositoryModule :: Nil            
+  final class UserServiceModule(override val ctx: Context) extends Module {
+    override lazy val modules = new UserRepositoryModule(this) :: Nil            
                                                                            
     override val bindings: Bindings =                           
       bind[UserService] to           
@@ -89,7 +89,7 @@ Let's see a concrete use case by first adding a component for ``UserService``::
 And now create the application context::
 
   object AppContext extends Context {
-    override lazy val modules = new UserServiceModule :: Nil
+    override lazy val modules = new UserServiceModule(this) :: Nil
   }
 
 Finally we create a component who is statically linked to our application context::
@@ -110,11 +110,6 @@ We can now use this component on any ``object`` and get dependency injected from
 
   scala> Test.userService.name
   res0: String = default
-
-*There is actually a limitation you should be aware, when you mixin Component on Context/Module/ComponentWith
-this isn't acutally checked by the compiler plugin.*
-
-**These are under development and will be integrated in next version (0.5).**
 
 Here finish your journay into Sindi's basics features, if you feel brave enough you can continue
 to the :doc:`/advanced` documentation!

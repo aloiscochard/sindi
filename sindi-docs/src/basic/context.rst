@@ -67,15 +67,14 @@ Before moving into next topic and diving into modularization, let's see how we c
       bind[URI] to new URI("http://aloiscochard.github.com/sindi/")
     )
 
-    val info = autowire[Info]
+    val info = autowire(Info.apply _)
 
-    val infoT = autowireT[(String, URI)]
+    val infoT = autowire((_: String, _: URI))
 
-    val description = List(autowire(name _), autowire(website _))
-                        .map(_.apply).mkString(", ")
+    val description = List(autowire(name _), autowire(website _)).mkString(", ")
   }
 
-Autowiring provide constructors, tuple and parameters injection::
+Autowiring provide function parameters injection, which can be used on tuple and constructors too::
 
   scala> AppContext.info
   res0: AppContext.Info = Info(sindi,http://aloiscochard.github.com/sindi/)
@@ -85,12 +84,6 @@ Autowiring provide constructors, tuple and parameters injection::
 
   scala> AppContext.description
   res2: String = Name: sindi, Website: http://aloiscochard.github.com/sindi/
-
-Implementation isn't currently complete, the following features are missing:
- * Compiler plugin checking
- * Support of TupleX and FunctionX
-
-**Theses features are under development and will be integrated in next version (0.5).**
 
 The examples you've just seen demonstrate internal context usage but wouldn't make lot of sense in real world situations,
 we could simply have used global object (``val``) to hold the shared values.
