@@ -90,7 +90,7 @@ provide services based on a configuration which can be overrided by the module c
 <p>When designing application with an IoC container, you want to avoid coupling as much as possible.
 For instance, ModuleC could be self-contained in a jar file and he doesn&#8217;t need other modules to be used.</p>
 <p>Let&#8217;s start with simple definition for ModuleC:</p>
-<div class="highlight-python"><pre>final class ModuleC(implicit context: Context) extends Module {
+<div class="highlight-python"><pre>final class ModuleC(override val ctx: Context) extends Module {
   override val bindings: Bindings =
     bind[ServiceC] to new DefaultServiceC
 
@@ -102,14 +102,14 @@ class DefaultServiceC extends ServiceC
 class AdvancedServiceC extends ServiceC</pre>
 </div>
 <p>As you can see, defining a module is basically creating a <em>class</em> extending <tt class="docutils literal"><span class="pre">Module</span></tt>.
-You must add an implicit class contructror of type <tt class="docutils literal"><span class="pre">Context</span></tt> in order to allow correct embedding of your module in other contexts.</p>
+You must add a constructror parameter of type <tt class="docutils literal"><span class="pre">Context</span></tt> that override <tt class="docutils literal"><span class="pre">ctx</span></tt> value in order to allow correct embedding of your module into other contexts.</p>
 <p>You can then define your binding(s) and expose your service(s) using <em>val</em>/<em>def</em>,
 depending if you want to expose your service as a <em>singleton</em> or not.</p>
 <p>It&#8217;s not mandatory but <strong>highly recommended</strong> to define your module as <em>final</em>.
 You should always prefer <strong>composition over inheritance</strong> when designing modules.</p>
 <p>That&#8217;s it! You created your first module, and low let&#8217;s see how we can consume it in ModuleB:</p>
-<div class="highlight-python"><pre>final class ModuleB(implicit context: Context) extends Module {
-  override lazy val modules = new ModuleC :: Nil
+<div class="highlight-python"><pre>final class ModuleB(override val ctx: Context) extends Module {
+  override lazy val modules = new ModuleC(this) :: Nil
 
   override val bindings: Bindings =
     bind[ServiceB] to autowire[DefaultServiceB]
@@ -125,10 +125,9 @@ class DefaultServiceB(override val c: ServiceC) extends ServiceB</pre>
 </div>
 <p>To import a module into an existant module/context,
 you just have to override the value <tt class="docutils literal"><span class="pre">modules</span></tt> and initalize it with a list containing the required modules.</p>
-<p>It&#8217;s <strong>highly recommended</strong> to declare modules as <tt class="docutils literal"><span class="pre">lazy</span> <span class="pre">val</span></tt> to unsure a correct initialization.</p>
-<p>Before putting alltogether in our application, let&#8217;s create ModuleA which consume ModuleB and override his bindings:</p>
-<div class="highlight-python"><pre>final class ModuleA(implicit context: Context) extends Module {
-  override lazy val modules = new ModuleC :: Nil
+<p>Before putting alltogether in our application, let&#8217;s create ModuleA which consume ModuleC and override his bindings:</p>
+<div class="highlight-python"><pre>final class ModuleA(override val ctx: Context) extends Module {
+  override lazy val modules = new ModuleC(this) :: Nil
 
   override val bindings = Bindings(
     bind[ServiceA] to autowire[DefaultServiceA],
@@ -162,7 +161,7 @@ for all modules used by your application using a custom implementation,
 you can add your custom implementation anywhere but to keeping things simple let&#8217;s add it in our
 AppContext and define the new binding too:</p>
 <div class="highlight-python"><pre>object AppContext extends Context {
-  override lazy val modules = new ModuleA :: new ModuleB :: Nil
+  override lazy val modules = new ModuleA(this) :: new ModuleB(this) :: Nil
 
   override val bindings: Bindings =
     bind[ServiceC] to autowire[CustomServiceC]

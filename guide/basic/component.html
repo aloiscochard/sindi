@@ -104,7 +104,7 @@ trait AdvancedUserService extends UserService  { def name = "advanced" }</pre>
 </div>
 <p>The first is <tt class="docutils literal"><span class="pre">UserRepository</span></tt> which is used by the second one <tt class="docutils literal"><span class="pre">UserService</span></tt>.
 We can now create a module for <tt class="docutils literal"><span class="pre">UserRepository</span></tt>:</p>
-<div class="highlight-python"><pre>final class UserRepositoryModule(implicit context: Context) extends Module {
+<div class="highlight-python"><pre>final class UserRepositoryModule(override val ctx: Context) extends Module {
   override val bindings: Bindings =
     bind[UserRepository] to new DefaultUserRepository
 
@@ -129,8 +129,8 @@ otherwise you shoud define constrains manually using <tt class="docutils literal
 }</pre>
 </div>
 <p>Let&#8217;s move forward and see how we can consume the <tt class="docutils literal"><span class="pre">UserRepositoryComponent</span></tt> by creating a module for <tt class="docutils literal"><span class="pre">UserService</span></tt>:</p>
-<div class="highlight-python"><pre>final class UserServiceModule(implicit context: Context) extends Module {
-  override lazy val modules = new UserRepositoryModule :: Nil
+<div class="highlight-python"><pre>final class UserServiceModule(override val ctx: Context) extends Module {
+  override lazy val modules = new UserRepositoryModule(this) :: Nil
 
   override val bindings: Bindings =
     bind[UserService] to
@@ -156,7 +156,7 @@ if your container (specially some webframeworks) requiere you to create global <
 </div>
 <p>And now create the application context:</p>
 <div class="highlight-python"><pre>object AppContext extends Context {
-  override lazy val modules = new UserServiceModule :: Nil
+  override lazy val modules = new UserServiceModule(this) :: Nil
 }</pre>
 </div>
 <p>Finally we create a component who is statically linked to our application context:</p>
@@ -174,9 +174,6 @@ defined module Test
 scala&gt; Test.userService.name
 res0: String = default</pre>
 </div>
-<p><em>There is actually a limitation you should be aware, when you mixin Component on Context/Module/ComponentWith
-this isn&#8217;t acutally checked by the compiler plugin.</em></p>
-<p><strong>These are under development and will be integrated in next version (0.5).</strong></p>
 <p>Here finish your journay into Sindi&#8217;s basics features, if you feel brave enough you can continue
 to the <a class="reference internal" href="../advanced.html"><em>Advanced</em></a> documentation!</p>
 </div>

@@ -84,8 +84,8 @@
   <div class="section" id="context">
 <h1>Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h1>
 <p>Generally a <a class="reference external" href="http://aloiscochard.github.com/sindi/api/index.html#sindi.Context">context</a>
-describe how a set of compounds should be wired together,
-once instantiated during runtime it provide facilities to inject theses compounds.</p>
+describe how a set of objects should be wired together,
+once instantiated during runtime it provide facilities to inject theses objects.</p>
 <p>There is multiple way to describe a context and his bindings,
 but it&#8217;s <strong>highly recommended</strong> to use the provided DSL.</p>
 <p><em>By using the DSL, you allow the compiler plugin to recognize and check your declaration/injection during compilation.</em></p>
@@ -139,15 +139,14 @@ object AppContext extends Context {
     bind[URI] to new URI("http://aloiscochard.github.com/sindi/")
   )
 
-  val info = autowire[Info]
+  val info = autowire(Info.apply _)
 
-  val infoT = autowireT[(String, URI)]
+  val infoT = autowire((_: String, _: URI))
 
-  val description = List(autowire(name _), autowire(website _))
-                      .map(_.apply).mkString(", ")
+  val description = List(autowire(name _), autowire(website _)).mkString(", ")
 }</pre>
 </div>
-<p>Autowiring provide constructors, tuple and parameters injection:</p>
+<p>Autowiring provide function parameters injection, which can be used on tuple and constructors too:</p>
 <div class="highlight-python"><pre>scala&gt; AppContext.info
 res0: AppContext.Info = Info(sindi,http://aloiscochard.github.com/sindi/)
 
@@ -157,15 +156,6 @@ res1: (String, java.net.URI) = (sindi,http://aloiscochard.github.com/sindi/)
 scala&gt; AppContext.description
 res2: String = Name: sindi, Website: http://aloiscochard.github.com/sindi/</pre>
 </div>
-<dl class="docutils">
-<dt>Implementation isn&#8217;t currently complete, the following features are missing:</dt>
-<dd><ul class="first last simple">
-<li>Compiler plugin checking</li>
-<li>Support of TupleX and FunctionX</li>
-</ul>
-</dd>
-</dl>
-<p><strong>Theses features are under development and will be integrated in next version (0.5).</strong></p>
 <p>The examples you&#8217;ve just seen demonstrate internal context usage but wouldn&#8217;t make lot of sense in real world situations,
 we could simply have used global object (<tt class="docutils literal"><span class="pre">val</span></tt>) to hold the shared values.</p>
 <p>Using an IoC container make sense in situation when multiple modules that share common dependencies should be integrated together,

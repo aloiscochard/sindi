@@ -55,7 +55,7 @@
       <span class="symbol"> 
         <span class="name">Bindings</span>
         
-        <span class="result"> = <span name="scala.collection.Seq" class="extype">Seq</span>[<a name="sindi.binder.binding.Binding" class="extype" href="binder/binding/Binding.html">Binding</a>[AnyRef]]</span>
+        <span class="result"> = <span name="scala.collection.Seq" class="extype">Seq</span>[<a name="sindi.binder.binding.Binding" class="extype" href="binder/binding/Binding.html">Binding</a>[<span name="scala.Any" class="extype">Any</span>]]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">A sequence of bindings.</p><div class="fullcomment"><div class="comment cmt"><p>A sequence of bindings.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a name="sindi.package" class="extype" href="package$.html">package</a></dd></dl></div>
@@ -113,11 +113,11 @@
         <span class="result"> extends Context with Wirable with DSL with Composable</span>
       </span>
       </h4>
-      <p class="comment cmt">A context is a collection of bindings and modules, it contains operations to wire compounds together.</p>
+      <p class="comment cmt">A context is a collection of bindings and modules, it contains operations to wire objects together.</p>
     </li><li visbl="pub" name="sindi.Module" data-isabs="true">
       <a id="Module:Module"></a>
       <h4 class="signature">
-      <span class="kind">class</span>
+      <span class="kind">trait</span>
       <span class="symbol"> 
         <a href="Module.html"><span class="name">Module</span></a>
         
@@ -164,7 +164,7 @@
       <span class="kind">type</span>
       <span class="symbol"> 
         <span class="name">Processors</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> = <span name="scala.collection.Seq" class="extype">Seq</span>[<a name="sindi.processor.Processor" class="extype" href="processor/Processor.html">Processor</a>[T]]</span>
       </span>
       </h4>
@@ -175,7 +175,7 @@
       <span class="kind">class</span>
       <span class="symbol"> 
         <a href="Provider.html"><span class="name">Provider</span></a>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> extends Provider[T]</span>
       </span>
       </h4>
@@ -210,13 +210,13 @@
       </h4>
       <p class="comment cmt">A companion object for <a name="sindi.Module" class="extype" href="Module.html">Module</a> list construction.</p>
     </li><li visbl="pub" name="sindi.package#any2qualifiers" data-isabs="false">
-      <a id="any2qualifiers(AnyRef):Qualifiers"></a>
+      <a id="any2qualifiers(Any):Qualifiers"></a>
       <h4 class="signature">
       <span class="kind">implicit def</span>
       <span class="symbol"> 
         <span class="name">any2qualifiers</span>
         
-        <span class="params">(<span name="q">q: AnyRef</span>)</span><span class="result">: <a name="sindi.injector.Qualifiers" class="extype" href="injector/Qualifiers.html">Qualifiers</a></span>
+        <span class="params">(<span name="q">q: <span name="scala.Any" class="extype">Any</span></span>)</span><span class="result">: <a name="sindi.injector.Qualifiers" class="extype" href="injector/Qualifiers.html">Qualifiers</a></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Implicit conversion to construct qualifiers from any reference.</p><div class="fullcomment"><div class="comment cmt"><p>Implicit conversion to construct qualifiers from any reference.</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>implicit </dd><dt>Definition Classes</dt><dd><a name="sindi.package" class="extype" href="package$.html">package</a></dd></dl></div>
@@ -265,13 +265,13 @@
       </h4>
       
     </li><li visbl="pub" name="sindi.package#module" data-isabs="false">
-      <a id="module(Bindings)(Context):Module"></a>
+      <a id="module(Bindings)(Context):Module { val ctx: sindi.Context }"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">module</span>
         
-        <span class="params">(<span name="_bindings">_bindings: Bindings</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="context">context: <a name="sindi.Context" class="extype" href="Context.html">Context</a></span>)</span><span class="result">: <a name="sindi.Module" class="extype" href="Module.html">Module</a></span>
+        <span class="params">(<span name="_bindings">_bindings: Bindings</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="context">context: <a name="sindi.Context" class="extype" href="Context.html">Context</a></span>)</span><span class="result">: <a name="sindi.Module" class="extype" href="Module.html">Module</a> { val ctx: sindi.Context }</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Return a new module with given bindings (implicit context is defined as new module's parent).</p><div class="fullcomment"><div class="comment cmt"><p>Return a new module with given bindings (implicit context is defined as new module's parent).</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a name="sindi.package" class="extype" href="package$.html">package</a></dd></dl></div>

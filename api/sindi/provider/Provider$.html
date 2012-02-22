@@ -118,12 +118,12 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>final </dd><dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li visbl="pub" name="sindi.provider.Provider#apply" data-isabs="false">
-      <a id="apply[T&lt;:AnyRef](⇒ T)(Manifest[T]):Provider[T]"></a>
+      <a id="apply[T](⇒ T)(Manifest[T]):Provider[T]"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">apply</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="params">(<span name="f">f: ⇒ T</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: Manifest[T]</span>)</span><span class="result">: <a name="sindi.provider.Provider" class="extype" href="Provider.html">Provider</a>[T]</span>
       </span>
       </h4>
@@ -140,17 +140,17 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>final </dd><dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li visbl="pub" name="sindi.provider.Provider#cached" data-isabs="false">
-      <a id="cached[T&lt;:AnyRef](⇒ T)(Manifest[T]):Provider[T]"></a>
+      <a id="cached[T](⇒ T)(Manifest[T]):Provider[T]"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">cached</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="params">(<span name="f">f: ⇒ T</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: Manifest[T]</span>)</span><span class="result">: <a name="sindi.provider.Provider" class="extype" href="Provider.html">Provider</a>[T]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Return a new cached provider for a given function.</p><div class="fullcomment"><div class="comment cmt"><p>Return a new cached provider for a given function.</p><p>Function is applied only once when the provider is called the first time,
-the function return value is then cached for future calls</p></div></div>
+the function returned value is then cached for future calls</p></div></div>
     </li><li visbl="prt" name="scala.AnyRef#clone" data-isabs="false">
       <a id="clone():AnyRef"></a>
       <h4 class="signature">
@@ -165,6 +165,17 @@ the function return value is then cached for future calls</p></div></div>
                 <span class="name">@throws</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li visbl="pub" name="sindi.provider.Provider#create" data-isabs="false">
+      <a id="create[T](⇒ T,Manifest[_]):Provider[T]"></a>
+      <h4 class="signature">
+      <span class="kind">def</span>
+      <span class="symbol"> 
+        <span class="name">create</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
+        <span class="params">(<span name="f">f: ⇒ T</span>, <span name="manifest">manifest: Manifest[_]</span>)</span><span class="result">: <a name="sindi.provider.Provider" class="extype" href="Provider.html">Provider</a>[T]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Return a new provider for a given function and explicit manifest.</p>
     </li><li visbl="pub" name="scala.AnyRef#eq" data-isabs="false">
       <a id="eq(AnyRef):Boolean"></a>
       <h4 class="signature">

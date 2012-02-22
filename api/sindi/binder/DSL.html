@@ -67,7 +67,7 @@
       <span class="kind">class</span>
       <span class="symbol"> 
         <a href="DSL$Bind.html"><span class="name">Bind</span></a>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> extends Binder</span>
       </span>
       </h4>
@@ -78,7 +78,7 @@
       <span class="kind">class</span>
       <span class="symbol"> 
         <a href="DSL$BindSource.html"><span class="name">BindSource</span></a>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> extends Binder</span>
       </span>
       </h4>
@@ -89,7 +89,7 @@
       <span class="kind">trait</span>
       <span class="symbol"> 
         <a href="DSL$Qualifiable.html"><span class="name">Qualifiable</span></a>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> extends Bind[T]</span>
       </span>
       </h4>
@@ -100,7 +100,7 @@
       <span class="kind">class</span>
       <span class="symbol"> 
         <a href="DSL$QualifiedBind.html"><span class="name">QualifiedBind</span></a>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> extends Bind[T] with Scopable[T]</span>
       </span>
       </h4>
@@ -111,7 +111,7 @@
       <span class="kind">trait</span>
       <span class="symbol"> 
         <a href="DSL$Scopable.html"><span class="name">Scopable</span></a>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> extends Bind[T]</span>
       </span>
       </h4>
@@ -122,7 +122,7 @@
       <span class="kind">class</span>
       <span class="symbol"> 
         <a href="DSL$ScopedBind.html"><span class="name">ScopedBind</span></a>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> extends Bind[T]</span>
       </span>
       </h4>
@@ -133,7 +133,7 @@
       <span class="kind">class</span>
       <span class="symbol"> 
         <a href="DSL$SimpleBind.html"><span class="name">SimpleBind</span></a>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> extends Bind[T] with Qualifiable[T] with Scopable[T]</span>
       </span>
       </h4>
@@ -212,34 +212,34 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>final </dd><dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li visbl="pub" name="sindi.binder.DSL#bind" data-isabs="false">
-      <a id="bind[T&lt;:AnyRef](Manifest[T]):BindSource[T]"></a>
+      <a id="bind[T](Manifest[T]):BindSource[T]"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">bind</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: Manifest[T]</span>)</span><span class="result">: <a name="sindi.binder.DSL.BindSource" class="extype" href="DSL$BindSource.html">BindSource</a>[T]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Start a new binding declaration.</p>
     </li><li visbl="prt" name="sindi.binder.DSL#bind2binding" data-isabs="false">
-      <a id="bind2binding[T&lt;:AnyRef](Bind[T])(Manifest[T]):Binding[T]"></a>
+      <a id="bind2binding[T](Bind[T])(Manifest[T]):Binding[T]"></a>
       <h4 class="signature">
       <span class="kind">implicit def</span>
       <span class="symbol"> 
         <span class="name">bind2binding</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="params">(<span name="bind">bind: <a name="sindi.binder.DSL.Bind" class="extype" href="DSL$Bind.html">Bind</a>[T]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: Manifest[T]</span>)</span><span class="result">: <a name="sindi.binder.binding.Binding" class="extype" href="binding/Binding.html">Binding</a>[T]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected implicit </dd></dl></div>
     </li><li visbl="prt" name="sindi.binder.DSL#bind2bindings" data-isabs="false">
-      <a id="bind2bindings[T&lt;:AnyRef](Bind[T])(Manifest[T]):Bindings"></a>
+      <a id="bind2bindings[T](Bind[T])(Manifest[T]):Bindings"></a>
       <h4 class="signature">
       <span class="kind">implicit def</span>
       <span class="symbol"> 
         <span class="name">bind2bindings</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="params">(<span name="bind">bind: <a name="sindi.binder.DSL.Bind" class="extype" href="DSL$Bind.html">Bind</a>[T]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: Manifest[T]</span>)</span><span class="result">: Bindings</span>
       </span>
       </h4>
@@ -361,12 +361,12 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>final </dd><dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li visbl="pub" name="sindi.binder.DSL#provider" data-isabs="false">
-      <a id="provider[T&lt;:AnyRef](⇒ T)(Manifest[T]):Provider[T]"></a>
+      <a id="provider[T](⇒ T)(Manifest[T]):Provider[T]"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">provider</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="params">(<span name="injection">injection: ⇒ T</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: Manifest[T]</span>)</span><span class="result">: <a name="sindi.provider.Provider" class="extype" href="../provider/Provider.html">Provider</a>[T]</span>
       </span>
       </h4>

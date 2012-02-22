@@ -23,7 +23,7 @@
       <span class="kind">trait</span>
       <span class="symbol"> 
         <span class="name">Qualifiable</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="result"> extends <a name="sindi.binder.DSL.Bind" class="extype" href="DSL$Bind.html">Bind</a>[T]</span>
       </span>
       </h4>
@@ -146,13 +146,13 @@
       </h4>
       <p class="shortcomment cmt">Assign given type as qualifer to this binding declaration.</p>
     </li><li visbl="pub" name="sindi.binder.DSL.Qualifiable#as" data-isabs="false">
-      <a id="as(AnyRef):QualifiedBind[T]"></a>
+      <a id="as(Any):QualifiedBind[T]"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">as</span>
         
-        <span class="params">(<span name="qualifier">qualifier: AnyRef</span>)</span><span class="result">: <a name="sindi.binder.DSL.QualifiedBind" class="extype" href="DSL$QualifiedBind.html">QualifiedBind</a>[T]</span>
+        <span class="params">(<span name="qualifier">qualifier: <span name="scala.Any" class="extype">Any</span></span>)</span><span class="result">: <a name="sindi.binder.DSL.QualifiedBind" class="extype" href="DSL$QualifiedBind.html">QualifiedBind</a>[T]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Assign given qualifer to this binding declaration.</p>
@@ -168,12 +168,12 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>final </dd><dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li visbl="prt" name="sindi.binder.Binder#bind" data-isabs="false">
-      <a id="bind[T&lt;:AnyRef](Provider[T])(Manifest[T]):Binding[T]"></a>
+      <a id="bind[T](Provider[T])(Manifest[T]):Binding[T]"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">bind</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="params">(<span name="provider">provider: <a name="sindi.provider.Provider" class="extype" href="../provider/Provider.html">Provider</a>[T]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: Manifest[T]</span>)</span><span class="result">: <a name="sindi.binder.binding.Binding" class="extype" href="binding/Binding.html">Binding</a>[T]</span>
       </span>
       </h4>
@@ -295,23 +295,23 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>final </dd><dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li visbl="prt" name="sindi.binder.Binder#qualify" data-isabs="false">
-      <a id="qualify[T&lt;:AnyRef](Binding[T],AnyRef):Binding[T]"></a>
+      <a id="qualify[T](Binding[T],Any):Binding[T]"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">qualify</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
-        <span class="params">(<span name="binding">binding: <a name="sindi.binder.binding.Binding" class="extype" href="binding/Binding.html">Binding</a>[T]</span>, <span name="qualifier">qualifier: AnyRef</span>)</span><span class="result">: <a name="sindi.binder.binding.Binding" class="extype" href="binding/Binding.html">Binding</a>[T]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
+        <span class="params">(<span name="binding">binding: <a name="sindi.binder.binding.Binding" class="extype" href="binding/Binding.html">Binding</a>[T]</span>, <span name="qualifier">qualifier: <span name="scala.Any" class="extype">Any</span></span>)</span><span class="result">: <a name="sindi.binder.binding.Binding" class="extype" href="binding/Binding.html">Binding</a>[T]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a name="sindi.binder.Binder" class="extype" href="Binder.html">Binder</a></dd></dl></div>
     </li><li visbl="prt" name="sindi.binder.Binder#scopify" data-isabs="false">
-      <a id="scopify[T&lt;:AnyRef](Binding[T])(() ⇒ Any):Binding[T]"></a>
+      <a id="scopify[T](Binding[T])(() ⇒ Any):Binding[T]"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">scopify</span>
-        <span class="tparams">[<span name="T">T &lt;: AnyRef</span>]</span>
+        <span class="tparams">[<span name="T">T</span>]</span>
         <span class="params">(<span name="binding">binding: <a name="sindi.binder.binding.Binding" class="extype" href="binding/Binding.html">Binding</a>[T]</span>)</span><span class="params">(<span name="scoper">scoper: () ⇒ <span name="scala.Any" class="extype">Any</span></span>)</span><span class="result">: <a name="sindi.binder.binding.Binding" class="extype" href="binding/Binding.html">Binding</a>[T]</span>
       </span>
       </h4>
@@ -328,24 +328,24 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>final </dd><dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li visbl="pub" name="sindi.binder.Scoper#thread" data-isabs="false">
-      <a id="thread:() ⇒ AnyRef"></a>
+      <a id="thread:() ⇒ Any"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">thread</span>
         
-        <span class="result">: () ⇒ AnyRef</span>
+        <span class="result">: () ⇒ <span name="scala.Any" class="extype">Any</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">A current thread based scoper.</p><div class="fullcomment"><div class="comment cmt"><p>A current thread based scoper.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a name="sindi.binder.Scoper" class="extype" href="Scoper.html">Scoper</a></dd></dl></div>
     </li><li visbl="prt" name="sindi.binder.DSL.Bind#toQualified" data-isabs="false">
-      <a id="toQualified(AnyRef):QualifiedBind[T]"></a>
+      <a id="toQualified(Any):QualifiedBind[T]"></a>
       <h4 class="signature">
       <span class="kind">def</span>
       <span class="symbol"> 
         <span class="name">toQualified</span>
         
-        <span class="params">(<span name="qualifier">qualifier: AnyRef</span>)</span><span class="result">: <a name="sindi.binder.DSL.QualifiedBind" class="extype" href="DSL$QualifiedBind.html">QualifiedBind</a>[T]</span>
+        <span class="params">(<span name="qualifier">qualifier: <span name="scala.Any" class="extype">Any</span></span>)</span><span class="result">: <a name="sindi.binder.DSL.QualifiedBind" class="extype" href="DSL$QualifiedBind.html">QualifiedBind</a>[T]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a name="sindi.binder.DSL.Bind" class="extype" href="DSL$Bind.html">Bind</a></dd></dl></div>

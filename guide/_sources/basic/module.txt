@@ -13,7 +13,7 @@ For instance, ModuleC could be self-contained in a jar file and he doesn't need 
 
 Let's start with simple definition for ModuleC::
 
-  final class ModuleC(implicit context: Context) extends Module {
+  final class ModuleC(override val ctx: Context) extends Module {
     override val bindings: Bindings =
       bind[ServiceC] to new DefaultServiceC
 
@@ -25,7 +25,7 @@ Let's start with simple definition for ModuleC::
   class AdvancedServiceC extends ServiceC
 
 As you can see, defining a module is basically creating a *class* extending ``Module``.
-You must add an implicit class contructror of type ``Context`` in order to allow correct embedding of your module in other contexts.
+You must add a constructror parameter of type ``Context`` that override ``ctx`` value in order to allow correct embedding of your module into other contexts.
 
 You can then define your binding(s) and expose your service(s) using *val*/*def*,
 depending if you want to expose your service as a *singleton* or not.
@@ -35,8 +35,8 @@ You should always prefer **composition over inheritance** when designing modules
 
 That's it! You created your first module, and low let's see how we can consume it in ModuleB::
 
-  final class ModuleB(implicit context: Context) extends Module {
-    override lazy val modules = new ModuleC :: Nil
+  final class ModuleB(override val ctx: Context) extends Module {
+    override lazy val modules = new ModuleC(this) :: Nil
 
     override val bindings: Bindings =
       bind[ServiceB] to autowire[DefaultServiceB]
@@ -53,12 +53,10 @@ That's it! You created your first module, and low let's see how we can consume i
 To import a module into an existant module/context,
 you just have to override the value ``modules`` and initalize it with a list containing the required modules.
 
-It's **highly recommended** to declare modules as ``lazy val`` to unsure a correct initialization.
+Before putting alltogether in our application, let's create ModuleA which consume ModuleC and override his bindings::
 
-Before putting alltogether in our application, let's create ModuleA which consume ModuleB and override his bindings::
-
-  final class ModuleA(implicit context: Context) extends Module {
-    override lazy val modules = new ModuleC :: Nil
+  final class ModuleA(override val ctx: Context) extends Module {
+    override lazy val modules = new ModuleC(this) :: Nil
 
     override val bindings = Bindings(
       bind[ServiceA] to autowire[DefaultServiceA],
@@ -95,12 +93,12 @@ you can add your custom implementation anywhere but to keeping things simple let
 AppContext and define the new binding too::
 
   object AppContext extends Context {
-    override lazy val modules = new ModuleA :: new ModuleB :: Nil
+    override lazy val modules = new ModuleA(this) :: new ModuleB(this) :: Nil
 
-    override val bindings: Bindings =                           
-      bind[ServiceC] to autowire[CustomServiceC]                
-                                                                
-    class CustomServiceC extends ServiceC                       
+    override val bindings: Bindings = 
+      bind[ServiceC] to autowire[CustomServiceC]
+      
+    class CustomServiceC extends ServiceC 
 
     val serviceA = from[ModuleA].service
     val serviceB = from[ModuleB].service
