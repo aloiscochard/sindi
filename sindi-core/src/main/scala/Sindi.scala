@@ -81,7 +81,7 @@ package sindi {
   * import sindi._
   *
   * object ApplicationContext {
-  *   override lazy val modules = new UserServiceModule :: Nil
+  *   override lazy val modules = new UserServiceModule(this) :: Nil
   *   def startup() = from[UserServiceModule].start()
   * }
   * }}}
@@ -137,8 +137,8 @@ package sindi {
    * - Define an implicit [[sindi.Context]] provided as class constructor to ease contextual integration.
    *
    * {{{
-   * final class UserModule(implicit context: Context) extends Module {
-   *   override lazy val modules = new StoreModule[User] :: Nil
+   * final class UserModule(override val ctx: Context) extends Module {
+   *   override lazy val modules = new StoreModule[User](this) :: Nil
    *
    *   override val bindings: Bindings =
    *     bind[UserService] to autowire[DefaultUserService]
@@ -160,7 +160,7 @@ package sindi {
    * by using an implicit [[scala.reflect.Manifest]].
    *
    * {{{
-   * final class StoreModule[T](implicit manifest: Manifest[T], context: Context) extends ModuleT[T] {
+   * final class StoreModule[T](override val ctx: Context)(implicit manifest: Manifest[T]) extends ModuleT[T] {
    *   override val bindings: Bindings =
    *     bind[Store[T]] to new DefaultStore[T]
    *
