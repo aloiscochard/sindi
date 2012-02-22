@@ -1,4 +1,4 @@
-name := "sindi-examples-demo"
+name := "sindi-examples-logging"
 
 version := "0.5-SNAPSHOT"
 

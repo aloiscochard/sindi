@@ -6,7 +6,7 @@ object AppContext extends Context {
   import moduleB._
   import moduleA._
 
-  override lazy val modules = new ModuleA :: new ModuleB :: Nil
+  override lazy val modules = new ModuleA(this) :: new ModuleB(this) :: Nil
 
   /*
   import moduleC._
@@ -29,8 +29,8 @@ object AppContext extends Context {
 package moduleA {
   import moduleC._
 
-  final class ModuleA(implicit context: Context) extends Module {
-    override lazy val modules = new ModuleC :: Nil
+  final class ModuleA(override val ctx: Context) extends Module {
+    override lazy val modules = new ModuleC(this) :: Nil
 
     override val bindings = Bindings(
       bind[ServiceA] to autowire(new DefaultServiceA(_: ServiceC)),
@@ -47,8 +47,8 @@ package moduleA {
 package moduleB {
   import moduleC._
 
-  final class ModuleB(implicit context: Context) extends Module {
-    override lazy val modules = new ModuleC :: Nil
+  final class ModuleB(override val ctx: Context) extends Module {
+    override lazy val modules = new ModuleC(this) :: Nil
 
     override val bindings: Bindings =
       bind[ServiceB] to autowire(new DefaultServiceB(_: ServiceC))
@@ -65,7 +65,7 @@ package moduleB {
 }
 
 package moduleC {
-  final class ModuleC(implicit context: Context) extends Module {
+  final class ModuleC(override val ctx: Context) extends Module {
     override val bindings: Bindings =
       bind[ServiceC] to new DefaultServiceC
 

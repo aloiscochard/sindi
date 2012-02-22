@@ -5,7 +5,7 @@ package app {
   import user.service.module._
 
   object AppContext extends Context {
-    override lazy val modules = new UserServiceModule :: Nil 
+    override lazy val modules = new UserServiceModule(this) :: Nil 
   }
 
   trait AppComponent extends ComponentWith[AppContext.type] with UserServiceComponent {
@@ -19,7 +19,7 @@ package user {
     package module {
       import sindi._
 
-      final class UserRepositoryModule(implicit context: Context) extends Module {
+      final class UserRepositoryModule(override val ctx: Context) extends Module {
         override val bindings: Bindings =
           bind[UserRepository] to new DefaultUserRepository
 
@@ -43,8 +43,8 @@ package user {
       import sindi._
       import repository.module._
 
-      final class UserServiceModule(implicit context: Context) extends Module {
-        override lazy val modules = new UserRepositoryModule :: Nil
+      final class UserServiceModule(override val ctx: Context) extends Module {
+        override lazy val modules = new UserRepositoryModule(this) :: Nil
 
         override val bindings: Bindings =
           bind[UserService] to
