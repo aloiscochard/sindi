@@ -1,0 +1,10 @@
+ * Fixed module context scoping
+ * Fixed concurrency issues with parallel compilation
+ * Improved compilation error messages
+ * Implemented complete functions autowiring support
+ * Implemented autowiring validation during compilation
+ * Implemented support of unboxed/primitive types binding
+ * Updated User Guide: http://aloiscochard.github.com/sindi/guide/
+ * Updated ScalaDoc: http://aloiscochard.github.com/sindi/api/
+ * Updated examples
+
