@@ -1,0 +1,9 @@
+language: scala
+scala:
+  - 2.9.2
+jdk:
+  - openjdk7
+script:
+  sbt ";clean;compile;test;publish-local"
+  cd sindi-compiler/src/test-plugin
+  sbt ";clean;compile;check"
