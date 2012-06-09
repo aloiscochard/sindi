@@ -11,4 +11,4 @@ jdk:
 script:
   sbt ";clean;compile;test;publish-local";
   cd sindi-compiler/src/test-plugin;
-  sbt ";clean;compile;check"
+  sbt ";clean-files;compile;check"
