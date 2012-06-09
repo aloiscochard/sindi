@@ -29,6 +29,23 @@ object build extends Build {
   {
     var success = true
 
+    // TODO /!\ Precompile file as workaround to plugin not being loaded
+    ((root / "check") ** "*.scala").get.foreach { source =>
+      allCatch.opt{
+        compilers.scalac.apply(
+          Seq(source),
+          classpath.map(_.data),
+          IO.temporaryDirectory,
+          scalacOptions, 
+          new Callback, 
+          1024, 
+          new CheckLogger(source.getPath)
+        )
+      }
+    }
+    // END WORKAROUND
+
+
     ((root / "check") ** "*.scala").get.foreach { source =>
       val name = source.getName
       val fail = new File(source.getPath + ".fail")
