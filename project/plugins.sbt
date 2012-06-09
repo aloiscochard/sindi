@@ -1,4 +1,4 @@
-resolvers += "Maven Central" at "http://repo1.maven.org/maven2"
+resolvers += "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases"
 
 libraryDependencies <+= sbtVersion(v => "com.github.aloiscochard" %% "xsbt-proguard-plugin" % (v+"-0.1.2"))
 
