@@ -1,8 +1,13 @@
 language: scala
 scala:
   - 2.9.2
+  - 2.9.1-1
+  - 2.9.1
+  - 2.9.0-1
+  - 2.9.0
 jdk:
   - openjdk7
+  - openjdk6
 script:
   sbt ";clean;compile;test;publish-local";
   cd sindi-compiler/src/test-plugin;
