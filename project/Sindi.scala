@@ -1,36 +1,25 @@
 import sbt._
 import Keys._
-import ProguardPlugin._
-import fmpp.FmppPlugin._
 
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Sonatype.settings ++ Seq(
     organization        := "com.github.aloiscochard.sindi",
-    version             := "0.6-SNAPSHOT",
-    scalaVersion        := "2.9.2",
-    scalacOptions       := Seq("-unchecked", "-deprecation"),
-    crossScalaVersions  := Seq("2.9.0", "2.9.0-1", "2.9.1", "2.9.1-1", "2.9.2")
+    version             := "1.0-SNAPSHOT",
+    scalaVersion        := "2.10.0-M4",
+    scalacOptions       := Seq("-unchecked", "-deprecation")
+    //crossScalaVersions  := Seq("2.10.0")
   )
 }
 
 object Resolvers {
   val sonatypeOssReleases = "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/"
   val sontaypeOssSnapshots = "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
-  val scalaToolsReleases = "Scala-Tools Maven2 Releases Repository" at "http://scala-tools.org/repo-releases"
-  val scalaToolsSnapshots = "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.org/repo-snapshots"
 }
 
 object Dependencies {
-  val testDependencies = Seq(libraryDependencies <<= (scalaVersion, libraryDependencies) { (version, dependencies) =>
-    val specs2 = version match {
-      case "2.9.0" => ("org.specs2" %% "specs2" % "1.7.1" % "test")
-      case "2.9.0-1" => ("org.specs2" %% "specs2" % "1.8.2" % "test")
-      case "2.9.1" => ("org.specs2" %% "specs2" % "1.9" % "test")
-      case "2.9.1-1" => ("org.specs2" %% "specs2" % "1.9" % "test")
-      case _ => ("org.specs2" %% "specs2" % "1.11" % "test")
-    }
-    dependencies :+ specs2
-  })
+  val testDependencies = Seq(
+    libraryDependencies += "org.specs2" %% "specs2" % "1.11" % "test"
+  )
 }
 
 
@@ -43,45 +32,17 @@ object SindiBuild extends Build {
     "sindi",
     file ("."),
     settings = buildSettings
-  ) aggregate (core, compiler)
+  ) aggregate (core)
 
   // SINDI-CORE //
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
-    settings = buildSettings ++ testDependencies ++ fmppSettings ++ Seq(
+    settings = buildSettings ++ testDependencies ++ Seq(
       // WORKAROUND for https://github.com/harrah/xsbt/issues/85
       unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist"))
     )
-  ) configs (Fmpp)
-
-  // SINDI-COMPILER //
-  val assembly = TaskKey[Unit]("assembly")
-
-  lazy val compiler = Project(
-    "sindi-compiler",
-    file("sindi-compiler"),
-    settings = buildSettings ++ testDependencies ++ Seq(
-                  libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _ % "provided")
-                ) ++ seq(
-                  (proguardSettings ++ seq(
-                    proguardInJars := Seq(),
-                    proguardLibraryJars <++=
-                      (update) map (_.select(module =
-                        moduleFilter(name = "scala-compiler") | moduleFilter(name = "scala-library"))),
-                    proguardOptions ++= Seq("-keep class sindi.** { *; }")
-                  ):_*) 
-                ) ++ Seq(
-                  assembly <<= (clean, proguard, minJarPath, artifactPath in (Compile, packageBin), streams) map {
-                    (_, _, min, artifact, streams) => {
-                      streams.log("assembly").info("copy %s --> %s".format(min, artifact))
-                      IO.copyFile(min, artifact)
-                    }
-                  },
-                  publish <<= publish.dependsOn(assembly),
-                  publishLocal <<= publishLocal.dependsOn(assembly)
-                )
-  ) dependsOn (core)
+  )
 }
 
 object Sonatype extends PublishToSonatype(SindiBuild) {
