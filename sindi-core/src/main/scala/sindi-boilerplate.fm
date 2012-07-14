@@ -3,12 +3,13 @@
 //    _\ \/ / _ \/ _  / /
 //   /___/_/_//_/\_,_/_/
 //
-//  (c) 2011, Alois Cochard
+//  (c) 2012, Alois Cochard
 //
 //  http://aloiscochard.github.com/sindi
 //
 
-package object sindi {
+package sindi
+
+trait Autowire[Q] { 
 
 }
-
