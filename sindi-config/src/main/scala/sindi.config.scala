@@ -29,14 +29,16 @@ package object config {
       case Left(error) => throw new Exception("Configuration error for key '%s': %s".format(key.name, error))
     }
 
-    implicit def _option[T](implicit reader: Reader[T]): Reader[Option[T]] = Reader(key => read(Key[T](key.name)) match {
-      case Right(value) => Right(Some(value))
-      case Left(Missing) => Right(None)
-      case Left(error) => Left(error)
-    })
+    implicit def _option[T](implicit reader: Reader[T]): Reader[Option[T]] = Reader(key => 
+      read(sindi.config.Key[T](key.name)) match {
+        case Right(value) => Right(Some(value))
+        case Left(Missing) => Right(None)
+        case Left(error) => Left(error)
+      }
+    )
 
     implicit def _either[T0, T1](implicit r0: Reader[T0], r1: Reader[T1]): Reader[Either[T0, T1]] = Reader(key =>
-      (read(Key[T0](key.name)), read(Key[T1](key.name))) match {
+      (read(sindi.config.Key[T0](key.name)), read(sindi.config.Key[T1](key.name))) match {
         case (_, Right(value)) => Right(Right(value))
         case (Right(value), _) => Right(Left(value))
         case (_, Left(error)) => Left(error)
@@ -46,7 +48,7 @@ package object config {
     object Key {
       def apply[T : Reader](name: String) = apply[T](name, (_: T) => Nil)
       def apply[T : Reader](name: String, validation: T => List[String]) =
-        Configuration.this.validateKey(new Key[T](name, validation))
+        Configuration.this.validateKey(sindi.config.Key(name, validation))
     }
 
     def config[T](f: List[(String, String)] => T) = f(_config.toList)
@@ -90,6 +92,11 @@ package object config {
   case object WrongType extends ConfigurationError 
 
   class Key[T](val name: String, val validation: T => List[String])
+
+  object Key {
+    def apply[T : Reader](name: String) = apply[T](name, (_: T) => Nil)
+    def apply[T : Reader](name: String, validation: T => List[String]) = new Key[T](name, validation)
+  }
 
   trait Reader[T] { def apply(key: Key[T]): Either[ConfigurationError, T] }
 

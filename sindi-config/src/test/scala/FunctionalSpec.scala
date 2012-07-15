@@ -71,6 +71,8 @@ class FunctionalSpec extends Specification {
       val configuration = new Configuration
       import configuration._
 
+      implicit val validated = configuration.validate()
+
       read(boolean) mustEqual Right(None)
       read(string) mustEqual Right(Some("sindi"))
     }
@@ -83,6 +85,8 @@ class FunctionalSpec extends Specification {
 
       val configuration = new Configuration
       import configuration._
+
+      implicit val validated = configuration.validate()
 
       read(e0) mustEqual Right(Left("sindi"))
       read(e1) mustEqual Right(Right("42"))
