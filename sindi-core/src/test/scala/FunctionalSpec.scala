@@ -3,7 +3,7 @@
 //    _\ \/ / _ \/ _  / /                       
 //   /___/_/_//_/\_,_/_/                        
 //                                              
-//  (c) 2011, Alois Cochard                     
+//  (c) 2012, Alois Cochard                     
 //                                              
 //  http://aloiscochard.github.com/sindi        
 //                                              
@@ -14,42 +14,17 @@ import org.specs2.mutable._
 
 import sindi.core._
 
-class ApplicationContext {
-  implicit val repository = bind(UserRepository.apply)
-  implicit val service = bind(autowire(UserService.apply))
-}
-
-class ApplicationContextTesting extends ApplicationContext {
-  override implicit val repository = bind[UserRepository](UserRepositoryMock.apply)
-}
-
-class UserService(val users: UserRepository)
-
-object UserService { val apply = (users: UserRepository) => new UserService(users) }
-
-class UserRepository
-object UserRepository { val apply = new UserRepository }
-
-class UserRepositoryMock extends UserRepository
-object UserRepositoryMock { val apply = new UserRepositoryMock }
-
 class FunctionalSpec extends Specification {
 
   trait Q0
 
   "Sindi" should {
-    "work" in {
-      val context = new ApplicationContext
-      import context._
 
-      inject[UserRepository]
-      inject[UserService]
-
-      def f(x: Option[UserService]) = x
-
-      println(autowire(f _))
-      println(as[String].injectOption[UserService])
-      true mustEqual true
+    "bind and inject" in {
+      implicit val string = bind("sindi")
+      implicit val int = bind(42)
+      inject[String] mustEqual "sindi"
+      inject[Int] mustEqual 42
     }
 
     "support option" in {
@@ -66,22 +41,24 @@ class FunctionalSpec extends Specification {
     }
 
     "support either" in {
-      implicit val string = bind("sindi")
-      implicit val int = bind(42)
+      {
+        implicit val string = bind("sindi")
+        implicit val int = bind(42)
 
-      injectEither[Int, String] mustEqual Right("sindi")
+        injectEither[Int, String] mustEqual Right("sindi")
 
-      val f0 = (x: Either[Int, String]) => x
+        val f0 = (x: Either[Int, String]) => x
 
-      autowire(f0) mustEqual Right("sindi")
-
-      /*
-      val f0 = (x: Option[String]) => x
-      val f1 = (x: Option[Int]) => x
-
-      autowire(f0) mustEqual Some("sindi")
-      autowire(f1) mustEqual None
-      */
+        autowire(f0) mustEqual Right("sindi")
+      }
+      {
+        implicit val string = bind("sindi")
+        injectEither[Int, String] mustEqual Right("sindi")
+      }
+      {
+        implicit val int = bind(42)
+        injectEither[Int, String] mustEqual Left(42)
+      }
     }
 
     "support qualifier" in {
