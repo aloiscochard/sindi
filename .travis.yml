@@ -9,6 +9,4 @@ jdk:
   - openjdk7
   - openjdk6
 script:
-  sbt ";clean;compile;test;assembly";
-  cd sindi-compiler/src/test-plugin;
-  sbt ";clean;clean-files;check"
+  sbt ";clean;compile;test";
