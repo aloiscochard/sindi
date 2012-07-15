@@ -42,7 +42,7 @@ object SindiBuild extends Build {
       // WORKAROUND for https://github.com/harrah/xsbt/issues/85
       unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist"))
     )
-  )
+  ) dependsOn(config % "provided")
 
   lazy val config = Project(
     "sindi-config",
@@ -50,7 +50,7 @@ object SindiBuild extends Build {
     settings = buildSettings ++ testDependencies ++ Seq(
       libraryDependencies += "com.typesafe" % "config" % "0.5.0"
     ) 
-  ) dependsOn(core % "provided")
+  )
 }
 
 object Sonatype extends PublishToSonatype(SindiBuild) {

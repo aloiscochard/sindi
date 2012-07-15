@@ -67,11 +67,11 @@ class FunctionalSpec extends Specification {
       val configuration = new Configuration
       import configuration._
 
-      read(boolean) mustEqual None
-      read(string) mustEqual Some("sindi")
+      read(boolean) mustEqual Right(None)
+      read(string) mustEqual Right(Some("sindi"))
     }
 
-    // TODO Test validation error, isValid, and config list
+    // TODO Test error, validation, isValid, and config list
   }
 }
 

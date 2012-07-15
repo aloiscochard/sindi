@@ -18,27 +18,22 @@ import java.net.URL
 
 import com.typesafe.config._
 
-import core._
-
 package object config {
 
-  trait Configurable {
-    import sindi.core._
-
-    implicit val profile = bind(Option(System.getProperty("profile")).orElse(defaultProfile), as[Profile])
-
-    class Configuration(implicit binding: Binding[Option[String], Profile]) 
-      extends config.DefaultConfiguration("application" + binding.inject.map("-" + _).getOrElse("") + ".conf")
-
-    trait Profile
-
-    protected val defaultProfile: Option[String] = None
-  }
-
   trait Configuration {
-    implicit def key2value[T : Reader](key: Key[T]) = read(key)
+    implicit def key2value[T : Reader](key: Key[T]) = read(key) match {
+      case Right(value) => value
+      case Left(error) => throw new Exception("Configuration error for key '%s': %s".format(key.name, error))
+    }
 
+    // TODO Add implicit for URL support (from String)
     // TODO Add implicit from regular expression to validation
+    implicit def _option[T](implicit reader: Reader[T]): Reader[Option[T]] = Reader(key => read(Key[T](key.name)) match {
+      case Right(value) => Right(Some(value))
+      case Left(Missing) => Right(None)
+      case Left(error) => Left(error)
+    })
+
     object Key {
       def apply[T : Reader](name: String) = apply[T](name, (_: T) => Nil)
       def apply[T : Reader](name: String, validation: T => List[String]) =
@@ -51,11 +46,16 @@ package object config {
 
     def read[T](key: Key[T])(implicit reader: Reader[T]) = reader(key)
     def validate[T : Reader](key: Key[T]): Key[T] = {
-      val value = read(key) // TODO Catch exception
-      _config += key.name -> value.toString
-      key.validation(value) match {
-        case Nil =>
-        case xs => _errors += key.name -> xs
+      val value = read(key)
+      value match {
+        case Right(value) => {
+          _config += key.name -> value.toString
+          key.validation(value) match {
+            case Nil =>
+            case xs => _errors += key.name -> xs
+          }
+        }
+        case Left(error) => _errors += key.name -> List(error.toString)
       }
       key
     }
@@ -64,29 +64,22 @@ package object config {
     private var _errors = Map[String, List[String]]()
   }
 
-  trait Reader[T] {
-    def apply(key: Key[T]): T
-  }
-
-  object Reader {
-    def apply[T](f: Key[T] => T) = new Reader[T] { def apply(key: Key[T]): T = f(key) }
-
-  }
+  sealed trait ConfigurationError
+  case object Missing extends ConfigurationError 
+  case object WrongType extends ConfigurationError 
 
   class Key[T](val name: String, val validation: T => List[String])
+
+  trait Reader[T] { def apply(key: Key[T]): Either[ConfigurationError, T] }
+
+  object Reader {
+    def apply[T](f: Key[T] => Either[ConfigurationError, T]) = new Reader[T] { def apply(key: Key[T]) = f(key) }
+  }
 
   class DefaultConfiguration(config: Config) extends Configuration {
 
     def this(resourceName: String) = this(ConfigFactory.load(resourceName))
     def this(file: File) = this(ConfigFactory.parseFile(file))
-
-    // TODO Add URL support
-    // TODO Find a fix to avoid exception when Missing/Wrong format
-    // Would probably need to do process Key in 1step, first validation, then can get data directly if valid (thru implicit?)
-
-    implicit def _option[T](implicit reader: Reader[T]): Reader[Option[T]] =
-      Reader(key => catching(classOf[ConfigException.Missing]).opt(read(Key[T](key.name))))
-
 
     implicit val _boolean = reader(config.getBoolean(_))
     implicit val _double = reader(config.getDouble(_))
@@ -100,6 +93,12 @@ package object config {
     implicit val _longL = reader(config.getLongList(_).asScala.toList.map(x => x: Long))
     implicit val _stringL = reader(config.getStringList(_).asScala.toList)
 
-    private def reader[T](f: String => T) = Reader[T](key => f(key.name))
+    private def reader[T](f: String => T) = Reader[T](key => catching(classOf[ConfigException]) either f(key.name) match {
+      case Right(value) => Right(value)
+      case Left(x) => x match {
+        case x: ConfigException.Missing => Left(Missing)
+        case x: ConfigException.WrongType => Left(WrongType)
+      }
+    })
   }
 }
