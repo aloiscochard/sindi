@@ -5,10 +5,9 @@ object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Sonatype.settings ++ Seq(
     organization        := "com.github.aloiscochard.sindi",
     version             := "1.0-SNAPSHOT",
-    //scalaVersion        := "2.10.0-M4",
     scalaVersion        := "2.9.2",
-    scalacOptions       := Seq("-unchecked", "-deprecation")//, "-feature")
-    //crossScalaVersions  := Seq("2.10.0")
+    scalacOptions       := Seq("-unchecked", "-deprecation"),
+    crossScalaVersions  := Seq("2.9.0", "2.9.0-1", "2.9.1", "2.9.1-1", "2.9.2")
   )
 }
 
@@ -33,9 +32,8 @@ object SindiBuild extends Build {
     "sindi",
     file ("."),
     settings = buildSettings
-  ) aggregate (core)
+  ) aggregate (core, config)
 
-  // SINDI-CORE //
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
@@ -45,6 +43,14 @@ object SindiBuild extends Build {
       unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist"))
     )
   )
+
+  lazy val config = Project(
+    "sindi-config",
+    file("sindi-config"),
+    settings = buildSettings ++ testDependencies ++ Seq(
+      libraryDependencies += "com.typesafe" % "config" % "0.5.0"
+    ) 
+  ) dependsOn(core % "provided")
 }
 
 object Sonatype extends PublishToSonatype(SindiBuild) {
