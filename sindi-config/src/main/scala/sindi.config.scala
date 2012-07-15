@@ -21,7 +21,7 @@ import com.typesafe.config._
 package object config {
 
   trait Configuration {
-    implicit def key2value[T : Reader](key: Key[T]) = read(key) match {
+    implicit def key2value[T](key: Key[T])(implicit reader: Reader[T], validated: Validated[this.type]) = read(key) match {
       case Right(value) => value
       case Left(error) => throw new Exception("Configuration error for key '%s': %s".format(key.name, error))
     }
@@ -37,15 +37,25 @@ package object config {
     object Key {
       def apply[T : Reader](name: String) = apply[T](name, (_: T) => Nil)
       def apply[T : Reader](name: String, validation: T => List[String]) =
-        Configuration.this.validate(new Key[T](name, validation))
+        Configuration.this.validateKey(new Key[T](name, validation))
     }
 
-    def config = _config.toList
-    def errors = _errors.toList
-    def isValid = _errors.isEmpty
+    def config[T](f: List[(String, String)] => T) = f(_config.toList)
 
     def read[T](key: Key[T])(implicit reader: Reader[T]) = reader(key)
-    def validate[T : Reader](key: Key[T]): Key[T] = {
+
+    def validate(f: List[(String, List[String])] => Int = validatePrinter _): Validated[this.type] = {
+      if (_errors.isEmpty) new Validated[this.type]
+      else System.exit(f(_errors.toList)).asInstanceOf[Validated[this.type]]
+    }
+
+    private def validatePrinter[T](xs: List[T]) = {
+      // TODO Make more human friendly
+      System.err.println(xs.mkString("\n"))
+      1
+    }
+
+    private def validateKey[T : Reader](key: Key[T]): Key[T] = {
       val value = read(key)
       value match {
         case Right(value) => {
@@ -63,6 +73,8 @@ package object config {
     private var _config = Map[String, String]()
     private var _errors = Map[String, List[String]]()
   }
+
+  class Validated[C <: Configuration]
 
   sealed trait ConfigurationError
   case object Missing extends ConfigurationError 

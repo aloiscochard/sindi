@@ -31,6 +31,8 @@ class FunctionalSpec extends Specification {
 
       val configuration = new Configuration
       import configuration._
+      
+      implicit val validated = configuration.validate()
 
       f(boolean, double, int, long, string) mustEqual (true, 2.2, 42, 100000, "sindi") 
     }
@@ -48,6 +50,8 @@ class FunctionalSpec extends Specification {
 
       val configuration = new Configuration
       import configuration._
+
+      implicit val validated = configuration.validate()
 
       f(boolean, double, int, long, string) mustEqual (
         List(true, false, true),
