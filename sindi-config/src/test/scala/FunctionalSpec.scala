@@ -75,6 +75,19 @@ class FunctionalSpec extends Specification {
       read(string) mustEqual Right(Some("sindi"))
     }
 
+    "support either" in {
+      class Configuration extends DefaultConfiguration("test.conf") {
+        val e0  = Key[Either[String, Boolean]] ("string")
+        val e1  = Key[Either[Int, String]] ("int")
+      }
+
+      val configuration = new Configuration
+      import configuration._
+
+      read(e0) mustEqual Right(Left("sindi"))
+      read(e1) mustEqual Right(Right("42"))
+    }
+
     // TODO Test error, validation, isValid, and config list
   }
 }

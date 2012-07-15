@@ -21,18 +21,27 @@ import com.typesafe.config._
 package object config {
 
   trait Configuration {
+    // TODO Add implicit for URL support (from String)
+    // TODO Add implicit from regular expression to validation
+
     implicit def key2value[T](key: Key[T])(implicit reader: Reader[T], validated: Validated[this.type]) = read(key) match {
       case Right(value) => value
       case Left(error) => throw new Exception("Configuration error for key '%s': %s".format(key.name, error))
     }
 
-    // TODO Add implicit for URL support (from String)
-    // TODO Add implicit from regular expression to validation
     implicit def _option[T](implicit reader: Reader[T]): Reader[Option[T]] = Reader(key => read(Key[T](key.name)) match {
       case Right(value) => Right(Some(value))
       case Left(Missing) => Right(None)
       case Left(error) => Left(error)
     })
+
+    implicit def _either[T0, T1](implicit r0: Reader[T0], r1: Reader[T1]): Reader[Either[T0, T1]] = Reader(key =>
+      (read(Key[T0](key.name)), read(Key[T1](key.name))) match {
+        case (_, Right(value)) => Right(Right(value))
+        case (Right(value), _) => Right(Left(value))
+        case (_, Left(error)) => Left(error)
+      }
+    )
 
     object Key {
       def apply[T : Reader](name: String) = apply[T](name, (_: T) => Nil)
