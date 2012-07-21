@@ -1,6 +1,8 @@
 import sbt._
 import Keys._
 
+import fmpp.FmppPlugin._
+
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Sonatype.settings ++ Seq(
     organization        := "com.github.aloiscochard.sindi",
@@ -37,12 +39,12 @@ object SindiBuild extends Build {
   lazy val core = Project(
     "sindi-core",
     file("sindi-core"),
-    settings = buildSettings ++ testDependencies ++ Seq(
+    settings = buildSettings ++ testDependencies ++ fmppSettings ++ Seq(
       libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
       // WORKAROUND for https://github.com/harrah/xsbt/issues/85
       unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist"))
     )
-  ) dependsOn(config % "provided")
+  ) configs(Fmpp) dependsOn(config % "provided")
 
   lazy val config = Project(
     "sindi-config",

@@ -47,6 +47,17 @@ class FunctionalSpec extends Specification {
       init mustEqual true
     }
 
+    "support autowiring" in {
+      implicit val string = bind("sindi")
+      implicit val int = bind(42)
+      implicit val double = bind(4.2)
+      implicit val long = bind(420000L)
+
+      val f = (x0: String, x1: Int, x2: Double, x3: Long) => (x0, x1, x2, x3)
+
+      autowire(f) mustEqual ("sindi", 42, 4.2, 420000L)
+    }
+
     "support option" in {
       implicit val string = bind("sindi")
 

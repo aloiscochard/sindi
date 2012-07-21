@@ -1,0 +1,53 @@
+//      _____         ___  
+//     / __(_)__  ___/ (_)
+//    _\ \/ / _ \/ _  / /
+//   /___/_/_//_/\_,_/_/
+//
+//  (c) 2012, Alois Cochard
+//
+//  http://aloiscochard.github.com/sindi
+//
+
+package sindi
+
+trait Autowiring[Q] { self: Wiring[Q] =>
+  def autowire[A, B](f: (A) => B)(implicit wire: Wire[A]): B = f(wire())
+
+  /*
+  def autowire[
+    A0, A1, 
+    B
+  ](f: (
+    A0, A1
+  ) => B)
+    (implicit 
+      w0: Wire[A0], w1: Wire[A1]
+    ): B =
+      f(
+        w0(), w1()
+      )
+  */
+
+  <#list 1..21 as i>
+  def autowire[
+  <#list 0..i as j>
+    A${j},
+  </#list>
+    B
+  ](f: (
+  <#list 0..i as j>
+    A${j}<#if i !=j>,</#if>
+  </#list>
+  ) => B)
+    (implicit 
+  <#list 0..i as j>
+     w${j}: Wire[A${j}]<#if i !=j>,</#if>
+  </#list>
+    ): B =
+      f(
+  <#list 0..i as j>
+     w${j}()<#if i !=j>,</#if>
+  </#list>
+      )
+  </#list>
+}

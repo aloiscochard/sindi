@@ -65,9 +65,9 @@ trait Sindi[Q] extends Wiring[Q] with syntax.Sindi[Q] with syntax.Wiring[Q] {
 class Wire[T](value: => T) { def apply() = value }
 object Wire { def apply[T](value: => T) = new Wire(value) }
 
-trait Wiring[Q] { sel: Sindi[Q] =>
+trait Wiring[Q] extends Autowiring[Q] { self: Sindi[Q] =>
 
-  implicit def any2wire[T](implicit x: T) = Wire(x) // TODO TEST THIS! (override binding using implicit of T)
+  //implicit def any2wire[T](implicit x: T) = Wire(x) // TODO TEST THIS! (override binding using implicit of T)
 
   implicit def binding2wire[T](implicit binding: Binding[T, Q]): Wire[T] =
     Wire(inject[T])
@@ -78,7 +78,6 @@ trait Wiring[Q] { sel: Sindi[Q] =>
   implicit def bindingEither2wire[T0, T1](implicit binding: Either[Binding[T0, Q], Binding[T1, Q]]): Wire[Either[T0, T1]] = 
     Wire(injectEither[T0, T1])
 
-  def autowire[A, B](f: (A) => B)(implicit wire: Wire[A]): B = f(wire())
   def wire[T](implicit wire: Wire[T]) = wire()
 }
 
