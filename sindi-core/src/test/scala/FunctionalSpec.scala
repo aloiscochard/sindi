@@ -62,7 +62,7 @@ class FunctionalSpec extends Specification {
     }
 
     "support qualifier" in {
-      implicit val stringQ0 = bind("sindi", as[Q0])
+      implicit val stringQ0 = as[Q0].bind("sindi")
 
       val f = (x: String) => x
 
@@ -72,7 +72,7 @@ class FunctionalSpec extends Specification {
     
     "support qualifiers" in {
       {
-        implicit val stringQ0 = bind("sindi", as[Q0])
+        implicit val stringQ0 = as[Q0].bind("sindi")
         implicit val string = bind("")
         (as[Q0], as[Default]).injectOption mustEqual Some("sindi")
         (as[Q0], as[Default]).inject mustEqual "sindi"
@@ -83,10 +83,61 @@ class FunctionalSpec extends Specification {
         (as[Q0], as[Default]).inject mustEqual "sindi"
       }
       {
-        implicit val stringQ0 = bind("sindi", as[Q0])
+        implicit val stringQ0 = as[Q0].bind("sindi")
         (as[Q0], as[Default]).injectOption mustEqual Some("sindi")
         (as[Q0], as[Default]).inject mustEqual "sindi"
       }
+    }
+
+    "support context" in {
+      val context = Context()
+      context.bind("sindi")
+      context.bind(42)
+      context.bind(4.2)
+
+      context.injectAll[Any] must contain("sindi", 42, 4.2)
+      context.injectAll[String] mustEqual List("sindi")
+      context.injectAll[Int] mustEqual List(42)
+      context.injectAll[Double] mustEqual List(4.2)
+
+      import context._
+      wire[Seq[String]] mustEqual List("sindi")
+      wire[Seq[Int]] mustEqual List(42)
+      wire[Seq[Double]] mustEqual List(4.2)
+    }
+
+    "support context with qualifier" in {
+      val context = Context()
+
+      implicit val string = context.bind("sindi")
+      implicit val stringQ0 = context.as[Q0].bind("q0")
+      
+      context.injectAll[String] must contain("sindi", "q0")
+      context.as[Default].injectAll[String] must contain("sindi")
+      context.as[Q0].injectAll[String] must contain("q0")
+
+      inject[String] mustEqual "sindi"
+    }
+
+    "support operators" in {
+      def f(x: String) = x
+
+      implicit val string = <<("sindi")
+      implicit val stringQ0 = "q0" :<: as[Q0]
+
+      >>>(f _) mustEqual "sindi"
+      f(sindi.core.>>[String]) mustEqual "sindi" // Conflict with specs2
+
+      f(+>) mustEqual "sindi"
+      f(as[Q0].+>) mustEqual "q0"
+    }
+
+    "support operators in context" in {
+      val context = Context()
+      context << ("sindi")
+      "q0" :<: context.as[Q0]
+      
+      context.++>[String] must contain("sindi", "q0")
     }
   }
 }

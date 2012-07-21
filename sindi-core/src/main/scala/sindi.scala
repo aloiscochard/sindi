@@ -10,7 +10,7 @@
 
 package sindi
 
-// TODO Add operators (in syntax specific module)
+// TODO Test Wiring.any2wire
 
 trait Binding[T, Q] { def inject: T }
 
@@ -41,6 +41,10 @@ class QualifiersOps[Q0, Q1](tuple: (Qualifier[Q0], Qualifier[Q1])) {
 }
 
 trait Sindi[Q] extends Wiring[Q] {
+  def :<:[T](x: => T) = bind(x)
+  def <<[T](x: => T) = bind(x)
+  def +>[T](implicit binding: Binding[T, Q]) = inject[T]
+
   def bind[T](x: => T) = Binding[T, Q](x)
   def inject[T](implicit binding: Binding[T, Q]) = binding.inject
 
@@ -57,18 +61,22 @@ class Wire[T](value: => T) { def apply() = value }
 trait Wiring[Q] { self: Sindi[Q] =>
   implicit def any2wire[T](implicit x: T) = new Wire(x) // TODO TEST THIS! (override binding using implicit of T)
 
-  implicit def binding2wire[T](implicit binding: Binding[T, Q]) =
+  implicit def binding2wire[T](implicit binding: Binding[T, Q]): Wire[T] =
     new Wire(inject[T])
-  implicit def bindingOption2wire[T](implicit option: Option[Binding[T, Q]] = None) =
+  implicit def bindingOption2wire[T](implicit option: Option[Binding[T, Q]] = None): Wire[Option[T]] =
     new Wire(injectOption[T])
-  implicit def bindingEither2wire[T0, T1](implicit binding: Either[Binding[T0, Q], Binding[T1, Q]]) = 
+  implicit def bindingEither2wire[T0, T1](implicit binding: Either[Binding[T0, Q], Binding[T1, Q]]): Wire[Either[T0, T1]] = 
     new Wire(injectEither[T0, T1])
+
+  def :>:[T : Wire] = wire[T]
+  def >>[T : Wire] = wire[T]
+  def >>>[A, B](f: (A) => B)(implicit wire: Wire[A]): B = autowire(f)
 
   def autowire[A, B](f: (A) => B)(implicit wire: Wire[A]): B = f(wire())
   def wire[T](implicit wire: Wire[T]) = wire()
 }
 
-object core extends Sindi[Default] with BindingToEither {
+object core extends Sindi[Default] with BindingToEither with context.Support {
 
   type Default = sindi.Default
 
@@ -78,7 +86,5 @@ object core extends Sindi[Default] with BindingToEither {
   implicit def qualifierOps[Q](qualifer: Qualifier[Q]) = new Sindi[Q] {}
   implicit def qualifiersOps[Q0, Q1](tuple: (Qualifier[Q0], Qualifier[Q1])) = new QualifiersOps(tuple)
 
-  def as[T](implicit qualifier: Qualifier[T]) = qualifier
-  def bind[T, Q](x: => T, qualifier: Qualifier[Q]) = Binding[T, Q](x)
+  def as[Q](implicit qualifier: Qualifier[Q]) = qualifier
 }
-
