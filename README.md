@@ -1,8 +1,15 @@
 # Sindi
-Sindi is an IoC ([Inversion of Control](http://martinfowler.com/articles/injection.html)) container for the [Scala](http://www.scala-lang.org) programming language.
+Sindi is a lightweight library easing the configuration and design of [Scala](http://www.scala-lang.org) applications in a safe way.
 
- * User Guide: [http://aloiscochard.github.com/sindi](http://aloiscochard.github.com/sindi)
- * Mailling List: [http://groups.google.com/group/sindi-users](http://groups.google.com/group/sindi-users)
+The library is composed of two independent modules:
+
+ * __sindi-core__: [IoC](http://martinfowler.com/articles/injection.html) container with a static binding process (using compile-time implicits resolution) 
+ * __sindi-config__: Safe configuration system integrating the [typesafe-config](http://github.com/typesafehub/config) library
+ 
+You'll find more information on the website, and support on the dedicated mailing list:
+
+ * __user guide__: [http://aloiscochard.github.com/sindi](http://aloiscochard.github.com/sindi)
+ * __mailling list__: [http://groups.google.com/group/sindi-users](http://groups.google.com/group/sindi-users)
 
 ## Contribution Policy
 
