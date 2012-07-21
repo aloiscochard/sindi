@@ -14,7 +14,16 @@ package sindi
 
 trait Binding[T, Q] { def inject: T }
 
-object Binding { def apply[T, Q](x: => T) = new Binding[T, Q] { def inject = x } }
+object Binding {
+  def apply[T, Q](x: => T) = new Binding[T, Q] { 
+    private lazy val value = x
+    override def inject = value
+  }
+
+  def provider[T, Q](x: => T) = new Binding[T, Q] { 
+    override def inject = x
+  }
+}
 
 trait BindingToEither extends BindingToRight
 
@@ -40,12 +49,9 @@ class QualifiersOps[Q0, Q1](tuple: (Qualifier[Q0], Qualifier[Q1])) {
   def injectOption[T](implicit o0: Option[Binding[T, Q0]] = None, o1: Option[Binding[T, Q1]] = None) = o0.orElse(o1).map(_.inject)
 }
 
-trait Sindi[Q] extends Wiring[Q] {
-  def :<:[T](x: => T) = bind(x)
-  def <<[T](x: => T) = bind(x)
-  def +>[T](implicit binding: Binding[T, Q]) = inject[T]
-
+trait Sindi[Q] extends Wiring[Q] with syntax.Sindi[Q] with syntax.Wiring[Q] {
   def bind[T](x: => T) = Binding[T, Q](x)
+  def provide[T](x: => T) = Binding.provider[T, Q](x)
   def inject[T](implicit binding: Binding[T, Q]) = binding.inject
 
   def injectEither[T0, T1](implicit either: Either[Binding[T0, Q], Binding[T1, Q]]): Either[T0, T1] = either match {
@@ -58,7 +64,7 @@ trait Sindi[Q] extends Wiring[Q] {
 
 class Wire[T](value: => T) { def apply() = value }
 
-trait Wiring[Q] { self: Sindi[Q] =>
+trait Wiring[Q] { sel: Sindi[Q] =>
   implicit def any2wire[T](implicit x: T) = new Wire(x) // TODO TEST THIS! (override binding using implicit of T)
 
   implicit def binding2wire[T](implicit binding: Binding[T, Q]): Wire[T] =
@@ -67,10 +73,6 @@ trait Wiring[Q] { self: Sindi[Q] =>
     new Wire(injectOption[T])
   implicit def bindingEither2wire[T0, T1](implicit binding: Either[Binding[T0, Q], Binding[T1, Q]]): Wire[Either[T0, T1]] = 
     new Wire(injectEither[T0, T1])
-
-  def :>:[T : Wire] = wire[T]
-  def >>[T : Wire] = wire[T]
-  def >>>[A, B](f: (A) => B)(implicit wire: Wire[A]): B = autowire(f)
 
   def autowire[A, B](f: (A) => B)(implicit wire: Wire[A]): B = f(wire())
   def wire[T](implicit wire: Wire[T]) = wire()

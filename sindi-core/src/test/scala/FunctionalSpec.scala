@@ -10,6 +10,8 @@
 
 package sindi.test
 
+import scala.util.Random
+
 import org.specs2.mutable._
 
 import sindi.core._
@@ -22,9 +24,14 @@ class FunctionalSpec extends Specification {
 
     "bind and inject" in {
       implicit val string = bind("sindi")
-      implicit val int = bind(42)
+      implicit val int = bind(Random.nextInt)
       inject[String] mustEqual "sindi"
-      inject[Int] mustEqual 42
+      inject[Int] mustEqual inject[Int]
+    }
+
+    "provide and inject" in {
+      implicit val int = provide(Random.nextInt)
+      inject[Int] mustNotEqual inject[Int]
     }
 
     "support option" in {
@@ -124,18 +131,23 @@ class FunctionalSpec extends Specification {
 
       implicit val string = <<("sindi")
       implicit val stringQ0 = "q0" :<: as[Q0]
+      implicit val int = <+(Random.nextInt)
+      implicit val intQ0 = Random.nextInt :+: as[Q0]
 
       >>>(f _) mustEqual "sindi"
       f(sindi.core.>>[String]) mustEqual "sindi" // Conflict with specs2
 
-      f(+>) mustEqual "sindi"
-      f(as[Q0].+>) mustEqual "q0"
+      +>[Int] mustNotEqual +>[Int]
+      +>[String] mustEqual "sindi"
+      as[Q0].+>[String] mustEqual "q0"
     }
 
     "support operators in context" in {
       val context = Context()
-      context << ("sindi")
+      context << "sindi"
+      context <+ Random.nextInt
       "q0" :<: context.as[Q0]
+      Random.nextInt :+: context.as[Q0]
       
       context.++>[String] must contain("sindi", "q0")
     }
