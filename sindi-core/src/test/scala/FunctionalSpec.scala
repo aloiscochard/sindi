@@ -33,6 +33,19 @@ class FunctionalSpec extends Specification {
       implicit val int = provide(Random.nextInt)
       inject[Int] mustNotEqual inject[Int]
     }
+    
+    "support lazy wiring" in {
+      var init = false
+      implicit val string = bind { 
+        init = true
+        "sindi"
+      }
+
+      val x = wire[() => String]
+      init mustEqual false
+      x() mustEqual "sindi"
+      init mustEqual true
+    }
 
     "support option" in {
       implicit val string = bind("sindi")
