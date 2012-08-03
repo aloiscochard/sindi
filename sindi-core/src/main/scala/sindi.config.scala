@@ -16,7 +16,8 @@ import core._
 trait Configurable {
   import sindi.core._
 
-  implicit val profile = bind(Option(System.getProperty("profile")).orElse(defaultProfile), as[Profile])
+  implicit val profile: Binding[Option[String], Profile] =
+    as[Profile].bind(Option(System.getProperty("profile")).orElse(defaultProfile))
 
   class Configuration(implicit binding: Binding[Option[String], Profile]) 
     extends config.DefaultConfiguration("application" + binding.inject.map("-" + _).getOrElse("") + ".conf")
