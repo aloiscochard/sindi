@@ -33,7 +33,7 @@ class FunctionalSpec extends Specification {
       implicit val int = provide(Random.nextInt)
       inject[Int] mustNotEqual inject[Int]
     }
-    
+
     "support lazy wiring" in {
       var init = false
       implicit val string = bind { 
@@ -153,27 +153,27 @@ class FunctionalSpec extends Specification {
     "support operators" in {
       def f(x: String) = x
 
-      implicit val string = <<("sindi")
-      implicit val stringQ0 = "q0" :<: as[Q0]
-      implicit val int = <+(Random.nextInt)
+      implicit val string = sindi.core.>>("sindi") // Conflict with specs2
+      implicit val stringQ0 = "q0" :>: as[Q0]
+      implicit val int = +>(Random.nextInt)
       implicit val intQ0 = Random.nextInt :+: as[Q0]
 
-      >>>(f _) mustEqual "sindi"
-      f(sindi.core.>>[String]) mustEqual "sindi" // Conflict with specs2
+      <<<(f _) mustEqual "sindi"
+      f(<<[String]) mustEqual "sindi"
 
-      +>[Int] mustNotEqual +>[Int]
-      +>[String] mustEqual "sindi"
-      as[Q0].+>[String] mustEqual "q0"
+      <+[Int] mustNotEqual <+[Int]
+      <+[String] mustEqual "sindi"
+      as[Q0].<+[String] mustEqual "q0"
     }
 
     "support operators in context" in {
       val context = Context()
-      context << "sindi"
-      context <+ Random.nextInt
-      "q0" :<: context.as[Q0]
+      context >> "sindi"
+      context +> Random.nextInt
+      "q0" :>: context.as[Q0]
       Random.nextInt :+: context.as[Q0]
       
-      context.++>[String] must contain("sindi", "q0")
+      context.<++[String] must contain("sindi", "q0")
     }
   }
 }

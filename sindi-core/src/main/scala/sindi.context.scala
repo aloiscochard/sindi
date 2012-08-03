@@ -15,11 +15,11 @@ abstract class ContextSindi[Q]()(implicit mQ: Manifest[Q]) {
   implicit def list2wire[T : Manifest] = new Wire(injectAll[T])
 
   // TODO [aloiscochard] Find a solution to avoid code publication with Sindi[Q] and Syntax[Q]
-  def :<:[T : Manifest](x: => T) = bind(x)
+  def :>:[T : Manifest](x: => T) = bind(x)
   def :+:[T : Manifest](x: => T) = provide(x)
-  def <<[T : Manifest](x: => T) = bind(x)
-  def <+[T : Manifest](x: => T) = provide(x)
-  def ++>[T : Manifest] = injectAll[T]
+  def >>[T : Manifest](x: => T) = bind(x)
+  def +>[T : Manifest](x: => T) = provide(x)
+  def <++[T : Manifest] = injectAll[T]
 
   def bind[T : Manifest](x: => T) = register(Binding[T, Q](x))
   def provide[T : Manifest](x: => T) = register(Binding.provider[T, Q](x))
