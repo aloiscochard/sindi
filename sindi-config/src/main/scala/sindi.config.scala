@@ -106,6 +106,7 @@ package object config {
 
   class DefaultConfiguration(config: Config) extends Configuration {
 
+    def this() = this(ConfigFactory.load())
     def this(resourceName: String) = this(ConfigFactory.load(resourceName))
     def this(file: File) = this(ConfigFactory.parseFile(file))
 
