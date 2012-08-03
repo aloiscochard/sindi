@@ -62,7 +62,7 @@ trait Sindi[Q] extends Wiring[Q] with syntax.Sindi[Q] with syntax.Wiring[Q] {
   def injectOption[T](implicit option: Option[Binding[T, Q]] = None) = option.map(_.inject)
 }
 
-class Wire[T](value: => T) { def apply() = value }
+class Wire[T](value: => T) extends Function0[T] { override def apply() = value }
 object Wire { def apply[T](value: => T) = new Wire(value) }
 
 trait Wiring[Q] extends Autowiring[Q] { self: Sindi[Q] =>
