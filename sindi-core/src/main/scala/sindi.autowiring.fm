@@ -50,4 +50,36 @@ trait Autowiring[Q] { self: Wiring[Q] =>
   </#list>
       )
   </#list>
+
+  /*
+  def <<<[
+    A0, A1, 
+    B
+  ](f: (
+    A0, A1
+  ) => B)
+    (implicit 
+      w0: Wire[A0], w1: Wire[A1]
+    ): B =
+      autowire(f)
+  */
+
+  <#list 1..21 as i>
+  def <<<[
+  <#list 0..i as j>
+    A${j},
+  </#list>
+    B
+  ](f: (
+  <#list 0..i as j>
+    A${j}<#if i !=j>,</#if>
+  </#list>
+  ) => B)
+    (implicit 
+  <#list 0..i as j>
+     w${j}: Wire[A${j}]<#if i !=j>,</#if>
+  </#list>
+    ): B =
+      autowire(f)
+  </#list>
 }
