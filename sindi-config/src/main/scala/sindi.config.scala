@@ -48,8 +48,8 @@ package object config {
     )
 
     object Key {
-      def apply[T : Reader](name: String) = apply[T](name, (_: T) => Nil)
-      def apply[T : Reader](name: String, validation: T => List[String]) =
+      def apply[T : Reader](name: String): Key[T] = apply[T](name, (_: T) => Nil)
+      def apply[T : Reader](name: String, validation: T => List[String]): Key[T] =
         Configuration.this.validateKey(sindi.config.Key(name, validation))
     }
 
@@ -96,8 +96,8 @@ package object config {
   class Key[T](val name: String, val validation: T => List[String])
 
   object Key {
-    def apply[T : Reader](name: String) = apply[T](name, (_: T) => Nil)
-    def apply[T : Reader](name: String, validation: T => List[String]) = new Key[T](name, validation)
+    def apply[T : Reader](name: String): Key[T] = apply[T](name, (_: T) => Nil)
+    def apply[T : Reader](name: String, validation: T => List[String]): Key[T] = new Key[T](name, validation)
   }
 
   trait Reader[T] { def apply(key: Key[T]): Either[ConfigurationError, T] }

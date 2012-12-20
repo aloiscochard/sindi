@@ -7,10 +7,21 @@ object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Sonatype.settings ++ Seq(
     organization        := "com.github.aloiscochard.sindi",
     version             := "1.0-SNAPSHOT",
-    scalaVersion        := "2.9.2",
-    scalacOptions       := Seq("-unchecked", "-deprecation", "-Ydependent-method-types"),
-    crossScalaVersions  := Seq("2.9.0", "2.9.0-1", "2.9.1", "2.9.1-1", "2.9.2")
+    scalaVersion        := "2.10.0",
+    scalacOptions       <++= scalaVersion.map(_ match {
+      case "2.10.0" => Seq("-unchecked", "-deprecation")
+      case _ => Seq("-unchecked", "-deprecation", "-Ydependent-method-types")
+    }),
+    crossScalaVersions  := Seq("2.9.1-1", "2.9.2", "2.10.0")
   )
+scalacOptions <++= scalaVersion map { version =>
+  val Version = """(\d+)\.(\d+)\..*"""r
+  val Version(major0, minor0) = version map identity
+  val (major, minor) = (major0.toInt, minor0.toInt)
+  if (major < 2 || (major == 2 && minor < 10)) 
+  	Seq("-Ydependent-method-types")
+ 	else Nil
+}
 }
 
 object Resolvers {
