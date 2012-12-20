@@ -58,6 +58,15 @@ class FunctionalSpec extends Specification {
       autowire(f) mustEqual ("sindi", 42, 4.2, 420000L)
     }
 
+    "support autowiring with qualified binding" in {
+      case class Foo(x0: String)
+
+      implicit val string1 = as[Foo].bind("sindi")
+      implicit val string0 = bind("")
+
+      autowire(Foo.apply _) mustEqual Foo("sindi")
+    }
+
     "support option" in {
       implicit val string = bind("sindi")
 

@@ -10,8 +10,24 @@
 
 package sindi
 
-trait Autowiring[Q] { self: Wiring[Q] =>
-  def autowire[A, B](f: (A) => B)(implicit wire: Wire[A]): B = f(wire())
+trait AutowiringResolver0[Q] { self: Autowiring[Q] =>
+  implicit def bindingOrWireL[A, B](implicit w: Wire[A]): Lookup[A, B] = Left(w)
+}
+
+trait AutowiringResolver[Q] extends AutowiringResolver0[Q] { self: Autowiring[Q] =>
+  implicit def bindingOrWireR[A, B](implicit b: Binding[A, B]): Lookup[A, B] = Right(b)
+}
+
+trait Autowiring[Q] extends AutowiringResolver[Q] { self: Wiring[Q] =>
+
+  type Lookup[A, B] = Either[Wire[A], Binding[A, B]]
+
+  private def resolve[A, B](lookup: Lookup[A, B]): A = lookup match {
+    case Right(binding) => binding.inject
+    case Left(wire) => wire()
+  }
+
+  def autowire[A, B](f: (A) => B)(implicit lookup: Lookup[A, B]): B = f(resolve(lookup))
 
   /*
   def autowire[
@@ -41,12 +57,12 @@ trait Autowiring[Q] { self: Wiring[Q] =>
   ) => B)
     (implicit 
   <#list 0..i as j>
-     w${j}: Wire[A${j}]<#if i !=j>,</#if>
+     lookup${j}: Lookup[A${j}, B]<#if i !=j>,</#if>
   </#list>
     ): B =
       f(
   <#list 0..i as j>
-     w${j}()<#if i !=j>,</#if>
+     resolve(lookup${j})<#if i !=j>,</#if>
   </#list>
       )
   </#list>
@@ -77,7 +93,7 @@ trait Autowiring[Q] { self: Wiring[Q] =>
   ) => B)
     (implicit 
   <#list 0..i as j>
-     w${j}: Wire[A${j}]<#if i !=j>,</#if>
+     lookup${j}: Lookup[A${j}, B]<#if i !=j>,</#if>
   </#list>
     ): B =
       autowire(f)

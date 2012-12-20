@@ -22,6 +22,6 @@ trait Sindi[Q] { self: sindi.Sindi[Q] =>
 trait Wiring[Q] { self: sindi.Wiring[Q] =>
   def :<:[T : Wire] = wire[T]
   def <<[T : Wire] = wire[T]
-  def <<<[A, B](f: (A) => B)(implicit wire: Wire[A]): B = autowire(f)
+  def <<<[A, B](f: (A) => B)(implicit lookup: Lookup[A, B]): B = autowire(f)
 }
 

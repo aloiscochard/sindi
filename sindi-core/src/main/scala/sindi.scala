@@ -26,13 +26,11 @@ object Binding {
 }
 
 trait BindingEither extends BindingRight
-
 trait BindingRight extends BindingLeft {
-  implicit def bindingEitherR[T0, Q0, T1, Q1](implicit b1: Binding[T1, Q1]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Right(b1)
+  implicit def bindingEitherR[T0, Q0, T1, Q1](implicit b: Binding[T1, Q1]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Right(b)
 }
-
 trait BindingLeft {
-  implicit def bindingEitherL[T0, Q0, T1, Q1](implicit b0: Binding[T0, Q0]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Left(b0)
+  implicit def bindingEitherL[T0, Q0, T1, Q1](implicit b: Binding[T0, Q0]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Left(b)
 }
 
 trait Default
