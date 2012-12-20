@@ -14,14 +14,6 @@ object BuildSettings {
     }),
     crossScalaVersions  := Seq("2.9.1-1", "2.9.2", "2.10.0")
   )
-scalacOptions <++= scalaVersion map { version =>
-  val Version = """(\d+)\.(\d+)\..*"""r
-  val Version(major0, minor0) = version map identity
-  val (major, minor) = (major0.toInt, minor0.toInt)
-  if (major < 2 || (major == 2 && minor < 10)) 
-  	Seq("-Ydependent-method-types")
- 	else Nil
-}
 }
 
 object Resolvers {
@@ -31,7 +23,10 @@ object Resolvers {
 
 object Dependencies {
   val testDependencies = Seq(
-    libraryDependencies += "org.specs2" %% "specs2" % "1.11" % "test"
+    libraryDependencies <+= scalaVersion(_ match {
+      case "2.10.0" => "org.specs2" %% "specs2" % "1.13" % "test"
+      case _ => "org.specs2" %% "specs2" % "1.11" % "test"
+    })
   )
 }
 
@@ -61,7 +56,7 @@ object SindiBuild extends Build {
     "sindi-config",
     file("sindi-config"),
     settings = buildSettings ++ testDependencies ++ Seq(
-      libraryDependencies += "com.typesafe" % "config" % "0.5.0"
+      libraryDependencies += "com.typesafe" % "config" % "1.0.0"
     ) 
   )
 }
