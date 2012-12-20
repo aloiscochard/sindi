@@ -6,7 +6,7 @@ import fmpp.FmppPlugin._
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Sonatype.settings ++ Seq(
     organization        := "com.github.aloiscochard.sindi",
-    version             := "1.0-SNAPSHOT",
+    version             := "1.0-RC2",
     scalaVersion        := "2.9.2",
     scalacOptions       := Seq("-unchecked", "-deprecation", "-Ydependent-method-types"),
     crossScalaVersions  := Seq("2.9.0", "2.9.0-1", "2.9.1", "2.9.1-1", "2.9.2")
