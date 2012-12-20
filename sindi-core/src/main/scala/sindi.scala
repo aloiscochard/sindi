@@ -12,7 +12,7 @@ package sindi
 
 // TODO Test Wiring.any2wire
 
-trait Binding[+T, Q] { def inject: T }
+trait Binding[+T, -Q] { def inject: T }
 
 object Binding {
   def apply[T, Q](x: => T) = new Binding[T, Q] { 

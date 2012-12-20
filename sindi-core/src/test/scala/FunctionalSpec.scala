@@ -189,5 +189,15 @@ class FunctionalSpec extends Specification {
         implicit val option = bind(Some("sindi"))
         inject[Option[String]] mustEqual Some("sindi")
     }
+
+    "support contravariance on qualifier" in {
+      trait Bar
+      case class Foo(x0: String) extends Bar
+
+      implicit val string1 = as[Bar].bind("sindi")
+      implicit val string0 = bind("")
+
+      autowire(Foo.apply _) mustEqual Foo("sindi")
+    }
   }
 }
