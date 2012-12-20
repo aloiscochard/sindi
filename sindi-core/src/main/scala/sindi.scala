@@ -25,13 +25,13 @@ object Binding {
   }
 }
 
-trait BindingToEither extends BindingToRight
+trait BindingEither extends BindingRight
 
-trait BindingToRight extends BindingToLeft {
+trait BindingRight extends BindingLeft {
   implicit def bindingEitherR[T0, Q0, T1, Q1](implicit b1: Binding[T1, Q1]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Right(b1)
 }
 
-trait BindingToLeft {
+trait BindingLeft {
   implicit def bindingEitherL[T0, Q0, T1, Q1](implicit b0: Binding[T0, Q0]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Left(b0)
 }
 
@@ -79,7 +79,7 @@ trait Wiring[Q] extends Autowiring[Q] { self: Sindi[Q] =>
   def wire[T](implicit wire: Wire[T]) = wire()
 }
 
-object core extends Sindi[Default] with BindingToEither with context.Support {
+object core extends Sindi[Default] with BindingEither with context.Support {
 
   type Default = sindi.Default
 
