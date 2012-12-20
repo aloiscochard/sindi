@@ -12,7 +12,7 @@ package sindi
 
 // TODO Test Wiring.any2wire
 
-trait Binding[T, Q] { def inject: T }
+trait Binding[+T, Q] { def inject: T }
 
 object Binding {
   def apply[T, Q](x: => T) = new Binding[T, Q] { 
@@ -28,13 +28,11 @@ object Binding {
 trait BindingToEither extends BindingToRight
 
 trait BindingToRight extends BindingToLeft {
-  implicit def bindingEitherR0[T, Q0, Q1](implicit b1: Binding[T, Q1]): Either[Binding[T, Q0], Binding[T, Q1]] = Right(b1)
-  implicit def bindingEitherR1[T0, Q0, T1, Q1](implicit b1: Binding[T1, Q1]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Right(b1)
+  implicit def bindingEitherR[T0, Q0, T1, Q1](implicit b1: Binding[T1, Q1]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Right(b1)
 }
 
 trait BindingToLeft {
-  implicit def bindingEitherL0[T, Q0, Q1](implicit b0: Binding[T, Q0]): Either[Binding[T, Q0], Binding[T, Q1]] = Left(b0)
-  implicit def bindingEitherL1[T0, Q0, T1, Q1](implicit b0: Binding[T0, Q0]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Left(b0)
+  implicit def bindingEitherL[T0, Q0, T1, Q1](implicit b0: Binding[T0, Q0]): Either[Binding[T0, Q0], Binding[T1, Q1]] = Left(b0)
 }
 
 trait Default

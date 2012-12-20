@@ -175,5 +175,10 @@ class FunctionalSpec extends Specification {
       
       context.<++[String] must contain("sindi", "q0")
     }
+
+    "support covariance on binding" in {
+        implicit val option = bind(Some("sindi"))
+        inject[Option[String]] mustEqual Some("sindi")
+    }
   }
 }
