@@ -21,6 +21,8 @@ import com.typesafe.config._
 package object config {
 
   trait Configuration {
+    // TODO Support for pretty print configuration
+    // TODO Better validation error message printer
     // TODO Add implicit for URL support (from String)
     // TODO Add implicit from regular expression to validation
 
