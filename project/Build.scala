@@ -40,7 +40,7 @@ object SindiBuild extends Build {
     "sindi",
     file ("."),
     settings = buildSettings ++ Seq(publishArtifact := false)
-  ) aggregate (core, config)
+  ) aggregate (core, config, examples_app)
 
   lazy val core = Project(
     "sindi-core",
@@ -59,6 +59,12 @@ object SindiBuild extends Build {
       libraryDependencies += "com.typesafe" % "config" % "1.0.0"
     ) 
   )
+
+  lazy val examples_app = Project(
+    "sindi-examples_app",
+    file("sindi-examples/app"),
+    settings = buildSettings ++ testDependencies ++ Seq(publishArtifact := false)
+  ) dependsOn(core, config)
 }
 
 object Sonatype extends PublishToSonatype(SindiBuild) {
