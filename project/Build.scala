@@ -39,7 +39,7 @@ object SindiBuild extends Build {
   lazy val sindi = Project (
     "sindi",
     file ("."),
-    settings = buildSettings
+    settings = buildSettings ++ Seq(publishArtifact := false)
   ) aggregate (core, config)
 
   lazy val core = Project(
