@@ -11,6 +11,8 @@ You'll find more information on the website, and support on the dedicated mailin
  * __user guide__: [http://aloiscochard.github.com/sindi](http://aloiscochard.github.com/sindi)
  * __mailling list__: [http://groups.google.com/group/sindi-users](http://groups.google.com/group/sindi-users)
 
+[![Build Status](https://travis-ci.org/aloiscochard/sindi.png)](https://travis-ci.org/aloiscochard/sindi)
+
 ## Contribution Policy
 
 Contributions via GitHub pull requests are gladly accepted from their original author.
