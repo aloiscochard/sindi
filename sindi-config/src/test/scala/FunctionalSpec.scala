@@ -39,15 +39,15 @@ class FunctionalSpec extends Specification {
     "load sequence values" in {
       object Configuration extends DefaultConfiguration("test.conf") {
         object Seq extends Section("seq") {
-          val boolean = Key[List[Boolean]]("boolean")
-          val double  = Key[List[Double]] ("double")
-          val int     = Key[List[Int]]    ("int")
-          val long    = Key[List[Long]]   ("long")
-          val string  = Key[List[String]] ("string")
+          val boolean = Key[Seq[Boolean]]("boolean")
+          val double  = Key[Seq[Double]] ("double")
+          val int     = Key[Seq[Int]]    ("int")
+          val long    = Key[Seq[Long]]   ("long")
+          val string  = Key[Seq[String]] ("string")
         }
       }
 
-      def f(x0: List[Boolean], x1: List[Double], x2: List[Int], x3: List[Long], x4: List[String]) = (x0, x1, x2, x3, x4)
+      def f(x0: Seq[Boolean], x1: Seq[Double], x2: Seq[Int], x3: Seq[Long], x4: Seq[String]) = (x0, x1, x2, x3, x4)
 
       import Configuration._
       import Configuration.Seq._

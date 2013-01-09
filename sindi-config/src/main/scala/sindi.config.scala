@@ -143,11 +143,11 @@ package object config {
     implicit val _long = reader(config.getLong(_))
     implicit val _string = reader(config.getString(_))
 
-    implicit val _booleanL = reader(config.getBooleanList(_).asScala.toList.map(x => x: Boolean))
-    implicit val _doubleL = reader(config.getDoubleList(_).asScala.toList.map(x => x: Double))
-    implicit val _intL = reader(config.getIntList(_).asScala.toList.map(x => x: Int))
-    implicit val _longL = reader(config.getLongList(_).asScala.toList.map(x => x: Long))
-    implicit val _stringL = reader(config.getStringList(_).asScala.toList)
+    implicit val _booleanS = reader(config.getBooleanList(_).asScala.toSeq.map(x => x: Boolean))
+    implicit val _doubleS = reader(config.getDoubleList(_).asScala.toSeq.map(x => x: Double))
+    implicit val _intS = reader(config.getIntList(_).asScala.toSeq.map(x => x: Int))
+    implicit val _longS = reader(config.getLongList(_).asScala.toSeq.map(x => x: Long))
+    implicit val _stringS = reader(config.getStringList(_).asScala.toSeq)
 
     private def reader[T](f: String => T) = Reader[T](key => catching(classOf[ConfigException]) either f(key.name) match {
       case Right(value) => Right(value)
