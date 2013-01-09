@@ -158,6 +158,19 @@ class FunctionalSpec extends Specification {
 
       inject[String] mustEqual "sindi"
     }
+    
+    "support context with plugins" in {
+      object Foo extends Context with PluginLoader {
+        val plugins = Seq(Plugin[FooPlugin]())
+
+        implicit val default = bind(new DefaultFooPlugin)
+      }
+
+      Foo.injectAll[FooPlugin].map(_.name) must contain("default", "provided")
+
+      import Foo._
+      wire[Seq[FooPlugin]].map(_.name) must contain("default", "provided")
+    }
 
     "support operators" in {
       def f(x: String) = x
@@ -186,8 +199,8 @@ class FunctionalSpec extends Specification {
     }
 
     "support covariance on binding" in {
-        implicit val option = bind(Some("sindi"))
-        inject[Option[String]] mustEqual Some("sindi")
+      implicit val option = bind(Some("sindi"))
+      inject[Option[String]] mustEqual Some("sindi")
     }
 
     "support contravariance on qualifier" in {

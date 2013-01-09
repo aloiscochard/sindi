@@ -55,5 +55,33 @@ trait Support {
   }
 
   object Context { def apply() = new Context }
+
+  trait PluginLoader extends Context {
+    import java.io.File
+    import java.net.{URL, URLClassLoader}
+    import java.util.ServiceLoader
+    import scala.collection.JavaConverters._
+
+    implicit def file2cl(f: File): ClassLoader = url2cl(f.toURI.toURL)
+    implicit def string2cl(s: String): ClassLoader = url2cl(new URL(s))
+    implicit def url2cl(url: URL): ClassLoader = new URLClassLoader(Array(url))
+
+    class Plugin[T] (
+      val tpe: Manifest[T],
+      val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader()
+    )
+
+    object Plugin {
+      def apply[T : Manifest](classLoader: ClassLoader = Thread.currentThread().getContextClassLoader()): Plugin[T] =
+        new Plugin(manifest[T], classLoader)
+    }
+
+    def plugins: Seq[Plugin[_]]
+
+    override def injectAll[T : Manifest]: Seq[T] =
+      super.injectAll[T] ++ plugins.find(_.tpe == manifest[T]).fold(Seq.empty[T]) { plugin =>
+        ServiceLoader.load(plugin.tpe.erasure, plugin.classLoader).asScala.toSeq.asInstanceOf[Seq[T]]
+      }
+  }
 }
 
