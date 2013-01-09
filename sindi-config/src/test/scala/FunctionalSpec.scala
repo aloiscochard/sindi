@@ -19,7 +19,7 @@ class FunctionalSpec extends Specification {
   "Sindi Config" should {
 
     "load simple values" in {
-      class Configuration extends DefaultConfiguration("test.conf") {
+      object Configuration extends DefaultConfiguration("test.conf") {
         val boolean = Key[Boolean]("boolean")
         val double  = Key[Double] ("double")
         val int     = Key[Int]    ("int")
@@ -29,29 +29,30 @@ class FunctionalSpec extends Specification {
 
       def f(x0: Boolean, x1: Double, x2: Int, x3: Long, x4: String) = (x0, x1, x2, x3, x4)
 
-      val configuration = new Configuration
-      import configuration._
+      import Configuration._
       
-      implicit val validated = configuration.validate()
+      implicit val validated = Configuration.validate()
 
       f(boolean, double, int, long, string) mustEqual (true, 2.2, 42, 100000, "sindi") 
     }
 
     "load sequence values" in {
-      class Configuration extends DefaultConfiguration("test.conf") {
-        val boolean = Key[List[Boolean]]("list.boolean")
-        val double  = Key[List[Double]] ("list.double")
-        val int     = Key[List[Int]]    ("list.int")
-        val long    = Key[List[Long]]   ("list.long")
-        val string  = Key[List[String]] ("list.string")
+      object Configuration extends DefaultConfiguration("test.conf") {
+        object Seq extends Section("seq") {
+          val boolean = Key[List[Boolean]]("boolean")
+          val double  = Key[List[Double]] ("double")
+          val int     = Key[List[Int]]    ("int")
+          val long    = Key[List[Long]]   ("long")
+          val string  = Key[List[String]] ("string")
+        }
       }
 
       def f(x0: List[Boolean], x1: List[Double], x2: List[Int], x3: List[Long], x4: List[String]) = (x0, x1, x2, x3, x4)
 
-      val configuration = new Configuration
-      import configuration._
+      import Configuration._
+      import Configuration.Seq._
 
-      implicit val validated = configuration.validate()
+      implicit val validated = Configuration.validate()
 
       f(boolean, double, int, long, string) mustEqual (
         List(true, false, true),
@@ -63,33 +64,48 @@ class FunctionalSpec extends Specification {
     }
 
     "support option" in {
-      class Configuration extends DefaultConfiguration("test.conf") {
+      object Configuration extends DefaultConfiguration("test.conf") {
         val boolean = Key[Option[Boolean]]("notexist")
         val string  = Key[Option[String]] ("string")
       }
 
-      val configuration = new Configuration
-      import configuration._
-
-      implicit val validated = configuration.validate()
+      import Configuration._
+      implicit val validated = Configuration.validate()
 
       read(boolean) mustEqual Right(None)
       read(string) mustEqual Right(Some("sindi"))
     }
 
     "support either" in {
-      class Configuration extends DefaultConfiguration("test.conf") {
+      object Configuration extends DefaultConfiguration("test.conf") {
         val e0  = Key[Either[String, Boolean]] ("string")
         val e1  = Key[Either[Int, String]] ("int")
       }
 
-      val configuration = new Configuration
-      import configuration._
-
-      implicit val validated = configuration.validate()
+      import Configuration._
+      implicit val validated = Configuration.validate()
 
       read(e0) mustEqual Right(Left("sindi"))
       read(e1) mustEqual Right(Right("42"))
+    }
+
+    "support section" in {
+      object Configuration extends DefaultConfiguration("test.conf") {
+        object A extends Section("a") {
+          object B extends Section("b") {
+            object C extends Section("c") {
+              object D extends Section("d") {
+                val key = Key[String]("key")
+              }
+            }
+          }
+        }
+      }
+
+      import Configuration._
+      implicit val validated = Configuration.validate()
+
+      read(A.B.C.D.key) mustEqual Right("value")
     }
 
     // TODO Test error, validation, isValid, and config list

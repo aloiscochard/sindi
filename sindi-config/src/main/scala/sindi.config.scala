@@ -18,13 +18,15 @@ import java.net.URL
 
 import com.typesafe.config._
 
+// TODO Add implicit for URL support (from String)
+
 package object config {
 
   trait Configuration {
     // TODO Support for pretty print configuration
     // TODO Better validation error message printer
-    // TODO Add implicit for URL support (from String)
     // TODO Add implicit from regular expression to validation
+    // TODO Find alternative for the ugly indirection for Key and Section
 
     implicit def key2value[T](key: Key[T])(implicit reader: Reader[T], validated: Validated[this.type]) = read(key) match {
       case Right(value) => value
@@ -47,10 +49,22 @@ package object config {
       }
     )
 
-    object Key {
-      def apply[T : Reader](name: String): Key[T] = apply[T](name, (_: T) => Nil)
-      def apply[T : Reader](name: String, validation: T => List[String]): Key[T] =
-        Configuration.this.validateKey(sindi.config.Key(name, validation))
+    trait KeyFactoryValidated extends KeyFactory {
+      override def apply[T : Reader](name: String, validation: T => List[String]): Key[T] =
+        Configuration.this.validateKey(super.apply(name, validation))
+    }
+
+    object Key extends KeyFactoryValidated
+
+    class Section(val title: String) extends SectionLike
+
+    trait SectionLike {
+      def title: String
+      class Section(_title: String) extends SectionLike { def title = SectionLike.this.title + "." + _title }
+      object Key extends KeyFactoryValidated {
+        override def apply[T : Reader](name: String, validation: T => List[String]): Key[T] =
+          super.apply(title + "." + name, validation)
+      }
     }
 
     def config[T](f: List[(String, String)] => T) = f(_config.toList)
@@ -93,11 +107,22 @@ package object config {
   case object Missing extends ConfigurationError 
   case object WrongType extends ConfigurationError 
 
+  class Section(val title: String) {
+    object Key extends KeyFactory {
+      override def apply[T : Reader](name: String, validation: T => List[String]): Key[T] =
+        super.apply(title + "." + name, validation)
+    }
+  }
+
   class Key[T](val name: String, val validation: T => List[String])
 
-  object Key {
-    def apply[T : Reader](name: String): Key[T] = apply[T](name, (_: T) => Nil)
-    def apply[T : Reader](name: String, validation: T => List[String]): Key[T] = new Key[T](name, validation)
+  object Key extends KeyFactory
+
+  trait KeyFactory {
+    def apply[T : Reader](name: String): Key[T] =
+      apply[T](name, (_: T) => Nil)
+    def apply[T : Reader](name: String, validation: T => List[String]): Key[T] =
+      new Key[T](name, validation)
   }
 
   trait Reader[T] { def apply(key: Key[T]): Either[ConfigurationError, T] }
