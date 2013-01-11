@@ -18,12 +18,11 @@ import core._
 trait Configurable {
   import sindi.core._
 
-  implicit val profile: Binding[Option[String], Profile] =
+  implicit val _profile: Binding[Option[String], Profile] =
     as[Profile].bind(Option(System.getProperty("profile")).orElse(defaultProfile))
 
-  class Configuration(implicit binding: Binding[Option[String], Profile]) 
-    extends config.DefaultConfiguration(
-      binding.inject match {
+  class Configuration extends config.DefaultConfiguration(
+      profile match {
         case Some(profile) => 
           ConfigFactory.load("application-" + profile + ".conf")
            .withFallback(ConfigFactory.load())
@@ -34,6 +33,8 @@ trait Configurable {
 
   trait Profile
 
-  protected val defaultProfile: Option[String] = None
+  def defaultProfile: Option[String] = None
+
+  def profile(implicit binding: Binding[Option[String], Profile]) = binding.inject
 }
 
