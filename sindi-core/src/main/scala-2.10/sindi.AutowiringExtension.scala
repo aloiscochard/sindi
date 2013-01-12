@@ -32,7 +32,7 @@ object AutowiringMacro {
       Apply(
         TypeApply(
           Select(Select(Ident(newTermName("sindi")), newTermName("core")), newTermName("wire")),
-          List(Ident(typeSignature.typeSymbol))
+          List(TypeTree(typeSignature))
         ),
         List(c.inferImplicitValue(appliedType(typeOf[sindi.Wire[_]], List(typeSignature))))
       )
