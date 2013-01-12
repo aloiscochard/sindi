@@ -5,5 +5,3 @@ scala:
   - 2.10.0
 jdk:
   - openjdk7
-script:
-  sbt ";clean;compile;test";
