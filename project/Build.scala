@@ -47,8 +47,12 @@ object SindiBuild extends Build {
     file("sindi-core"),
     settings = buildSettings ++ testDependencies ++ fmppSettings ++ Seq(
       libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-compiler" % _),
-      // WORKAROUND for https://github.com/harrah/xsbt/issues/85
-      unmanagedClasspath in Compile += Attributed.blank(new java.io.File("doesnotexist"))
+      unmanagedSourceDirectories in Compile <+= (sourceDirectory in Compile, scalaVersion) { (sourceDirectory, scalaVersion) =>
+        scalaVersion match {
+          case v if v.startsWith("2.10") => sourceDirectory / "scala-2.10"
+          case _ => sourceDirectory / "scala-2.9"
+        }
+      }
     )
   ) configs(Fmpp) dependsOn(config % "provided")
 
