@@ -79,7 +79,7 @@ trait Support {
     def plugins: Seq[Plugin[_]]
 
     override def injectAll[T : Manifest]: Seq[T] =
-      super.injectAll[T] ++ plugins.find(_.tpe == manifest[T]).fold(Seq.empty[T]) { plugin =>
+      super.injectAll[T] ++ plugins.find(_.tpe == manifest[T]).toList.flatMap { plugin =>
         ServiceLoader.load(plugin.tpe.erasure, plugin.classLoader).asScala.toSeq.asInstanceOf[Seq[T]]
       }
   }
