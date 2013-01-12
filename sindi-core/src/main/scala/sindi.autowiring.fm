@@ -20,7 +20,7 @@ trait AutowiringResolver extends AutowiringResolver0 { self: Autowiring =>
   implicit def bindingOrWireR[A, B](implicit b: Binding[A, B]): Lookup[A, B] = Right(b)
 }
 
-trait Autowiring extends AutowiringResolver { self: Wiring[_] =>
+trait Autowiring extends AutowiringResolver with AutowiringExtension { self: Wiring[_] =>
 
   type Lookup[A, B] = Either[Wire[A], Binding[A, B]]
 
