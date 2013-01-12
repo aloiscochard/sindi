@@ -10,15 +10,17 @@
 
 package sindi
 
-trait AutowiringResolver0[Q] { self: Autowiring[Q] =>
+import sindi.core.wire
+
+trait AutowiringResolver0 { self: Autowiring =>
   implicit def bindingOrWireL[A, B](implicit w: Wire[A]): Lookup[A, B] = Left(w)
 }
 
-trait AutowiringResolver[Q] extends AutowiringResolver0[Q] { self: Autowiring[Q] =>
+trait AutowiringResolver extends AutowiringResolver0 { self: Autowiring =>
   implicit def bindingOrWireR[A, B](implicit b: Binding[A, B]): Lookup[A, B] = Right(b)
 }
 
-trait Autowiring[Q] extends AutowiringResolver[Q] { self: Wiring[Q] =>
+trait Autowiring extends AutowiringResolver { self: Wiring[_] =>
 
   type Lookup[A, B] = Either[Wire[A], Binding[A, B]]
 
