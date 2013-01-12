@@ -29,14 +29,17 @@ object AutowiringMacro {
       case m: MethodSymbol if m.isConstructor => m
     }.sortBy(_.paramss.flatten.size).last
 
-    val paramss = constructor.paramss.map(_.map(_.typeSignature).map { typeSignature =>
-      Apply(
-        TypeApply(
-          Select(Select(Ident(newTermName("sindi")), newTermName("core")), newTermName("wire")),
-          List(TypeTree(typeSignature))
-        ),
-        List(c.inferImplicitValue(appliedType(typeOf[sindi.Wire[_]], List(typeSignature))))
-      )
+    val paramss = constructor.paramss.map(_.map { param =>
+      List(
+        appliedType(typeOf[sindi.Binding[_, _]], List(param.typeSignature, tpe)),
+        appliedType(typeOf[sindi.Wire[_]], List(param.typeSignature))
+      ).foldLeft(EmptyTree)((binding, tpe) => binding match {
+        case EmptyTree => c.inferImplicitValue(tpe)
+        case tree => tree
+      }) match {
+        case EmptyTree => c.abort(c.enclosingPosition, s"could not bind parameter ${param.name}: ${param.typeSignature}")
+        case tree => Apply(Select(tree, newTermName("apply")), List())
+      }
     })
 
     def cons(paramss: List[List[Tree]]): Tree = paramss match {
