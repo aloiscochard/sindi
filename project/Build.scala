@@ -67,7 +67,15 @@ object SindiBuild extends Build {
   lazy val examples_app = Project(
     "sindi-examples_app",
     file("sindi-examples/app"),
-    settings = buildSettings ++ testDependencies ++ Seq(publishArtifact := false)
+    settings = buildSettings ++ testDependencies ++ Seq(
+      publishArtifact := false,
+      scalaSource in Compile <<= (sourceDirectory in Compile, scalaVersion) { (sourceDirectory, scalaVersion) =>
+        scalaVersion match {
+          case v if v.startsWith("2.10") => sourceDirectory / "scala-2.10"
+          case _ => sourceDirectory / "scala-2.9"
+        }
+      }
+    )
   ) dependsOn(core, config)
 }
 
