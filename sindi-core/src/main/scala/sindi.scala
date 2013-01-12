@@ -12,16 +12,16 @@ package sindi
 
 // TODO Test Wiring.any2wire
 
-trait Binding[+T, -Q] { def inject: T }
+trait Binding[+T, -Q] extends Function0[T]
 
 object Binding {
   def apply[T, Q](x: => T) = new Binding[T, Q] { 
     private lazy val value = x
-    override def inject = value
+    override def apply() = value
   }
 
   def provider[T, Q](x: => T) = new Binding[T, Q] { 
-    override def inject = x
+    override def apply() = x
   }
 }
 
@@ -39,23 +39,23 @@ trait Qualifier[Q]
 
 class QualifiersOps[Q0, Q1](tuple: (Qualifier[Q0], Qualifier[Q1])) { 
   def inject[T](implicit either: Either[Binding[T, Q1], Binding[T, Q0]]) = either match {
-    case Right(binding) => binding.inject
-    case Left(binding) => binding.inject
+    case Right(binding) => binding()
+    case Left(binding) => binding()
   }
-  def injectOption[T](implicit o0: Option[Binding[T, Q0]] = None, o1: Option[Binding[T, Q1]] = None) = o0.orElse(o1).map(_.inject)
+  def injectOption[T](implicit o0: Option[Binding[T, Q0]] = None, o1: Option[Binding[T, Q1]] = None) = o0.orElse(o1).map(_.apply)
 }
 
 trait Sindi[Q] extends Wiring[Q] with syntax.Sindi[Q] with syntax.Wiring[Q] {
   def bind[T](x: => T) = Binding[T, Q](x)
   def provide[T](x: => T) = Binding.provider[T, Q](x)
-  def inject[T](implicit binding: Binding[T, Q]) = binding.inject
+  def inject[T](implicit binding: Binding[T, Q]) = binding()
 
   def injectEither[T0, T1](implicit either: Either[Binding[T0, Q], Binding[T1, Q]]): Either[T0, T1] = either match {
-    case Right(binding) => Right(binding.inject)
-    case Left(binding) => Left(binding.inject)
+    case Right(binding) => Right(binding())
+    case Left(binding) => Left(binding())
   }
 
-  def injectOption[T](implicit option: Option[Binding[T, Q]] = None) = option.map(_.inject)
+  def injectOption[T](implicit option: Option[Binding[T, Q]] = None) = option.map(_.apply)
 }
 
 class Wire[T](value: => T) extends Function0[T] { override def apply() = value }
@@ -82,7 +82,7 @@ object core extends Sindi[Default] with BindingEither with context.Support {
   type Default = sindi.Default
 
   implicit def bindingOption[T, Q](implicit binding: Binding[T, Q]) = Some(binding)
-  implicit def injection[T](binding: Binding[T, _]): T = binding.inject
+  implicit def injection[T](binding: Binding[T, _]): T = binding()
   implicit def qualifier[Q] = new Qualifier[Q] {}
   implicit def qualifierOps[Q](qualifer: Qualifier[Q]) = new Sindi[Q] {}
   implicit def qualifiersOps[Q0, Q1](tuple: (Qualifier[Q0], Qualifier[Q1])) = new QualifiersOps(tuple)

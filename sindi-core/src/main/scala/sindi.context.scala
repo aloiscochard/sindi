@@ -49,7 +49,7 @@ trait Support {
     }
 
     private def _filterAndInject[T](f: ((Manifest[_], Manifest[_], Binding[_, _])) => Boolean): Seq[T] =
-      registry.filter(f).toList.view.map(_._3.inject.asInstanceOf[T])
+      registry.filter(f).toList.view.map(_._3.apply.asInstanceOf[T])
 
     protected var registry = List[(Manifest[_], Manifest[_], Binding[_, _])]()
   }

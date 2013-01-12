@@ -25,7 +25,7 @@ trait Autowiring extends AutowiringResolver with AutowiringExtension { self: Wir
   type Lookup[A, B] = Either[Wire[A], Binding[A, B]]
 
   private def resolve[A, B](lookup: Lookup[A, B]): A = lookup match {
-    case Right(binding) => binding.inject
+    case Right(binding) => binding()
     case Left(wire) => wire()
   }
 

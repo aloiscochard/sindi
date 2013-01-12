@@ -35,6 +35,6 @@ trait Configurable {
 
   def defaultProfile: Option[String] = None
 
-  def profile(implicit binding: Binding[Option[String], Profile]) = binding.inject
+  def profile(implicit binding: Binding[Option[String], Profile]) = binding()
 }
 
