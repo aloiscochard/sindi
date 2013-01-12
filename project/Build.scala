@@ -6,7 +6,7 @@ import fmpp.FmppPlugin._
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Sonatype.settings ++ Seq(
     organization        := "com.github.aloiscochard.sindi",
-    version             := "1.0-SNAPSHOT",
+    version             := "1.0-RC3",
     scalaVersion        := "2.10.0",
     scalacOptions       <++= scalaVersion.map(_ match {
       case "2.10.0" => Seq("-unchecked", "-deprecation")
