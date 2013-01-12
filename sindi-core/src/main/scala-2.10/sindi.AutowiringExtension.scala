@@ -17,6 +17,7 @@ import scala.tools.reflect.Eval
 trait AutowiringExtension {
   import language.experimental.macros
   def autowire[T](implicit tag: TypeTag[T]) = macro AutowiringMacro.autowire[T]
+  def <<<[T](implicit tag: TypeTag[T]) = macro AutowiringMacro.autowire[T]
 }
 
 object AutowiringMacro {
